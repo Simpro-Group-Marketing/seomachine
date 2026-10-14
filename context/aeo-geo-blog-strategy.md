@@ -34,7 +34,7 @@ When `author_policy.status` is `no_author` or the legacy value `not_provided`, f
 
 ## Named Feature Status And Commercial Treatment
 
-When public copy names Lightning, RAIN, a current role agent, Intelligent AI Scheduler, or a roadmap specialist, the validation sidecar must contain exactly one row per detected name under `Named Feature Status and Commercial Treatment`.
+When public copy names Lightning, RAIN, a current role agent, Intelligent AI Scheduler, or a roadmap specialist, check each name's current status and commercial treatment through connector claims before drafting. An optional private note in the validation sidecar can record one row per detected name under `Named Feature Status and Commercial Treatment`.
 
 ```markdown
 ## Named Feature Status and Commercial Treatment
@@ -51,13 +51,13 @@ The routing policy is enforced through the production BOM's binding branch, the 
 
 ## Vault-Backed Competitor and Feature Guardrails
 
-- `Competitive Shortlist Decision`: connector-bound competitor-aware posts must document selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective. Nonconnector AroFlo, BigChange, and ClockShark posts document the task-approved shortlist and public official-source basis without vault resource or claim IDs.
+- `Competitive Shortlist Decision`: connector-bound competitor-aware posts decide the shortlist from connector evidence; an optional private note can record selected competitors, rejected competitors, connector-discovered competitive-context resources, approved claim IDs where public proof is used, and why the shortlist fits the article objective. Nonconnector AroFlo, BigChange, and ClockShark posts base the shortlist on task-approved, public official sources without vault resource or claim IDs.
 - Public competitor pages may shape SERP/article format, but cannot decide named competitors for Simpro public copy.
 - `Hindsight Boundary`: Hindsight/deal intelligence can inform internal strategy, but cannot be published as proof, rankings, metrics, or claims unless separately approved and source-verified through the claim registry. Keep raw deal counts out of public copy.
-- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. Document the selected `resource_id` values, link decision, and reason in the validation sidecar.
-- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. Document connector evidence, language applied, source-verification boundary, and `Status: aligned` in `Vault Brand Language Alignment`. Keep this block in the validation sidecar as a private research note, not public copy; the release does not read it. Connector unavailability blocks brand-language use.
+- `Named Feature/Add-On Link Check`: first meaningful mentions of Simpro features/add-ons must be checked through connector-discovered product and feature resources before link decisions. The selected `resource_id` values, link decision, and reason can be kept as an optional private note in the validation sidecar.
+- `Vault Brand Language Alignment`: product, feature, add-on, solution, and industry language must be drafted from connector-discovered vault guidance. Use semantic search/read/expand for messaging, positioning, feature, solution, and vertical context. When a named feature/add-on appears, include feature-specific `resource_id` evidence; when solution/industry language is used, include solution or vertical `resource_id` evidence. An optional `Vault Brand Language Alignment` note in the validation sidecar can record the connector evidence, language applied, and source-verification boundary; it is never public copy, and the release does not read it. Connector unavailability blocks brand-language use.
 
-Required `Vault Brand Language Alignment` sidecar block:
+Optional `Vault Brand Language Alignment` note shape:
 
 ```markdown
 ## Vault Brand Language Alignment
@@ -95,7 +95,7 @@ Mandatory release loop: every new or changed blog run must include `/scrub`, a r
 
 ### Production BOM
 
-Every new or changed blog is written from a production BOM, `research/production-bom-[slug]-[YYYY-MM-DD].json` (schema `simpro-production-bom/v1`). Paths derive from the article path `drafts/[slug]-[YYYY-MM-DD].md` or `rewrites/[slug]-[YYYY-MM-DD].md`; the run state `research/runs/[slug]-[YYYY-MM-DD].json` holds the production `run_id` and the hash of the BOM the pipeline last wrote. `/research` runs `python -m data_sources.modules.production.layout [article]` first, which prints every path and mints the run id, so the PAA capture can be recorded under that run id.
+Every new or changed blog is written from a production BOM, `research/production-bom-[slug]-[YYYY-MM-DD].json` (schema `simpro-production-bom/v1`). Paths derive from the article path `drafts/[slug]-[YYYY-MM-DD].md` or `rewrites/[slug]-[YYYY-MM-DD].md`, dated with today's UTC date: AnswerSocrates records its UTC capture date as `collection_date`, which must equal the article date; the run state `research/runs/[slug]-[YYYY-MM-DD].json` holds the production `run_id` and the hash of the BOM the pipeline last wrote. `/research` runs `python -m data_sources.modules.production.layout [article]` first, which prints every path and mints the run id, so the PAA capture can be recorded under that run id.
 
 The BOM holds identity (slug, date, run id, brand, market, workflow mode, article path, title, objective, audience, CTA, schema notes), the keyword decision and shortlist, the SERP query and page-1 coverage, sections, facts, proof, PAA questions, links, the context binding or its not-applicable reason, and the customer-proof selector evidence. Every bound artifact carries its path and sha256.
 
@@ -168,7 +168,7 @@ The report and receipt are advisory internal evidence, not public-claim proof, n
 
 - Every new article and rewrite requires a structured AnswerSocrates artifact, recorded under the production run id on the article date, even when no FAQ is useful.
 - The production BOM admits a FAQ question only from that artifact's eligible questions, and the release blocks any visible FAQ question that is not a BOM PAA question.
-- For a rewrite, questions pre-picked in a dedicated brief section stay visible FAQ headings only when the run's artifact contains them.
+- Rewrites follow the same rule: there is no pre-picked brief precedence. Existing FAQ questions that the run's capture does not contain are removed or turned into body sections.
 - When AnswerSocrates records a genuine blocked state (login, CAPTCHA, quota, or unavailability), keep the blocked artifact and either retry the capture or ship without a visible FAQ. A user CSV cannot supply FAQ questions to the production BOM.
 - SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
 - Match source kinds exactly. Reject stale artifacts, mismatched queries or dates, keyword fragments, and questions found only outside the eligible question section.
@@ -240,7 +240,7 @@ Before drafting with `/write` or `/rewrite`, resolve these variables from the us
 | `topic` | User prompt or topic file | Ask the user |
 | `audience` | Connector-discovered messaging and vertical resources | Stop if unavailable for Simpro brand work |
 | `main_question` | SERP/PAA intent, title, or brief | Ask if no clear primary question exists |
-| `related_questions` | Structured AnswerSocrates artifact; for rewrites, the dedicated pre-picked brief section takes precedence | User PAA/FAQ CSV only with a bound AnswerSocrates genuine blocked-state artifact |
+| `related_questions` | Structured AnswerSocrates artifact captured under the production run id, for new articles and rewrites alike | None: a blocked capture means no visible FAQ until a retried capture succeeds; no pre-picked brief precedence and no CSV fallback |
 | `tone` | Connector semantic search and `resource_id` reads for current messaging and style guidance | Stop if unavailable for Simpro brand work |
 | `expertise` | Connector-discovered product/workflow resources and approved claims, plus verified expert sources | Ask if a named author/reviewer is required and missing |
 | `length` | Complete Reader Contract, verified intent, and available evidence | Keep the scope intent-complete without competitor-derived or universal word targets |
@@ -251,13 +251,13 @@ Do not synthesize facts, search volume, PAA questions, customer claims, or exper
 
 For `/analyze-existing`, audit whether the current post has the strategy inputs needed for a safe rewrite: main answer target, related-question provenance, source-backed claims, Source Map, E-E-A-T proof, direct-answer opportunities, capsule opportunities, schema notes, and quality-gate risks.
 
-For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. Collect a current structured AnswerSocrates artifact under the production run id; pre-picked brief questions stay visible FAQ headings only when that artifact contains them. If source-backed claims or proof are missing, collect them or mark the blocker before writing.
+For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. Collect a current structured AnswerSocrates artifact under the production run id; existing FAQ questions that it does not contain are removed or turned into body sections. If source-backed claims or proof are missing, collect them or mark the blocker before writing.
 
 Do not invent replacement questions, customer proof, author names, reviewer names, search-volume data, ranking data, or external claims to fill rewrite gaps.
 
 ## E-E-A-T Proof Map
 
-Every `/write` and `/rewrite` plan must resolve an E-E-A-T Proof Map before drafting. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, and claims that must stay out because proof is missing.
+Every `/write` and `/rewrite` plan should decide its Experience, Expertise, and Authority/Trust proof in the research brief before drafting; the release renders the scorers' E-E-A-T Proof Map from the BOM. `/analyze-existing` must report Experience proof present/missing, Expertise proof present/missing, case-study proof candidates, Review-site VoC candidates, review-site experience evidence candidates, and claims that must stay out because proof is missing.
 
 | Dimension | Approved inputs | Public-copy rule |
 |---|---|---|
@@ -296,19 +296,19 @@ The release does not read this note. The truth check proves every material numbe
 
 Public review sites are approved for sourced review-site experience evidence, VoC themes, and competitor-review themes. Approved surfaces include G2, Capterra, Software Advice, GetApp, TrustRadius, Gartner/Gartner Digital Markets, Trustpilot, app stores, and Google reviews.
 
-Review narratives are first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Review-site themes can inform VoC research, but they do not satisfy E-E-A-T story proof unless the sidecar contains an identity-backed `Review Story Selection` with a real person or business, a usable public review URL, Status: approved, and an article link requirement that places the source link in the same paragraph as the paraphrase.
+Review narratives are first-hand customer experience when reviewers describe product use, implementation, support, switching, pains, outcomes, or workflows. Review-site themes can inform VoC research, but they do not satisfy E-E-A-T story proof unless the story is an approved `experience_story` proof item in the BOM, identity-backed by a real person or business with a usable public review URL, and the article links that URL in the same paragraph as the paraphrase.
 
-For Capterra rows that fit a blog topic but do not need an E-E-A-T story, use `Review Site Theme Selection` in the validation sidecar. It must include `Platform: Capterra`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, `Workflow theme`, and `Status: approved for paraphrased review-theme use`. Public copy may paraphrase the theme only when the same paragraph links to the Capterra review-site URL. Limits: no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
+For Capterra rows that fit a blog topic but do not need an E-E-A-T story, the theme reaches public copy only as an approved `theme` proof item in the BOM, and public copy may paraphrase it only when the same paragraph links the Capterra review-site URL. An optional `Review Site Theme Selection` note can record `Platform: Capterra`, `Source row ref: Capterra tab row [n]`, `Public review-site URL: https://www.capterra.com/p/10529/Simpro-Enterprise/reviews/`, and `Workflow theme`. Limits: no exact quote, reviewer-name claim, rating, ranking, or metric unless separately approved.
 
 Use review sites for sourced VoC themes, objections, switching triggers, implementation or support themes, competitor-review themes, and first-hand customer experience patterns. Default to theme-level citation: cite the theme and link to the relevant review, profile, category, or comparison page.
 
-When a brief uses review-site experience evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. When public copy uses a review-derived experience story, the command workflow must automatically run the selector before drafting story copy and add this sidecar block:
+When a brief uses review-site experience evidence, capture platform, URL, date checked, product/competitor, experience pattern, evidence summary, and whether any exact quote/rating claim was approved. When public copy uses a review-derived experience story, the selector picks it (role `experience_story`) before drafting, and the story must be a BOM proof item. This optional private-note shape records the choice:
 
 ```markdown
 ## Review Story Selection
 - **Article title**: [title]
 - **Content objective**: [objective]
-- **Selector command**: automatically run python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --context-receipt "research/context-receipt-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles experience_story --require-eeat-story --limit 10
+- **Selector command**: automatically run python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[slug].json" --context-receipt "research/context-receipt-[slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles experience_story --require-eeat-story --limit 10
 - **Selected story**: [proof_id] | Identity: [person or business] | Platform: [G2/Capterra/Google] | URL: [public review URL] | Workflow story: [short paraphrase] | Status: approved | Use: E-E-A-T experience story
 - **Why selected**: [fit to article objective/title]
 - **Article link requirement**: same paragraph as review-derived paraphrase must link to the selected public review URL
@@ -332,23 +332,23 @@ Exact quotes, named reviewers, star ratings, badges, rankings, aggregate ratings
 
 ### Optional Story and Scenario Policy
 
-E-E-A-T stories are optional, and E-E-A-T story usage is optional in public copy. experience_story consideration is required whenever customer proof appears in public copy. Use a proof-backed customer/review POV only when it improves the article objective. A named public POV must be an actual person or business POV from approved customer proof, a public case study, Quote Matrix route, reference, customer story, or review-site row, with proof in the validation sidecar and a public source link when used in copy.
+E-E-A-T stories are optional, and E-E-A-T story usage is optional in public copy. experience_story consideration is required whenever customer proof appears in public copy. Use a proof-backed customer/review POV only when it improves the article objective. A named public POV must be an actual person or business POV from approved customer proof, a public case study, Quote Matrix route, reference, customer story, or review-site row, admitted as a BOM proof item and linked to its public source when used in copy.
 
 Review-theme evidence is VoC only unless it is identity-backed and link-backed through `Review Story Selection`. Unnamed workflow scenarios are explanatory only and do not count as E-E-A-T proof; fictional named personas are prohibited.
 
 ## Customer Proof Pack
 
-Every `/research`, `/write`, `/analyze-existing`, and `/rewrite` workflow must resolve a task-specific Customer Proof Pack before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns in public copy. Keep proof inventories external to repo `context/`; do not bulk-load proof sources into local mirrors.
+Every `/research`, `/write`, `/analyze-existing`, and `/rewrite` workflow must select task-specific customer proof through the selector, and the BOM must admit it, before placing direct quotes, named customer proof, approved metrics, or review-derived Experience patterns in public copy. Keep proof inventories external to repo `context/`; do not bulk-load proof sources into local mirrors.
 
 For Simpro connector-bound work, run task-specific vault claim searches for `public_metric`, `exact_quote`, and `public_paraphrase`. Use only approved claim results bound to the current context pack and receipt. If a case study, ebook, quote, review theme, or customer story is discoverable but lacks an approved claim for the intended use, report a vault claim-promotion blocker and omit the proof.
 
-Before selecting customer proof for connector-bound work, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --context-receipt "research/context-receipt-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`, and write the generated selector-first `Customer Proof Slate` to the validation sidecar before drafting customer proof. "Consult" means reviewing generated selector output, not skipping execution. If complete, non-truncated claim searches prove no eligible approved claim for the role and the article will use no customer proof, rerun the same full-role slate with `--allow-no-proof`; valid no-fit evidence records `selection_outcome: no_fit_customer_proof`, represents metric, quote, theme, and experience_story, sets each role to `Selected: [none]`, and states that public copy must omit customer proof. If inputs are missing, resolve them from the brief, context request, context pack, or receipt, or stop before drafting customer proof. If the selector fails for any other reason, write the failure or blocker into the validation sidecar and do not invent proof. The selector uses approved claim results from the current context pack and receipt, plus the operational usage ledger at `config/customer-proof-usage-ledger.json`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the claim ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `config/customer-proof-usage-ledger.json`, rerun selector checks, and document the backfill in the validation sidecar. Choose the most relevant approved claim, not the easiest searchable case study. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. If a recently used or overused proof source is still the best proof, add a `Customer Proof Selection Decision` with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved claim fits the same role.
+Before selecting customer proof for connector-bound work, the command workflow must resolve `topic`, `title`, and `objective`, automatically run `python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[slug].json" --context-receipt "research/context-receipt-[slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10` against the layout's public context pack and receipt (the pack the BOM build approves proof from) before drafting customer proof. The generated selector-first `Customer Proof Slate` can be kept as a private note in the validation sidecar. "Consult" means reviewing generated selector output, not skipping execution. If complete, non-truncated claim searches prove no eligible approved claim for the role and the article will use no customer proof, rerun the same full-role slate with `--allow-no-proof`; valid no-fit evidence records `selection_outcome: no_fit_customer_proof`, represents metric, quote, theme, and experience_story, sets each role to `Selected: [none]`, and states that public copy must omit customer proof. If inputs are missing, resolve them from the brief, context request, context pack, or receipt, or stop before drafting customer proof. If the selector fails for any other reason, write the failure or blocker into the validation sidecar and do not invent proof. The selector uses approved claim results from the current context pack and receipt, plus the operational usage ledger at `config/customer-proof-usage-ledger.json`. Before claiming a proof source is underused, inspect the usage ledger and run a live repo scan across `drafts/`, `rewrites/`, `research/`, and `published/` for the claim ID, public URL, and customer name. If the live repo scan finds public-copy usage missing from the ledger, backfill `config/customer-proof-usage-ledger.json`, rerun selector checks, and document the backfill in the validation sidecar. Choose the most relevant approved claim, not the easiest searchable case study. experience_story consideration is required and E-E-A-T story usage is optional; if no story fits, use `Selected: [none]` with section-specific rejection reasons. Edit selected/rejected rows only when editorial judgment requires it. If a recently used or overused proof source is still the best proof, record a `Customer Proof Selection Decision` note with a source-specific `Reuse reason` plus selector-backed proof that no stronger underused approved claim fits the same role.
 
-For nonconnector AroFlo, BigChange, and ClockShark work, never run the vault-dependent selector. Public customer proof is allowed only when an approved nonvault inventory row in `config/nonvault-customer-proof-index.json` satisfies the separate non-vault eligibility contract and the workflow runs `python data_sources/modules/nonvault_customer_proof_selector.py "[topic]" --brand "[brand]" --title "[title]" --objective "[objective]" --article-slug "[slug]" --evidence-output "research/nonvault-customer-proof-selector-evidence-[topic-slug]-[YYYY-MM-DD].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`. The emitted artifact must use `simpro-nonvault-customer-proof-selector-evidence/v1` and bind the brand, topic, title, objective, article slug, reference date, roles, selected and candidate proof IDs, nonvault index hash, and usage-ledger hash. V1 accepts brand-owned `customer_story`, `case_study`, and `reference` rows and approved Capterra `review_site` rows on the brand's listed product page. Review-derived stories are paraphrased, using the first name and role as displayed with a same-paragraph link to the public review. Exact snippets are allowed only when they are stored in that row's `approved_quotes` and live-captured. Ratings, stars, aggregate ratings, rankings, review metrics, vault selector evidence, and Fred evidence remain prohibited. Copy note: avoid the words "reviewer", "rated", and "stars" in public copy, which trigger strict proof. Release never writes `config/customer-proof-usage-ledger.json`; publishing records the public use, and each release refreshes the selector evidence so its ledger hash is current.
+For nonconnector AroFlo, BigChange, and ClockShark work, never run the vault-dependent selector. Public customer proof is allowed only when an approved nonvault inventory row in `config/nonvault-customer-proof-index.json` satisfies the separate non-vault eligibility contract and the workflow runs `python data_sources/modules/nonvault_customer_proof_selector.py "[topic]" --brand "[brand]" --title "[title]" --objective "[objective]" --article-slug "[slug]" --index config/nonvault-customer-proof-index.json --ledger config/customer-proof-usage-ledger.json --evidence-output "research/nonvault-customer-proof-selector-evidence-[slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10`. The emitted artifact must use `simpro-nonvault-customer-proof-selector-evidence/v1` and bind the brand, topic, title, objective, article slug, reference date, roles, selected and candidate proof IDs, nonvault index hash, and usage-ledger hash. V1 accepts brand-owned `customer_story`, `case_study`, and `reference` rows and approved Capterra `review_site` rows on the brand's listed product page. Review-derived stories are paraphrased, using the first name and role as displayed with a same-paragraph link to the public review. Exact snippets are allowed only when they are stored in that row's `approved_quotes` and live-captured. Ratings, stars, aggregate ratings, rankings, review metrics, vault selector evidence, and Fred evidence remain prohibited. Copy note: avoid the words "reviewer", "rated", and "stars" in public copy, which trigger strict proof. Release never writes `config/customer-proof-usage-ledger.json`; publishing records the public use, and each release refreshes the selector evidence so its ledger hash is current.
 
 Selector chooses proof candidates; proof mining reads the selected public URL before the writer decides quote, metric, POV/story, theme, or omit use. When public copy uses selected customer proof, the proof item must be in the production BOM, and a matching entry must be added to `config/customer-proof-usage-ledger.json` before final handoff; release never writes the ledger, so publishing records it. The release renders the `Selected Customer Proof Mining` view for the scorer from the BOM. This block proves the selected source was checked for stronger quote, metric, POV/story, and theme evidence before the final copy used only the selected proof role.
 
-Required Selected Customer Proof Mining shape:
+The release renders the `Selected Customer Proof Mining` view from the BOM for the scorer; this shape is for reference and optional private notes:
 
 ```text
 Selected Customer Proof Mining
@@ -363,7 +363,7 @@ Selected Customer Proof Mining
 - Status: approved
 ```
 
-If `Approved quotes: none used` or `Approved metrics: none used` appears in the Customer Proof Pack, the mining block must still document whether usable quotes or metrics were found and why they were omitted. When usable quote or POV evidence is found but omitted, add a section-specific reason under `Excluded proof`.
+When proof mining finds usable quotes, metrics, or POV evidence that the article omits, a private note can record the section-specific reason under `Excluded proof`.
 
 ### Nonconnector proof inventory intake and health
 
@@ -378,11 +378,11 @@ python data_sources/modules/customer_proof_index_intake.py merge [input.csv] --i
 
 The intake row must state source type, source ref, approval status, public-copy boundary, evidence summary, restrictions, and verification date. Exact quotes, metrics, review-story identity claims, reviewer-name claims, ratings, rankings, and badges need explicit source-visible evidence before approval. Google review rows stay candidate and `public_copy_allowed: false` unless a usable public review URL is captured.
 
-Required Customer Proof Slate shape:
+Customer Proof Slate shape (the selector's `--slate` output, kept as an optional private note):
 
 ```text
 Customer Proof Slate
-- Selector command: automatically run python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --context-receipt "research/context-receipt-[topic-slug]-customer-selector-[YYYY-MM-DD].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
+- Selector command: automatically run python data_sources/modules/customer_proof_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[slug].json" --context-receipt "research/context-receipt-[slug].json" --evidence-output "research/customer-proof-selector-evidence-[topic-slug].json" --slate --roles metric,quote,theme,experience_story --require-eeat-story --limit 10
 - Selector evidence: research/customer-proof-selector-evidence-[topic-slug].json | SHA-256: [generated digest]
 - Selection outcome: [customer_proof_candidates_available or no_fit_customer_proof]
 - Role: metric | Top candidates: [proof_id, proof_id, proof_id] | Selected: [proof_id] | Rejected stronger candidates: [proof_id: reason]
@@ -393,7 +393,7 @@ Customer Proof Slate
 
 For `selection_outcome: no_fit_customer_proof`, every role must have `Top candidates: [none]`, `Selected: [none]`, no claim IDs, and a no-fit reason stating that public copy must omit customer proof, named customer claims, review stories, exact quotes, testimonials, and customer metrics. A no-fit outcome leaves no BOM proof items, and the release blocks a customer or review claim that links no BOM proof URL, so public copy cannot carry customer proof under it.
 
-Required Customer Proof Pack shape:
+Optional Customer Proof Pack note shape:
 
 ```markdown
 ## Customer Proof Pack
@@ -420,7 +420,7 @@ Example strict proof rows:
 - Approved metric: Simpro 24,000+ trade businesses | Customer/brand: Simpro | URL: https://www.simprogroup.com/company/press/simpro-group-unveils-lightning | Evidence: "More than 24,000 trade businesses" | Status: approved
 ```
 
-Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must appear under Approved quotes with customer/brand or reviewer, source type, public URL, source-visible Evidence, and Status: approved. Any named customer metric must appear under Approved metrics with Customer/brand, public URL, source-visible Evidence, and Status: approved. Source Map alone is insufficient for quotes, testimonials, or named metrics.
+Case-study proof paths and Review-site experience evidence may support non-numeric E-E-A-T PoV and paraphrased themes only. Exact quotes or testimonial wording must be an approved `quote` proof item in the BOM, quoted verbatim, and any named customer metric an approved `metric` proof item; the release blocks a quoted customer or review passage that does not match a BOM proof item. A Source Map or fact alone is insufficient for quotes, testimonials, or named metrics.
 
 ## Fred Voccola Authority Selection
 
@@ -430,13 +430,13 @@ Every `/research`, `/write`, `/rewrite`, `/analyze-existing`, and `/optimize` wo
 python data_sources/modules/fred_authority_selector.py "[topic]" --title "[title]" --objective "[objective]" --context-pack "research/context-pack-[topic-slug]-fred-evaluation-[YYYY-MM-DD].json" --context-receipt "research/context-receipt-[topic-slug]-fred-evaluation-[YYYY-MM-DD].json" --slate --limit 5 --output "research/fred-authority-selection-[topic-slug].md"
 ```
 
-Write the complete selector evaluation to `research/validation-[topic-slug]-[YYYY-MM-DD].md` before drafting or changing public Fred content. Evaluation is mandatory; public use is optional and must materially support the article subject and target section. The selector defaults to `Selected: none`; selection requires an explicit editorial decision after the source is reviewed. If the selector, vault, manifest, or required inventory is unavailable or stale, set `Evaluation status: blocked`, document the blocker, and do not invent, infer, quote, paraphrase, cite, or embed Fred evidence.
+Evaluate the selector output before drafting or changing public Fred content; the evaluation can be kept as a private note in `research/validation-[topic-slug]-[YYYY-MM-DD].md`. Public use is optional and must materially support the article subject and target section. The selector defaults to `Selected: none`; selection requires an explicit editorial decision after the source is reviewed. If the selector, vault, manifest, or required inventory is unavailable or stale, set `Evaluation status: blocked`, document the blocker, and do not invent, infer, quote, paraphrase, cite, or embed Fred evidence.
 
 The Simpro vault connector and claim registry are the sole eligibility source for Fred media eligibility and status. The selector resolves only the configured vault root, validates current connector revisions, resource hashes, and claim decisions, and fails closed when the manifest, claim registry, context receipt, or selected evidence is unavailable or stale. Only current usable authority records and public playlist assets are candidates. Internal assets, blocked rows, syndicated-placement-only rows, non-Simpro evidence, and any row outside its allowed-use status are excluded.
 
 Fred's source-backed industry observations supplement E-E-A-T Expertise and Authority by default. They count as Experience only when the source explicitly supports Fred's first-hand personal or operating experience. Fred evidence is additive: it does not replace customer Experience proof, customer stories, the Customer Proof Pack, or authoritative independent evidence. No usage ledger or frequency penalty applies in v1; direct topical support is the primary selection criterion.
 
-Required sidecar block:
+Optional private-note shape:
 
 ```markdown
 ## Fred Voccola Authority Selection
@@ -459,7 +459,7 @@ Required sidecar block:
 - VideoObject: required | not_applicable
 ```
 
-`Selected: none` passes only when `Fit decision` gives a substantive, article-specific topical rejection reason. A generic statement such as "not relevant" does not pass. For a selected row, the sidecar must match the fields it carries: selected ID, authority ID, public URL, and evidence status. The guard must also confirm that the current manifest-backed inventory and authority rows agree on title, URL, recommended brand, evidence status, public-use status, and allowed-use eligibility.
+A `Selected: none` decision should give a substantive, article-specific topical rejection reason, not a generic statement such as "not relevant". A selected row is usable only when the current manifest-backed inventory and authority rows agree on title, URL, recommended brand, evidence status, public-use status, and allowed-use eligibility.
 
 Public-use rules:
 
@@ -486,21 +486,14 @@ Required fixed collector flow:
 
 If AnswerSocrates records a genuine blocked state such as login, CAPTCHA, quota, or unavailability, preserve that structured blocker artifact. Do not invent replacement questions.
 
-For `/rewrite`, collect a current structured AnswerSocrates artifact under the production run id. Questions pre-picked in a dedicated brief section stay visible FAQ headings only when that artifact contains them. SERP, Reddit, and YouTube stay supplemental and never satisfy PAA provenance.
-
-A rewrite brief section of pre-picked questions uses this heading:
-
-```markdown
-## Pre-picked PAA Questions
-- [Exact complete question?]
-```
+For `/rewrite`, collect a current structured AnswerSocrates artifact under the production run id. There is no pre-picked brief precedence: existing FAQ questions that the capture does not contain are removed or turned into body sections. SERP, Reddit, and YouTube stay supplemental and never satisfy PAA provenance.
 
 ### Collected AnswerSocrates Artifact Template
 
 The `record` command runs the fixed repository-approved Playwright collector, `answersocrates_playwright_collector`, itself, persists exact bounded Playwright CLI stdout before interpretation, and parses only observed page headings/items plus structurally scoped blocker observations through a closed blocker mapping. General body text never establishes a blocker.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[article date, YYYY-MM-DD]" --run-id "[production run_id printed by the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[the exact SERP evidence query]" --collection-date "[article date, YYYY-MM-DD]" --run-id "[production run_id printed by the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
 ```
 
 The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-answersocrates-run-receipt/v1`, fixed `answersocrates_playwright_collector` version `1.0.0`, payload SHA-256, and receipt SHA-256. Handwritten labels, caller-authored captures, Markdown templates, and self-described browser blockers are invalid provenance.
@@ -512,7 +505,7 @@ When the Playwright collector cannot complete a session, pass an already-collect
 Save the observed blocker. The blocker reason must describe what the browser actually showed.
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[main question or topic]" --collection-date "[article date, YYYY-MM-DD]" --run-id "[production run_id printed by the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
+python data_sources/modules/paa_provenance_guard.py record --query "[the exact SERP evidence query]" --collection-date "[article date, YYYY-MM-DD]" --run-id "[production run_id printed by the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
 ```
 
 A blocked artifact has no eligible questions, so the BOM spec selects no PAA questions and the article ships without a visible FAQ unless a retried capture succeeds.
@@ -561,16 +554,16 @@ Never write public body sentences such as "this article uses," "the brief asks,"
 - Open with a direct answer in the first 1-2 sentences. The answer comes before the hook.
 - Use the Capsule Method below the H1 and at least 60% of major H2s: 50-60 words, complete answer, no preamble.
 - Include a Key Takeaways block after the introduction with 3-5 standalone conclusions.
-- Place a usable artifact within the first 300 words of body copy: a filled data table, a download link (PDF, Excel, Doc, or template), a checklist deliverable, or a calculator/tool reference. Key Takeaways bullets, plain lists, and image placeholders do not count. If no artifact fits the topic, mark `Early artifact requirement: not applicable` with a Reason in the `Early Artifact Plan` block of the validation sidecar.
+- Place a usable artifact within the first 300 words of body copy: a filled data table, a download link (PDF, Excel, Doc, or template), a checklist deliverable, or a calculator/tool reference. Key Takeaways bullets, plain lists, and image placeholders do not count. This is an advisory drafting rule that the release does not enforce; if no artifact fits the topic, say why in the research brief.
 - When image or video work remains, use a visible standalone marker so developers cannot miss it. `/write`, `/rewrite`, and `/optimize` must normalize hidden HTML comments, blockquotes, inline labels, and shorthand media notes into `[IMAGE PLACEHOLDER | source: ... | alt: "..." | render target: ... | resize and compress before upload]` or `[VIDEO PLACEHOLDER | source: ... | title: "..." | placement: ... | embed target: ... | VideoObject: add only after embed]`. Treat unclear media placeholder warnings as LLM repair instructions, not publish blockers.
-- If the target query implies a number, range, or template, supply a concrete version in the article with disclaimers as needed. Placeholder-only table cells such as `Enter lender-approved value`, `TBD`, or `varies` withhold the answer and block publish; fill tables with concrete sourced values or delete them. Non-scaffold exemptions go in the `Concrete Answer Check` block of the validation sidecar with a Reason.
+- If the target query implies a number, range, or template, supply a concrete version in the article with disclaimers as needed. Placeholder-only table cells such as `Enter lender-approved value`, `TBD`, or `varies` withhold the answer; fill tables with concrete sourced values or delete them. This is an advisory drafting rule that the release does not enforce; record any exemption reason in the research brief.
 - Use one clear idea per H2/H3 section.
 - Integrate claim-fit credible external sources naturally inside sentences; evidence needs determine the count.
 - Place each link where it directly supports the sentence and reader task. Do not impose a per-paragraph quota.
 - Feature and solution links must use function-bearing anchor text that explains the workflow, category, or outcome behind the destination. A feature or solution name alone is not enough.
 - Context files are not a source of truth for Simpro voice, positioning, approved claims, proof candidates, or approved metrics. Use repo context only for SEO/AEO strategy, brand-neutral editorial mechanics, generic CRO, link maps, and source governance. Do not write phrases like "repo context," "Source Map," "PAA artifact," "change summary," or internal proof-path notes in the public article body.
 - Use claim- and source-backed metrics only with public-facing source links, such as case-study URLs, review-site URLs, or public research sources.
-- 403 replacement rule: if a source URL returns 401, 403, or `manual_review`, do not remove the public citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. DOL, Capterra, G2, Trustpilot, Google Play, and other review or authority-site 403s are URL-validity blockers, not permission to hide the source in the validation sidecar. Source Map notes must document the rejected 403 URL and the replacement URL.
+- 403 replacement rule: if a source URL returns 401, 403, or `manual_review`, do not remove the public citation unless an equivalent resolved public source link replaces it in public copy or the supported claim is removed. DOL, Capterra, G2, Trustpilot, Google Play, and other review or authority-site 403s are URL-validity blockers, not permission to hide the source in the validation sidecar. A replacement source must itself be a BOM fact verified on its live page.
 - Place numeric claims only from BOM facts or approved proof, with the BOM URL linked in the same paragraph or table row.
 - Include a visible FAQ only when `FAQ policy: required`; otherwise record `not_applicable` with a non-empty rationale and omit FAQ schema.
 - When visible FAQs exist, write each answer as a 40-60 word direct answer before supporting context.
@@ -589,7 +582,7 @@ Never write public body sentences such as "this article uses," "the brief asks,"
 
 ## AEO/GEO Map
 
-Every `/write` plan and every moderate, major, or complete `/rewrite` plan, across the research brief and the BOM spec, must cover:
+Every `/write` plan and every moderate, major, or complete `/rewrite` plan, across the research brief and the BOM spec, should cover these; rows marked as private notes are optional:
 
 | Field | Requirement |
 |---|---|
@@ -601,11 +594,11 @@ Every `/write` plan and every moderate, major, or complete `/rewrite` plan, acro
 | Metrics | Numbers only from BOM facts or approved proof; search log and rejected candidates as private notes |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |
 | Customer Proof Pack | Pack status, Quote Matrix candidates, Case-study proof paths, Review-site experience evidence, Approved metrics, Use in copy, Claims excluded, approval status |
-| E-E-A-T Strength Decision | Required for commercial-investigation blogs when no positive signal is selected: Applicability, Intent, Positive signals, Decision, Reason, Public copy boundary, Status, and optional approved SME review note |
-| Fred Voccola Authority Selection | Mandatory only for connector-bound work: selector evaluation, ranked FVMI candidates, explicit selected-or-none decision, topical fit, intended use, source verification, embed decision, and VideoObject decision |
-| Named Feature Status and Commercial Treatment | Exactly one current claim-status row per detected Lightning, RAIN, role-agent, scheduler, or roadmap specialist name |
-| Review Story Selection | Required only when public copy paraphrases a review-derived E-E-A-T story; must include identity-backed selected story, public review URL, same paragraph link requirement, and exact quote boundary |
-| Review Site Theme Selection | Required when public copy paraphrases a Capterra review-site theme without using an E-E-A-T story; must include Capterra tab row, public Capterra review-site URL, approved workflow theme, same paragraph link requirement, and exact quote/rating boundary |
+| E-E-A-T Strength Decision | Optional private note for commercial-investigation blogs when no positive signal is selected: Applicability, Intent, Positive signals, Decision, Reason, Public copy boundary, Status, and optional approved SME review note |
+| Fred Voccola Authority Selection | Optional private note for connector-bound work: selector evaluation, ranked FVMI candidates, explicit selected-or-none decision, topical fit, intended use, source verification, embed decision, and VideoObject decision |
+| Named Feature Status and Commercial Treatment | Optional private note: one current claim-status row per detected Lightning, RAIN, role-agent, scheduler, or roadmap specialist name |
+| Review Story Selection | Optional private note when public copy paraphrases a review-derived E-E-A-T story: identity-backed selected story, public review URL, same paragraph link requirement, and exact quote boundary |
+| Review Site Theme Selection | Optional private note when public copy paraphrases a Capterra review-site theme without using an E-E-A-T story: Capterra tab row, public Capterra review-site URL, approved workflow theme, same paragraph link requirement, and exact quote/rating boundary |
 | Early usable artifact | Filled data table, download link, checklist deliverable, or calculator reference planned within the first 300 words of body copy, or a documented not-applicable reason |
 | AI citation target | Snippet, PAA, FAQ, comparison table, definition, or list |
 

@@ -64,7 +64,8 @@ def test_current_strategy_docs_name_the_production_bom_and_release_record() -> N
     assert "simpro-production-bom-spec/v1" in aeo
     assert "simpro-release-record/v1" in aeo
     assert "remain readable history" in aeo
-    assert "simpro-blog-editorial-plan/v2" in editorial
+    assert "editorial plan of record" in editorial and "simpro-production-bom/v1" in editorial
+    assert "simpro-blog-plan-fulfillment/v1" not in editorial
 
 
 def test_hindsight_can_shape_private_angle_but_not_public_claims() -> None:

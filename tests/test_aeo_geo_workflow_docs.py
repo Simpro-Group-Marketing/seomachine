@@ -16,6 +16,8 @@ RETIRED_STEPS = (
     "simpro-blog-machine-review/v1",
     "simpro-optimizer-output",
     "simpro-blog-plan-fulfillment/v1",
+    "simpro-blog-editorial-plan/v2",
+    "--proof-sidecar",
 )
 DELETED_AUTHORING_TOOLS = (
     "article_planner.py",
