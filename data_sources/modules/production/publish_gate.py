@@ -3,8 +3,8 @@
 A blog post publishes only when its latest release record passed for the exact article bytes
 (``record.verify_publishable``). After a successful live publish the publisher records each linked
 BOM proof item in the customer-proof usage ledger (``usage_ledger.record_publish_use``).
-WordPress landing pages keep the older publish-readiness gate; ``refuse_blog_as_page`` keeps a
-blog from taking that route.
+WordPress landing pages keep the older publish-readiness gate; ``require_landing_page`` admits
+only a file that resolves as a landing page, so a blog cannot take that route.
 """
 
 from __future__ import annotations
@@ -48,13 +48,14 @@ def _is_production_article(file_path: str | Path, root: Path) -> bool:
     return True
 
 
-def refuse_blog_as_page(file_path: str | Path, root: Path) -> None:
-    """A blog (by its artifact kind or its drafts/rewrites path) cannot publish through the page gate."""
+def require_landing_page(file_path: str | Path, root: Path) -> None:
+    """Allow the page gate only for a resolved landing page that is not a drafts/rewrites article."""
     content = Path(file_path).read_text(encoding="utf-8")
-    if resolve_artifact_kind(content, article_path=file_path) == "blog" or _is_production_article(file_path, root):
+    kind = resolve_artifact_kind(content, article_path=file_path)
+    if kind != "landing_page" or _is_production_article(file_path, root):
         raise ValueError(
-            f"{file_path} is a blog article, not a landing page; blogs need a passing release record "
-            "and publish as posts"
+            f"{file_path} does not resolve as a landing page (artifact kind: {kind or 'unknown'}); "
+            "blogs need a passing release record and publish as posts"
         )
 
 
@@ -91,7 +92,7 @@ __all__ = [
     "ensure_released_bytes",
     "record_proof_use",
     "record_release_use",
-    "refuse_blog_as_page",
+    "require_landing_page",
     "release_root",
     "require_release",
     "retired_blog_args",

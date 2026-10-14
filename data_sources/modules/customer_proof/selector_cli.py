@@ -48,6 +48,7 @@ def _append_decision_block(
             limit=args.limit,
             reference_date=reference_date,
             claim_lookup_evidence=input_snapshot.claim_lookup,
+            pinned=str(_parse_selected_overrides(args.selected).get(role) or ""),
             _input_snapshot=input_snapshot,
         )
 

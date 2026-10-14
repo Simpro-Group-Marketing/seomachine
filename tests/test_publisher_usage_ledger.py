@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import datetime
 import json
+import os
+import subprocess
+import sys
 
 import pytest
 
@@ -152,7 +156,7 @@ def test_a_held_ledger_lock_times_out_with_a_clear_error_and_no_write(tmp_path, 
     layout = _released(tmp_path, monkeypatch)
     monkeypatch.setattr(usage_ledger, "LOCK_WAIT_SECONDS", 0.2)
     lock = _ledger_path(layout).with_name("customer-proof-usage-ledger.json.lock")
-    lock.write_text("", encoding="utf-8")
+    _hold(lock, os.getpid(), 0)
     before = _ledger_path(layout).read_bytes()
     with pytest.raises(TimeoutError, match="usage ledger is locked by another publish"):
         record_publish_use(layout.article, layout.root, published_path=ARTICLE)
@@ -160,3 +164,43 @@ def test_a_held_ledger_lock_times_out_with_a_clear_error_and_no_write(tmp_path, 
     lock.unlink()
     assert record_publish_use(layout.article, layout.root, published_path=ARTICLE) == [EXPECTED]
     assert not lock.exists()
+
+
+def _hold(lock, pid: int, age_seconds: float) -> None:
+    created = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=age_seconds)
+    lock.write_text(json.dumps({"pid": pid, "created_at": created.isoformat()}), encoding="utf-8")
+
+
+def _dead_pid() -> int:
+    process = subprocess.Popen([sys.executable, "-c", "pass"])
+    process.wait()
+    return process.pid
+
+
+def test_pid_probe_tells_a_live_process_from_an_exited_one():
+    assert usage_ledger._pid_running(os.getpid()) is True
+    assert usage_ledger._pid_running(_dead_pid()) is False
+
+
+@pytest.mark.parametrize("holder", ["dead", "old"])
+def test_a_stale_ledger_lock_is_broken_and_the_write_succeeds(tmp_path, monkeypatch, holder):
+    layout = _released(tmp_path, monkeypatch)
+    monkeypatch.setattr(usage_ledger, "LOCK_WAIT_SECONDS", 5.0)
+    lock = _ledger_path(layout).with_name("customer-proof-usage-ledger.json.lock")
+    _hold(lock, _dead_pid(), 0) if holder == "dead" else _hold(lock, os.getpid(), 120)
+    assert record_publish_use(layout.article, layout.root, published_path=ARTICLE) == [EXPECTED]
+    assert not lock.exists()
+
+
+def test_the_lockfile_names_its_holder(tmp_path, monkeypatch):
+    layout = _released(tmp_path, monkeypatch)
+    seen = {}
+    real_append = usage_ledger._append_entries
+
+    def spy(path, entries):
+        seen.update(json.loads(path.with_name(path.name + ".lock").read_text(encoding="utf-8")))
+        return real_append(path, entries)
+
+    monkeypatch.setattr(usage_ledger, "_append_entries", spy)
+    record_publish_use(layout.article, layout.root, published_path=ARTICLE)
+    assert seen["pid"] == os.getpid() and datetime.datetime.fromisoformat(seen["created_at"]).tzinfo

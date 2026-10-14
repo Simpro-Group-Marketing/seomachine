@@ -31,7 +31,7 @@ The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-
 
 ### Post Types
 - `post` - Standard blog post (default) - supports categories and tags; requires a passing release record
-- `page` - WordPress page - no categories/tags; runs the landing-page readiness gate (see `/landing-publish`). A blog (frontmatter `artifact_type: blog`, or an article in `drafts/` or `rewrites/`) is refused as a page: blogs need a passing release record and publish as posts
+- `page` - WordPress page - no categories/tags; runs the landing-page readiness gate (see `/landing-publish`). Only a file that resolves as a landing page is accepted: frontmatter `artifact_type: landing_page`, or, with no frontmatter kind, a `landing-pages/` path or a `landing` file name. A file in `drafts/` or `rewrites/`, a blog, or a missing, conflicting, unknown, or unreadable kind is refused: blogs need a passing release record and publish as posts
 
 Any other type, including custom post types, is rejected before any WordPress request.
 

@@ -977,7 +977,7 @@ def _require_publish_gate(
     """Landing pages run the readiness gate; blog posts need a passing release record."""
     release_root = publish_gate.release_root(workspace_root)
     if landing_page:
-        publish_gate.refuse_blog_as_page(file_path, release_root)
+        publish_gate.require_landing_page(file_path, release_root)
         _require_publish_readiness(file_path, context="WordPress publish", vault_root=vault_root, **readiness_inputs)
         return None, None
     retired = publish_gate.retired_blog_args({**readiness_inputs, "vault_root": vault_root})

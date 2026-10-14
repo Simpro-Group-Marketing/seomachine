@@ -521,7 +521,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "service-page.md"
+            path = Path(tmp) / "service-landing-page.md"
             path.write_text(DRAFT, encoding="utf-8")
 
             with patch(

@@ -3,14 +3,18 @@
 ``record_publish_use`` trusts only the passing release record (``record.verify_publishable``),
 reads that release's BOM, and appends one ``uses[]`` entry for each BOM proof item whose URL the
 article body links. Entries are deduped on proof id, artifact path, and date, and the
-read-modify-write holds an exclusive ``<ledger>.lock`` file so concurrent publishes cannot lose
-an entry. The release itself
+read-modify-write holds an exclusive ``<ledger>.lock`` file (holding the holder's pid and
+``created_at``) so concurrent publishes cannot lose an entry. A lock older than
+``LOCK_STALE_SECONDS`` or whose holder process has exited is broken; a fresh lock held by a live
+process is never broken. The release itself
 never writes the ledger; the WordPress and Grav publishers call this only after the live write
 succeeded, never on a dry run, refusal, or failure.
 """
 
 from __future__ import annotations
 
+import ctypes
+import datetime
 import json
 import os
 import re
@@ -33,6 +37,10 @@ NONVAULT_INDEX = Path("config") / "nonvault-customer-proof-index.json"
 REUSE_REASON = "Recorded at publish from the passing release record."
 SUMMARY_LIMIT = 200
 LOCK_WAIT_SECONDS = 10.0
+LOCK_STALE_SECONDS = 60.0
+_STILL_ACTIVE = 259
+_ERROR_ACCESS_DENIED = 5
+_PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 _USE_TYPES = {"metric": "metric", "quote": "approved_quote", "theme": "theme", "experience_story": "experience_story"}
 _H2 = re.compile(r"^\s{0,3}##\s+(.+?)\s*#*\s*$")
 
@@ -118,21 +126,79 @@ def _write_ledger(path: Path, ledger: dict[str, Any], newline: str) -> None:
     atomic_write_text(path, text.replace("\n", newline), max_bytes=DEFAULT_JSON_MAX_BYTES, field="usage ledger")
 
 
+def _windows_pid_running(pid: int) -> bool:
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    handle = kernel32.OpenProcess(_PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        return ctypes.get_last_error() == _ERROR_ACCESS_DENIED  # exists, but not ours to query
+    try:
+        code = ctypes.c_ulong()
+        return not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)) or code.value == _STILL_ACTIVE
+    finally:
+        kernel32.CloseHandle(handle)
+
+
+def _pid_running(pid: int) -> bool:
+    """Whether a process with this pid is still running (unknown counts as running)."""
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        return _windows_pid_running(pid)
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _lock_age_seconds(lock: Path, holder: Mapping[str, Any]) -> float:
+    try:
+        created = datetime.datetime.fromisoformat(str(holder["created_at"])).timestamp()
+    except (KeyError, TypeError, ValueError):
+        created = lock.stat().st_mtime
+    return time.time() - created
+
+
+def _lock_is_stale(lock: Path) -> bool:
+    """Old, or held by an exited process. A lock still being written is judged by its file age."""
+    try:
+        holder = json.loads(lock.read_text(encoding="utf-8") or "{}")
+        holder = holder if isinstance(holder, dict) else {}
+        if _lock_age_seconds(lock, holder) > LOCK_STALE_SECONDS:
+            return True
+        pid = holder.get("pid")
+        return isinstance(pid, int) and not _pid_running(pid)
+    except (OSError, ValueError):
+        return False
+
+
+def _try_lock(lock: Path) -> bool:
+    try:
+        handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        return False
+    created = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    with os.fdopen(handle, "w", encoding="utf-8") as stream:
+        json.dump({"pid": os.getpid(), "created_at": created}, stream)
+    return True
+
+
 @contextmanager
 def _ledger_lock(path: Path) -> Iterator[None]:
     """Hold an exclusive lockfile next to the ledger so concurrent publishes cannot lose an entry."""
     lock = path.with_name(path.name + ".lock")
     deadline = time.monotonic() + LOCK_WAIT_SECONDS
-    while True:
-        try:
-            os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
-            break
-        except FileExistsError:
-            if time.monotonic() >= deadline:
-                raise TimeoutError(
-                    f"usage ledger is locked by another publish: {lock}; delete it only if no publish is running"
-                ) from None
-            time.sleep(0.05)
+    while not _try_lock(lock):
+        if _lock_is_stale(lock):
+            lock.unlink(missing_ok=True)
+            continue
+        if time.monotonic() >= deadline:
+            raise TimeoutError(
+                f"usage ledger is locked by another publish: {lock}; delete it only if no publish is running"
+            )
+        time.sleep(0.05)
     try:
         yield
     finally:

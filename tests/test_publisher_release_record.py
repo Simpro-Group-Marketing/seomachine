@@ -282,9 +282,16 @@ def _page(root, name, text="# Landing Page\n\nBook a demo today.\n"):
     return page
 
 
+LANDING_FRONT = "---\nartifact_type: landing_page\n---\n# Landing Page\n\nBook a demo today.\n"
+
+
 @pytest.mark.parametrize("name, text", [
     ("landing-pages/crew-guide.md", "---\nartifact_type: blog\n---\n# Crew Guide\n\nBody.\n"),
-    ("drafts/field-service-software-2026-10-13.md", "# Landing Page\n\nBook a demo today.\n"),
+    ("drafts/field-service-software-2026-10-13.md", LANDING_FRONT),
+    ("landing-pages/conflict.md", "---\nartifact_type: landing_page\nartifact_kind: blog\n---\n# Page\n\nBody.\n"),
+    ("landing-pages/blog-post-kind.md", "---\nartifact_type: blog_post\n---\n# Page\n\nBody.\n"),
+    ("landing-pages/broken.md", "---\nartifact_type: [landing_page\n---\n# Page\n\nBody.\n"),
+    ("pages/service.md", "# Service\n\nBook a demo today.\n"),
 ])
 def test_a_blog_cannot_publish_as_a_page(tmp_path, name, text):
     page = _page(tmp_path, name, text)
@@ -294,7 +301,7 @@ def test_a_blog_cannot_publish_as_a_page(tmp_path, name, text):
         patch.object(publisher, "create_draft") as create_draft,
         patch.object(publisher, "set_yoast_meta", return_value={}),
     ):
-        with pytest.raises(ValueError, match="blogs need a passing release record"):
+        with pytest.raises(ValueError, match="(?i)blogs need a passing release record|frontmatter"):
             publisher.publish_draft(str(page), post_type="page", workspace_root=tmp_path)
     readiness.assert_not_called()
     create_draft.assert_not_called()
@@ -310,3 +317,18 @@ def test_a_real_landing_page_still_uses_the_old_gate(tmp_path):
     ):
         publisher.publish_draft(str(page), post_type="page", workspace_root=tmp_path)
     readiness.assert_called_once()
+
+
+def test_wordpress_cli_prints_the_ledger_warning_after_the_edit_url(layout, monkeypatch, capsys):
+    monkeypatch.setattr(f"{GATE}.record_release_use", lambda *args: (_ for _ in ()).throw(RuntimeError("disk full")))
+    monkeypatch.setattr(f"{GATE}.REPO_ROOT", layout.root)
+    for name, value in (("WORDPRESS_URL", "https://wordpress.example"), ("WORDPRESS_USERNAME", "editor"),
+                        ("WORDPRESS_APP_PASSWORD", "password")):
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(WordPressPublisher, "create_draft", lambda self, **kwargs: {"id": 7, "link": ""})
+    monkeypatch.setattr(WordPressPublisher, "set_yoast_meta", lambda self, **kwargs: {})
+    monkeypatch.setattr(sys, "argv", ["wordpress_publisher.py", str(layout.article)])
+    wordpress_publisher.main()
+    out = capsys.readouterr().out
+    edit_url = out.index("Edit URL: https://wordpress.example/wp-admin/post.php?post=7&action=edit")
+    assert out.index("Warning: published, but the usage ledger was not updated: disk full") > edit_url

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import shutil
 from datetime import date
@@ -9,6 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
+from data_sources.modules.customer_proof.connector_evidence import verify_connector_selector_evidence
 from data_sources.modules.customer_proof.nonconnector_contracts import NonVaultProofDataError
 from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.customer_proof.nonconnector_selection import select_nonvault_customer_proofs
@@ -96,6 +98,16 @@ def test_connector_release_publish_release_keeps_the_pinned_proof(tmp_path, monk
     assert [e["proof_id"] for e in record_publish_use(layout.article, layout.root, published_path=ARTICLE)] == [ZEBRA]
     assert _release(layout) == 0
     assert latest_record(layout)["passed"] is True
+    evidence = json.loads(layout.customer_proof_evidence.read_text(encoding="utf-8"))
+    with patch(VAULT_PATCH, new=load_validated_claim_set_for_unit_test):
+        assert verify_connector_selector_evidence(evidence)["metric"]["selected_id"] == ZEBRA
+        forged = copy.deepcopy(evidence)
+        forged["inputs"]["selected_overrides"]["metric"] = "claim-yak-quote"
+        for row in forged["roles"]:
+            if row["role"] == "metric":
+                row["selected_id"] = "claim-yak-quote"
+                row["candidate_ids"].append("claim-yak-quote")
+        assert verify_connector_selector_evidence(forged) is None
 
 
 def test_nonvault_release_publish_release_keeps_the_pinned_proof(tmp_path, monkeypatch):
