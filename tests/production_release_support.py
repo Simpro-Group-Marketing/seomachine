@@ -6,7 +6,6 @@ import copy
 from pathlib import Path
 from typing import Any
 
-from data_sources.modules.blog_assembly_contract import atomic_write_json
 from data_sources.modules.production import bom_build, release
 from data_sources.modules.production.layout import Layout
 from data_sources.modules.production.scoring import score_gates
@@ -34,7 +33,7 @@ def workspace(root: Path, *, text: str = ARTICLE_TEXT) -> Layout:
     layout = make_workspace(root, spec=nonconnector_spec())
     layout.article.parent.mkdir(parents=True, exist_ok=True)
     layout.article.write_text(text, encoding="utf-8", newline="\n")
-    atomic_write_json(layout.bom, bom_build.build_bom(layout, transport=good_transport()))
+    bom_build._write_bom(layout, bom_build.build_bom(layout, transport=good_transport()))
     return layout
 
 

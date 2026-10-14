@@ -109,23 +109,23 @@ class Layout:
 
     def release_dirs(self, run_id: str) -> list[Path]:
         """Existing release directories for this run, in release-number order."""
+        return [path for _number, path in self._numbered_releases(run_id) if path.is_dir()]
+
+    def release_dir(self, run_id: str) -> Path:
+        """Return the name after the highest release number for this run, counting a file or a
+        directory at any release name; does not create it."""
+        parent, base = self._release_base(run_id)
+        numbers = [number for number, _path in self._numbered_releases(run_id)]
+        return parent / f"{base}-{max(numbers, default=0) + 1}"
+
+    def _numbered_releases(self, run_id: str) -> list[tuple[int, Path]]:
         parent, base = self._release_base(run_id)
         pattern = re.compile(re.escape(base) + r"-(\d+)")
         if not parent.is_dir():
             return []
-        numbered = [
-            (int(match.group(1)), path)
-            for path in parent.iterdir()
-            if (match := pattern.fullmatch(path.name)) and path.is_dir()
-        ]
-        return [path for _number, path in sorted(numbered)]
-
-    def release_dir(self, run_id: str) -> Path:
-        """Return the directory after the highest-numbered release for this run; does not create it."""
-        parent, base = self._release_base(run_id)
-        existing = self.release_dirs(run_id)
-        number = int(existing[-1].name.rsplit("-", 1)[1]) + 1 if existing else 1
-        return parent / f"{base}-{number}"
+        return sorted(
+            (int(match.group(1)), path) for path in parent.iterdir() if (match := pattern.fullmatch(path.name))
+        )
 
     def _release_base(self, run_id: str) -> tuple[Path, str]:
         return self.root / "research" / "releases", f"{self.slug}-{self.date}-{run_id[:8]}"
@@ -152,8 +152,20 @@ def stored_run_id(layout: Layout) -> str | None:
     return _read_stored_run_id(layout.run_state)
 
 
-def _read_stored_run_id(path: Path) -> str | None:
-    """Return the stored run id, None when no run state exists, or raise on an invalid file."""
+def stored_bom_sha256(layout: Layout) -> str | None:
+    """The sha256 of the BOM the pipeline last wrote for this run; None when none was recorded."""
+    payload = _read_run_state(layout.run_state)
+    value = payload.get("bom_sha256") if payload else None
+    return value if isinstance(value, str) and value else None
+
+
+def record_bom_sha256(layout: Layout, bom_sha256: str) -> None:
+    """Record the hash of a BOM the pipeline just wrote, keeping the run id."""
+    _write_run_state(layout, load_or_create_run_id(layout), bom_sha256)
+
+
+def _read_run_state(path: Path) -> dict | None:
+    """Return the run state object, None when no run state exists, or raise on an invalid file."""
     if not path.exists():
         return None
     try:
@@ -165,9 +177,18 @@ def _read_stored_run_id(path: Path) -> str | None:
     value = payload.get("run_id")
     if not isinstance(value, str) or not value:
         raise LayoutError(f"run state {path} has no non-empty string run_id")
-    return value
+    return payload
 
 
-def _write_run_state(layout: Layout, run_id: str) -> None:
+def _read_stored_run_id(path: Path) -> str | None:
+    payload = _read_run_state(path)
+    return payload["run_id"] if payload else None
+
+
+def _write_run_state(layout: Layout, run_id: str, bom_sha256: str | None = None) -> None:
+    """Write the run state; a new run id carries no BOM hash until a pipeline BOM write records one."""
+    state = {"schema": RUN_STATE_SCHEMA, "run_id": run_id}
+    if bom_sha256:
+        state["bom_sha256"] = bom_sha256
     layout.run_state.parent.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(layout.run_state, {"schema": RUN_STATE_SCHEMA, "run_id": run_id})
+    atomic_write_json(layout.run_state, state)

@@ -45,8 +45,9 @@ from data_sources.modules.production.bom_selector import bind_selector_evidence,
 from data_sources.modules.production.bom_text import free_text_number_errors
 from data_sources.modules.production.claim_support import SUPPORT_RULE, claim_support_errors
 from data_sources.modules.production.facts import verify_quotes
-from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id
+from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id, record_bom_sha256
 from data_sources.modules.production.numbers import numbers_supported
+from data_sources.modules.production.record import file_sha256
 from data_sources.modules.public_http import PublicHttpTransport
 from data_sources.modules.vault_claim_receipts import load_validated_claim_set
 
@@ -117,18 +118,32 @@ def _fact_errors(facts: Sequence[Mapping[str, Any]]) -> list[str]:
     return errors
 
 
+def _is_utc_stamp(value: Any) -> bool:
+    """True for an ISO-8601 UTC timestamp written as ``YYYY-MM-DDTHH:MM:SSZ``."""
+    if not isinstance(value, str):
+        return False
+    try:
+        datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return False
+    return True
+
+
 def _carried_forward(
     fact: Mapping[str, Any], check: Any, prior_facts: Mapping[str, Mapping[str, Any]] | None
 ) -> dict[str, Any] | None:
     """Keep a previously verified fact when its page is merely unreachable now.
 
     Only an ``unreachable`` page (403, 429, 5xx, timeout) qualifies, and only for a prior fact with
-    the same id, url, and quote. Its original verification is kept; the current check is noted.
+    the same id, url, and quote and an ISO UTC ``verified_at``. Its original verification is kept;
+    the current check is noted.
     """
     prior = (prior_facts or {}).get(fact["id"])
     if check.status != "unreachable" or not isinstance(prior, Mapping):
         return None
-    if prior.get("url") != fact["url"] or prior.get("quote") != fact["quote"] or not prior.get("verified_at"):
+    if prior.get("url") != fact["url"] or prior.get("quote") != fact["quote"]:
+        return None
+    if not _is_utc_stamp(prior.get("verified_at")):
         return None
     row = {key: value for key, value in prior.items() if key not in ("carried_forward", "release_check")}
     return {**row, **{key: fact[key] for key in ("claim", "priority")},
@@ -288,10 +303,12 @@ def _retire_stale_bom(layout: Layout) -> None:
 
 
 def _write_bom(layout: Layout, bom: Mapping[str, Any]) -> None:
+    """Write the BOM and record its hash in the run state; only such a BOM can seed a carry-forward."""
     try:
         atomic_write_json(layout.bom, bom)
     except ValueError as error:
         raise OSError(str(error)) from error
+    record_bom_sha256(layout, file_sha256(layout.bom))
 
 
 def _run(args: argparse.Namespace, root: Path, holder: list[Layout]) -> int:

@@ -21,6 +21,7 @@ from data_sources.modules.production.layout import Layout, stored_run_id
 
 RECORD_SCHEMA = "simpro-release-record/v1"
 RECORD_NAME = "release-record.json"
+_CLAIM_ATTEMPTS = 100
 RELEASE_COMMAND = "python -m data_sources.modules.production.release"
 
 
@@ -70,7 +71,7 @@ def record_passed(findings: Iterable[Mapping[str, Any]], scores: Mapping[str, An
 
 def _claim_release_dir(layout: Layout, run_id: str) -> Path:
     """Create the next unused release directory; retry if a concurrent run took it first."""
-    while True:
+    for _attempt in range(_CLAIM_ATTEMPTS):
         target = layout.release_dir(run_id)
         target.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -78,6 +79,7 @@ def _claim_release_dir(layout: Layout, run_id: str) -> Path:
         except FileExistsError:
             continue
         return target
+    raise OSError(f"could not claim a release directory after {_CLAIM_ATTEMPTS} attempts in {target.parent}")
 
 
 def write_record(

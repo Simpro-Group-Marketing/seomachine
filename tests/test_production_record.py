@@ -235,3 +235,17 @@ def test_verify_publishable_refuses_a_changed_spec_or_evidence_file(layout, rela
 def test_verify_publishable_refuses_an_article_outside_the_layout(layout):
     with pytest.raises(ValueError):
         record.verify_publishable(layout.root / "notes" / "x.md", layout.root)
+
+
+def test_a_file_at_the_next_release_name_does_not_stall_the_claim(layout):
+    first = _write(layout)
+    stray = first.parent.with_name(first.parent.name[:-1] + "2")
+    stray.write_text("x", encoding="utf-8")
+    assert _write(layout).parent.name.endswith("-3")
+
+
+def test_claiming_a_release_directory_gives_up_after_100_attempts(layout, monkeypatch):
+    taken = _write(layout).parent
+    monkeypatch.setattr(Layout, "release_dir", lambda self, run_id: taken)
+    with pytest.raises(OSError, match="100"):
+        _write(layout)

@@ -78,3 +78,34 @@ def test_lost_quote_or_gone_page_refuses_even_with_a_prior_fact(tmp_path, page):
     prior = _prior(layout)
     with pytest.raises(ValueError, match=r"f1.*(quote_missing|gone)"):
         _build_with_prior(layout, FakeTransport({FACT_URL: page}), prior)
+
+
+def test_changed_url_that_is_unreachable_is_not_carried_forward(tmp_path):
+    layout = make_workspace(tmp_path)
+    prior = _prior(layout)
+    other = "https://example.org/other-report"
+    _mutate(layout, lambda s: s["facts"][0].update(url=other))
+    with pytest.raises(ValueError, match=r"f1.*unreachable"):
+        _build_with_prior(layout, FakeTransport({other: response(other, 403)}), prior)
+
+
+def test_swapped_prior_quotes_do_not_cross_carry(tmp_path):
+    layout = make_workspace(tmp_path)
+    second = "Crews log time from any phone on every job site"
+    _mutate(layout, lambda s: s["facts"].append(
+        {"id": "f2", "claim": "Crews log time from any phone", "url": FACT_URL, "quote": second, "priority": "should"}))
+    prior = _prior(layout)
+    prior["f1"], prior["f2"] = (
+        {**prior["f1"], "quote": prior["f2"]["quote"]}, {**prior["f2"], "quote": prior["f1"]["quote"]})
+    with pytest.raises(ValueError, match=r"f1.*unreachable"):
+        _build_with_prior(layout, FakeTransport({FACT_URL: response(FACT_URL, 403)}), prior)
+
+
+@pytest.mark.parametrize("stamp", ["", "forged", "2026-10-01", "2026-10-01T08:00:00+00:00", None],
+                         ids=["empty", "forged", "date_only", "offset", "none"])
+def test_prior_without_an_iso_utc_verified_at_is_not_carried_forward(tmp_path, stamp):
+    layout = make_workspace(tmp_path)
+    prior = _prior(layout)
+    prior["f1"] = {**prior["f1"], "verified_at": stamp}
+    with pytest.raises(ValueError, match=r"f1.*unreachable"):
+        _build_with_prior(layout, FakeTransport({FACT_URL: response(FACT_URL, 403)}), prior)

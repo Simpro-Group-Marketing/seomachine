@@ -38,7 +38,7 @@ from data_sources.modules.production.bom_artifacts import read_spec_bound
 from data_sources.modules.production.bom_build import _retire_stale_bom, _write_bom, build_bom, is_nonconnector
 from data_sources.modules.production.bom_selector import evidence_path
 from data_sources.modules.production.coverage import check_coverage
-from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id
+from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id, stored_bom_sha256
 from data_sources.modules.production.record import file_sha256, write_record
 from data_sources.modules.production.scoring import ScoringPreflightError, score_article
 from data_sources.modules.production.selector_refresh import refresh_selector_evidence
@@ -154,7 +154,11 @@ def _refresh(run: _Run, refresher: Refresher) -> None:
         ]) from error
 
 
-def _prior_facts(old_bom: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+def _prior_facts(layout: Layout, old_bom: Mapping[str, Any]) -> dict[str, Mapping[str, Any]] | None:
+    """The old BOM's facts, only when it is still the file the pipeline wrote (its hash was recorded)."""
+    recorded = stored_bom_sha256(layout)
+    if recorded is None or file_sha256(layout.bom) != recorded:
+        return None
     facts = old_bom.get("facts") if isinstance(old_bom.get("facts"), list) else []
     return {str(fact["id"]): fact for fact in facts if isinstance(fact, Mapping) and "id" in fact}
 
@@ -168,7 +172,7 @@ def _rebuild(run: _Run, transport: Any) -> tuple[dict[str, Any], str]:
     layout = run.layout
     try:
         bom = build_bom(
-            layout, transport=transport, claim_loader=load_validated_claim_set, prior_facts=_prior_facts(run.old_bom)
+            layout, transport=transport, claim_loader=load_validated_claim_set, prior_facts=_prior_facts(layout, run.old_bom)
         )
         _write_bom(layout, bom)
         return bom, file_sha256(layout.bom)
@@ -180,6 +184,20 @@ def _rebuild(run: _Run, transport: Any) -> tuple[dict[str, Any], str]:
         _retire_stale_bom(layout)
         lines = [f"BOM rebuild refused: {line}" for line in str(error).splitlines()]
         raise ReleaseStop(1, lines, check="bom_refused", bom_retired=True) from error
+
+
+def _carried_findings(bom: Mapping[str, Any]) -> list[Finding]:
+    """One warning per fact kept from an earlier verification, so the record always shows it."""
+    return [
+        Finding(
+            "fact_carried_forward", "warn",
+            f"fact {fact.get('id')} ({fact.get('url')}) was not re-verified: its page is unreachable "
+            f"({fact.get('release_check')}); carried forward from the verification at {fact.get('verified_at')}",
+            None,
+        )
+        for fact in bom.get("facts") or []
+        if isinstance(fact, Mapping) and fact.get("carried_forward") is True
+    ]
 
 
 def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list[Any], dict[str, Any]]:
@@ -199,7 +217,7 @@ def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list
                 results = {name: future.result() for name, future in futures.items()}
     except ScoringPreflightError as error:
         raise ReleaseStop(2, [f"scoring preflight: {error}"]) from error
-    return [*results["truth"], *results["coverage"]], results["scores"]
+    return [*results["truth"], *results["coverage"], *_carried_findings(bom)], results["scores"]
 
 
 def _score_lines(scores: Mapping[str, Any]) -> list[str]:
@@ -218,7 +236,7 @@ def _at(line: Any) -> str:
 
 
 def _summary(record: Mapping[str, Any], path: Path) -> None:
-    blocks = [row for row in record["findings"] if row["severity"] == "block"]
+    blocks = [row for row in record["findings"] if row["severity"] != "warn"]
     lines = [f"BLOCK {row['check']}{_at(row['line'])}: {row['message']}" for row in blocks]
     lines += _score_lines(record["scores"])
     lines.append(f"{record['warns']} warning(s); record: {path}")

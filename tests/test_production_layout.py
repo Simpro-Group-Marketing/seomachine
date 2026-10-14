@@ -1,6 +1,12 @@
 from pathlib import Path
 import json, pytest
-from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id
+from data_sources.modules.production.layout import (
+    Layout,
+    LayoutError,
+    load_or_create_run_id,
+    record_bom_sha256,
+    stored_bom_sha256,
+)
 
 def _article(root: Path, rel: str) -> Path:
     path = root / rel
@@ -73,3 +79,16 @@ def test_explicit_run_id_overwrites_valid_stored_id(tmp_path):
     load_or_create_run_id(layout)
     assert load_or_create_run_id(layout, run_id="explicit-2") == "explicit-2"
     assert load_or_create_run_id(layout) == "explicit-2"
+
+def test_bom_sha256_is_optional_and_recorded_beside_the_run_id(tmp_path):
+    layout = Layout.for_article(_article(tmp_path, "drafts/a-2026-01-02.md"), tmp_path)
+    _write_raw_run_state(layout, '{"schema": "simpro-production-run/v1", "run_id": "legacy"}')
+    assert load_or_create_run_id(layout) == "legacy" and stored_bom_sha256(layout) is None
+    record_bom_sha256(layout, "ab" * 32)
+    assert stored_bom_sha256(layout) == "ab" * 32 and load_or_create_run_id(layout) == "legacy"
+
+def test_release_dir_skips_a_file_sitting_at_a_release_name(tmp_path):
+    layout = Layout.for_article(_article(tmp_path, "drafts/a-2026-01-02.md"), tmp_path)
+    layout.release_dir("abcdef12-0000").mkdir(parents=True)
+    (layout.release_dir("abcdef12-0000").parent / "a-2026-01-02-abcdef12-2").write_text("x", encoding="utf-8")
+    assert layout.release_dir("abcdef12-0000").name.endswith("-3")
