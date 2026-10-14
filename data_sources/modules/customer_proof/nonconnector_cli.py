@@ -75,6 +75,7 @@ def _main(argv: Sequence[str] | None = None) -> int:
                     and args.require_eeat_story,
                     limit=args.limit,
                     reference_date=reference,
+                    pinned=str(selected.get(role) or ""),
                 )
                 candidate_ids = [str(row["proof_id"]) for row in results]
                 selected_id = str(selected.get(role) or "none")

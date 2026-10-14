@@ -100,6 +100,7 @@ audits/*
 
 # Local config (copy from config/competitors.example.json)
 config/competitors.json
+config/customer-proof-usage-ledger.json.lock
 
 # Don't ignore context files - these should be committed after customization
 # !context/

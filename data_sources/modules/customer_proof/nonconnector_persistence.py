@@ -78,6 +78,7 @@ def write_nonvault_selector_evidence(
             require_eeat_story=role == "experience_story" and require_eeat_story,
             limit=limit,
             reference_date=reference_date,
+            pinned=str(selected_overrides.get(role) or ""),
         )
         candidate_ids = [str(row["proof_id"]) for row in results]
         selected_id = str(selected_overrides.get(role) or "none")

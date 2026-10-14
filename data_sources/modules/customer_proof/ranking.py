@@ -74,6 +74,15 @@ def _used_in_article(
     return False
 
 
+def with_pinned(top: Sequence[FindingDict], eligible: Iterable[FindingDict], pinned: str) -> List[FindingDict]:
+    """Keep a pinned id offered while it is eligible, whatever its rank, the limit, or its use in this article."""
+    pin = str(pinned or "").strip()
+    if not pin or pin.casefold() == "none" or any(str(row.get("proof_id", "")) == pin for row in top):
+        return list(top)
+    match = next((row for row in eligible if str(row.get("proof_id", "")) == pin), None)
+    return [*top, match] if match is not None else list(top)
+
+
 def _selection_reason(candidate: FindingDict) -> str:
     parts = [
         f"relevance={candidate.get('relevance_score', 0)}",
@@ -242,6 +251,7 @@ __all__ = [
     '_relevance_score',
     '_score_candidate',
     '_used_in_article',
+    'with_pinned',
     '_selection_reason',
     '_candidate_text',
     '_matches_proof_role',

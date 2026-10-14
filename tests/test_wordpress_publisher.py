@@ -349,7 +349,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             path.write_text(DRAFT, encoding="utf-8")
 
             with (
@@ -385,7 +385,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             path.write_text(DRAFT, encoding="utf-8")
 
             with (
@@ -420,7 +420,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             sidecar = Path(tmp) / "validation-draft.md"
             request = Path(tmp) / "context-request.json"
             pack = Path(tmp) / "context-pack.json"
@@ -473,7 +473,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            path = root / "draft.md"
+            path = root / "landing-page.md"
             sidecar = root / "validation-draft.md"
             request = root / "request.json"
             pack = root / "pack.json"
@@ -585,7 +585,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         )
 
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             sidecar = Path(tmp) / "validation.md"
             bom = Path(_write_bom(tmp))
             bom_hash = hashlib.sha256(bom.read_bytes()).hexdigest()
@@ -668,7 +668,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             app_password="password",
         )
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             sidecar = Path(tmp) / "validation.md"
             path.write_text(DRAFT, encoding="utf-8")
             sidecar.write_text("approved input", encoding="utf-8")
@@ -704,7 +704,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             app_password="password",
         )
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "draft.md"
+            path = Path(tmp) / "landing-page.md"
             receipt = Path(tmp) / "receipt.json"
             path.write_text(DRAFT, encoding="utf-8")
             receipt.write_text('{"receipt":"sealed"}', encoding="utf-8")

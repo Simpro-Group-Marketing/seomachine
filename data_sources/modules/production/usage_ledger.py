@@ -2,7 +2,9 @@
 
 ``record_publish_use`` trusts only the passing release record (``record.verify_publishable``),
 reads that release's BOM, and appends one ``uses[]`` entry for each BOM proof item whose URL the
-article body links. Entries are deduped on proof id, artifact path, and date. The release itself
+article body links. Entries are deduped on proof id, artifact path, and date, and the
+read-modify-write holds an exclusive ``<ledger>.lock`` file so concurrent publishes cannot lose
+an entry. The release itself
 never writes the ledger; the WordPress and Grav publishers call this only after the live write
 succeeded, never on a dry run, refusal, or failure.
 """
@@ -10,8 +12,11 @@ succeeded, never on a dry run, refusal, or failure.
 from __future__ import annotations
 
 import json
+import os
 import re
-from collections.abc import Mapping, Sequence
+import time
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +32,7 @@ USAGE_LEDGER = Path("config") / "customer-proof-usage-ledger.json"
 NONVAULT_INDEX = Path("config") / "nonvault-customer-proof-index.json"
 REUSE_REASON = "Recorded at publish from the passing release record."
 SUMMARY_LIMIT = 200
+LOCK_WAIT_SECONDS = 10.0
 _USE_TYPES = {"metric": "metric", "quote": "approved_quote", "theme": "theme", "experience_story": "experience_story"}
 _H2 = re.compile(r"^\s{0,3}##\s+(.+?)\s*#*\s*$")
 
@@ -112,6 +118,27 @@ def _write_ledger(path: Path, ledger: dict[str, Any], newline: str) -> None:
     atomic_write_text(path, text.replace("\n", newline), max_bytes=DEFAULT_JSON_MAX_BYTES, field="usage ledger")
 
 
+@contextmanager
+def _ledger_lock(path: Path) -> Iterator[None]:
+    """Hold an exclusive lockfile next to the ledger so concurrent publishes cannot lose an entry."""
+    lock = path.with_name(path.name + ".lock")
+    deadline = time.monotonic() + LOCK_WAIT_SECONDS
+    while True:
+        try:
+            os.close(os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+            break
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise TimeoutError(
+                    f"usage ledger is locked by another publish: {lock}; delete it only if no publish is running"
+                ) from None
+            time.sleep(0.05)
+    try:
+        yield
+    finally:
+        lock.unlink(missing_ok=True)
+
+
 def _key(entry: Mapping[str, Any]) -> tuple[str, str, str]:
     return (str(entry.get("proof_id")), str(entry.get("artifact_path")), str(entry.get("date_used")))
 
@@ -129,6 +156,11 @@ def record_publish_use(
         date_used=date or current_utc_date().isoformat(),
     )
     path = root / USAGE_LEDGER
+    with _ledger_lock(path):
+        return _append_entries(path, entries)
+
+
+def _append_entries(path: Path, entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
     raw = path.read_bytes().decode("utf-8") if path.is_file() else ""
     ledger = json.loads(raw) if raw else {"version": 1, "updated_at": "", "uses": []}
     if not isinstance(ledger, dict) or not isinstance(ledger.get("uses"), list):

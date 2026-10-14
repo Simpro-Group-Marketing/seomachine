@@ -26,12 +26,12 @@ The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-
 
 **Create a page:**
 ```
-/publish-draft drafts/pricing-comparison.md --type page
+/publish-draft landing-pages/pricing-comparison.md --type page
 ```
 
 ### Post Types
 - `post` - Standard blog post (default) - supports categories and tags; requires a passing release record
-- `page` - WordPress page - no categories/tags; runs the landing-page readiness gate (see `/landing-publish`)
+- `page` - WordPress page - no categories/tags; runs the landing-page readiness gate (see `/landing-publish`). A blog (frontmatter `artifact_type: blog`, or an article in `drafts/` or `rewrites/`) is refused as a page: blogs need a passing release record and publish as posts
 
 Any other type, including custom post types, is rejected before any WordPress request.
 
@@ -103,7 +103,7 @@ cd /path/to/seomachine
 python -m data_sources.modules.wordpress_publisher "$FILE_PATH"
 ```
 
-A ledger failure after the draft exists is reported as a partial publish with the draft's edit URL; review that draft instead of retrying.
+If the usage ledger cannot be updated after the draft exists, the publish still succeeds: the edit URL is printed with a warning, and the ledger entry must be added by hand.
 
 ### Step 4: Confirm Success
 Display the WordPress edit URL so the user can review and publish.

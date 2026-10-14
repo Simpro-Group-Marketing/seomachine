@@ -94,6 +94,7 @@ def _verified_role(
         require_eeat_story=role == "experience_story",
         limit=limit,
         reference_date=reference_date,
+        pinned=str(inputs.get("selected_overrides", {}).get(role) or ""),
     )
     candidate_ids = [str(result["proof_id"]) for result in results if result.get("proof_id")]
     selected_id = str(inputs.get("selected_overrides", {}).get(role) or "none")

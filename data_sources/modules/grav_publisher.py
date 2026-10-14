@@ -668,19 +668,8 @@ class GravPublisher:
         except GravPublishError as exc:
             raise GravPartialPublishError(push, exc) from exc
         result.update({"dry_run": False, **push})
-        _record_proof_use(file_path, release_root, push)
+        result["proof_use_warning"] = publish_gate.record_proof_use(file_path, release_root)
         return result
-
-
-def _record_proof_use(file_path: str, release_root: Path, push: Dict) -> None:
-    """After a successful push, record the article's linked BOM proof in the usage ledger."""
-    try:
-        publish_gate.record_release_use(file_path, release_root)
-    except (OSError, ValueError) as exc:
-        location = push.get("commit_url") or push.get("repo_path") or "the Grav repo"
-        raise GravPublishError(
-            f"Grav article was pushed ({location}), but recording proof use in the usage ledger failed: {exc}"
-        ) from exc
 
 
 def _validate_grav_public_fields(draft: Dict) -> None:
@@ -786,6 +775,8 @@ def main():
                 print(f"Commit: {result['commit_url']}")
             if result.get("content_url"):
                 print(f"File:   {result['content_url']}")
+            if result.get("proof_use_warning"):
+                print(f"Warning: {result['proof_use_warning']}")
 
     except FileNotFoundError as exc:
         print(f"Error: {exc}")

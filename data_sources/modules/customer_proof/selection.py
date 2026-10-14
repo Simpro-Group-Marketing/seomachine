@@ -32,6 +32,7 @@ from .ranking import (
     _tokens,
     _use_modes_for_role,
     _used_in_article,
+    with_pinned,
 )
 from .slate import _format_rejected_candidates, _parse_roles, _slate_selector_command
 
@@ -51,9 +52,14 @@ def select_customer_proofs(
     limit: int = 8,
     reference_date: Optional[date] = None,
     claim_lookup_evidence: Optional[Mapping[str, Any]] = None,
+    pinned: str = "",
     _input_snapshot: Optional[_SelectorInputSnapshot] = None,
 ) -> List[FindingDict]:
-    """Return ranked vault-approved customer proof claims for a topic."""
+    """Return ranked vault-approved customer proof claims for a topic.
+
+    A ``pinned`` id that is still an eligible candidate is appended when ranking, the limit,
+    or its use in this article left it out, so a release can re-check a BOM's selection.
+    """
     if index_path is not None:
         raise CustomerProofDataError(LEGACY_INDEX_ERROR)
     reference = reference_date or date.today()
@@ -108,6 +114,7 @@ def select_customer_proofs(
         result["selection_reason"] = _selection_reason(result)
         scored.append(result)
 
+    eligible = list(scored)
     if article_slug:
         scored = [
             candidate
@@ -124,7 +131,7 @@ def select_customer_proofs(
         ),
         reverse=True,
     )
-    return scored[: max(limit, 0)]
+    return with_pinned(scored[: max(limit, 0)], eligible, pinned)
 
 
 def build_customer_proof_slate(
@@ -194,6 +201,7 @@ def build_customer_proof_slate(
             limit=limit,
             reference_date=reference_date,
             claim_lookup_evidence=claim_lookup_evidence,
+            pinned=str(selected.get(role) or ""),
             _input_snapshot=_input_snapshot,
         )
         if allow_no_proof and not results:

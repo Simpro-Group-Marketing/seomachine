@@ -6,6 +6,7 @@ import json
 
 import pytest
 
+from data_sources.modules.production import usage_ledger
 from data_sources.modules.production.record import verify_publishable
 from data_sources.modules.production.usage_ledger import (
     REUSE_REASON,
@@ -145,3 +146,17 @@ def test_nonconnector_source_type_comes_from_the_nonvault_row():
     assert entry["source_type"] == "case_study"
     with pytest.raises(ValueError, match="bigchange-row"):
         proof_use_entries(bom, f"[x]({url})\n", nonvault_rows=[], published_path="p", date_used=TODAY)
+
+
+def test_a_held_ledger_lock_times_out_with_a_clear_error_and_no_write(tmp_path, monkeypatch):
+    layout = _released(tmp_path, monkeypatch)
+    monkeypatch.setattr(usage_ledger, "LOCK_WAIT_SECONDS", 0.2)
+    lock = _ledger_path(layout).with_name("customer-proof-usage-ledger.json.lock")
+    lock.write_text("", encoding="utf-8")
+    before = _ledger_path(layout).read_bytes()
+    with pytest.raises(TimeoutError, match="usage ledger is locked by another publish"):
+        record_publish_use(layout.article, layout.root, published_path=ARTICLE)
+    assert _ledger_path(layout).read_bytes() == before and lock.exists()
+    lock.unlink()
+    assert record_publish_use(layout.article, layout.root, published_path=ARTICLE) == [EXPECTED]
+    assert not lock.exists()

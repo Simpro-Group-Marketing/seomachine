@@ -678,14 +678,11 @@ class WordPressPublisher:
         except PublishContentSafetyError as exc:
             raise ValueError(str(exc)) from exc
         landing_page = api_endpoint == "pages"
-        readiness_input_paths = dict(
-            proof_sidecar=proof_sidecar, context_request=context_request, context_pack=context_pack,
-            context_receipt=context_receipt, assembly_bom=assembly_bom,
-        ) if landing_page else {}
+        gate_inputs = dict(proof_sidecar=proof_sidecar, context_request=context_request, context_pack=context_pack,
+                           context_receipt=context_receipt, assembly_bom=assembly_bom)
+        readiness_input_paths = gate_inputs if landing_page else {}
         before_readiness_inputs = capture_file_snapshots(readiness_input_paths)
-        release_root, release = _require_publish_gate(
-            file_path, landing_page, readiness_input_paths, vault_root, workspace_root
-        )
+        release_root, release = _require_publish_gate(file_path, landing_page, gate_inputs, vault_root, workspace_root)
         sealed_snapshot = read_publishable_markdown(file_path)
         ensure_same_snapshot(before_readiness, sealed_snapshot)
         publish_gate.ensure_released_bytes(release, sealed_snapshot.sha256, file_path)
@@ -788,7 +785,7 @@ class WordPressPublisher:
                     "Yoast metadata update",
                     exc,
                 ) from exc
-        _record_blog_proof_use(file_path, release_root, post_id, edit_url)
+        proof_use_warning = publish_gate.record_proof_use(file_path, release_root)
 
         return {
             'post_id': post_id,
@@ -802,6 +799,7 @@ class WordPressPublisher:
                 label: snapshot.sha256
                 for label, snapshot in sealed_readiness_inputs.items()
             },
+            'proof_use_warning': proof_use_warning,
             'noindex': bool(noindex),
             'template': normalized_template,
             'word_count': word_count,
@@ -977,21 +975,15 @@ def _require_publish_gate(
     vault_root: Optional[str | Path], workspace_root: Optional[str | Path],
 ) -> tuple:
     """Landing pages run the readiness gate; blog posts need a passing release record."""
+    release_root = publish_gate.release_root(workspace_root)
     if landing_page:
+        publish_gate.refuse_blog_as_page(file_path, release_root)
         _require_publish_readiness(file_path, context="WordPress publish", vault_root=vault_root, **readiness_inputs)
         return None, None
-    release_root = publish_gate.release_root(workspace_root)
+    retired = publish_gate.retired_blog_args({**readiness_inputs, "vault_root": vault_root})
+    if retired:
+        raise ValueError(f"{retired[0]} is retired for blog posts; a passing release record is the publish gate")
     return release_root, publish_gate.require_release(file_path, release_root, "WordPress publish")
-
-
-def _record_blog_proof_use(file_path: str, release_root: Optional[Path], post_id: int, edit_url: str) -> None:
-    """After a blog draft is fully created, record its linked BOM proof in the usage ledger."""
-    if release_root is None:
-        return
-    try:
-        publish_gate.record_release_use(file_path, release_root)
-    except (OSError, ValueError) as exc:
-        raise WordPressPartialPublishError(post_id, edit_url, "proof-use ledger update", exc) from exc
 
 
 def _require_publish_readiness(
@@ -1044,6 +1036,13 @@ def _format_readiness_blockers(result: Dict) -> str:
     return "\n".join(lines) if lines else "- readiness failed"
 
 
+def _reject_retired_blog_flags(parser, args) -> None:
+    """Exit 2 when a blog post is given a retired readiness-gate flag; pages keep them."""
+    retired = [] if args.type.strip().lower() in ('page', 'pages') else publish_gate.retired_blog_flags(args)
+    if retired:
+        parser.error(f"{retired[0]} is retired for blog posts; a passing release record is the publish gate")
+
+
 def main():
     """CLI entry point for testing"""
     import sys
@@ -1060,7 +1059,7 @@ def main():
     parser.add_argument(
         '--type', '-t',
         default='post',
-        help='Content type: post, page, or custom post type (default: post)'
+        help='Content type: post or page (default: post)'
     )
     parser.add_argument('--proof-sidecar', help='Optional validation sidecar for publish-readiness proof gates')
     parser.add_argument('--context-request', help='Connector context request JSON path')
@@ -1071,9 +1070,7 @@ def main():
     parser.add_argument('--noindex', action='store_true', help='Request Yoast noindex metadata')
     parser.add_argument('--template', default='', help='WordPress page template slug')
     args = parser.parse_args()
-    retired = publish_gate.retired_blog_flags(args) if args.type.strip().lower() not in ('page', 'pages') else []
-    if retired:
-        parser.error(f"{retired[0]} is retired for blog posts; a passing release record is the publish gate")
+    _reject_retired_blog_flags(parser, args)
 
     try:
         publisher = WordPressPublisher()
@@ -1103,6 +1100,8 @@ def main():
 
         print("\nDraft published to WordPress!")
         print(f"Edit URL: {result['edit_url']}")
+        if result.get('proof_use_warning'):
+            print(f"Warning: {result['proof_use_warning']}")
 
     except WordPressPartialPublishError as e:
         print(f"Partial WordPress publish: {e}")

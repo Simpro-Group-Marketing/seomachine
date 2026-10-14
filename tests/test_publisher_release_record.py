@@ -180,3 +180,133 @@ def test_grav_cli_rejects_a_retired_gate_flag(tmp_path, capsys):
         grav_publisher.main()
     assert raised.value.code == 2
     assert "--proof-sidecar" in capsys.readouterr().err
+
+
+# ---- fix round 1 -----------------------------------------------------------------------------
+
+CATEGORY_ARTICLE = LINKED.replace("# Crew Time Tracking Guide\n", "# Crew Time Tracking Guide\n\n**Category**: Crews\n", 1)
+STALE_RECORD = {"passed": True, "article": {"sha256": "0" * 64}}
+
+
+@pytest.fixture
+def category_layout(tmp_path, checks):
+    layout = workspace(tmp_path, text=CATEGORY_ARTICLE)
+    assert run(layout) == 0
+    return layout
+
+
+def _edit(layout, note="Edited."):
+    layout.article.write_text(layout.article.read_text(encoding="utf-8") + f"\n{note}\n", encoding="utf-8")
+
+
+def test_wordpress_edit_during_taxonomy_lookup_stops_before_the_draft(category_layout):
+    publisher = _wordpress()
+    with (
+        patch.object(publisher, "get_or_create_category", side_effect=lambda name: _edit(category_layout) or 5),
+        patch.object(publisher, "create_draft") as create_draft,
+    ):
+        with pytest.raises(ValueError, match="changed"):
+            publisher.publish_draft(str(category_layout.article), workspace_root=category_layout.root)
+    create_draft.assert_not_called()
+
+
+def test_wordpress_edit_during_draft_creation_is_partial_and_leaves_the_ledger(layout):
+    before = _ledger(layout)
+    publisher = _wordpress()
+
+    def create_and_edit(**kwargs):
+        _edit(layout)
+        return {"id": 9, "link": ""}
+
+    with patch.object(publisher, "create_draft", side_effect=create_and_edit):
+        with pytest.raises(WordPressPartialPublishError):
+            publisher.publish_draft(str(layout.article), workspace_root=layout.root)
+    assert _ledger(layout) == before
+
+
+def test_a_record_for_other_bytes_is_refused_by_both_publishers(layout):
+    publisher, grav = _wordpress(), _grav()
+    with (
+        patch(f"{GATE}.verify_publishable", return_value=STALE_RECORD),
+        patch.object(publisher, "create_draft") as create_draft,
+        patch.object(grav, "push_article") as push,
+    ):
+        with pytest.raises(ValueError, match="changed since its passing release"):
+            publisher.publish_draft(str(layout.article), workspace_root=layout.root)
+        with pytest.raises(GravPublishError, match="changed since its passing release"):
+            grav.publish(str(layout.article), workspace_root=layout.root)
+    create_draft.assert_not_called()
+    push.assert_not_called()
+
+
+def test_wordpress_api_rejects_a_retired_argument_for_a_blog_post(layout):
+    with pytest.raises(ValueError, match="assembly_bom is retired for blog posts"):
+        _wp_publish_with(layout, assembly_bom="research/x.json")
+
+
+def _wp_publish_with(layout, **kwargs):
+    publisher = _wordpress()
+    with (
+        patch.object(publisher, "create_draft", return_value={"id": 7, "link": ""}) as create_draft,
+        patch.object(publisher, "set_yoast_meta", return_value={}),
+    ):
+        try:
+            return publisher.publish_draft(str(layout.article), workspace_root=layout.root, **kwargs)
+        finally:
+            assert create_draft.call_count <= 1
+
+
+def test_ledger_failure_after_a_live_publish_is_a_warning_not_a_failure(layout, monkeypatch, capsys):
+    monkeypatch.setattr(f"{GATE}.record_release_use", lambda *args: (_ for _ in ()).throw(RuntimeError("disk full")))
+    result, _create = _wp_publish(layout)
+    assert "published, but the usage ledger was not updated: disk full; add the entry by hand" in (
+        result["proof_use_warning"]
+    )
+    grav = _grav()
+    with patch.object(grav, "push_article", return_value=dict(PUSHED)):
+        pushed = grav.publish(str(layout.article), workspace_root=layout.root)
+    assert pushed["commit_url"] == PUSHED["commit_url"] and "disk full" in pushed["proof_use_warning"]
+    monkeypatch.setenv("GRAV_REPO", "owner/repo")
+    monkeypatch.setattr(sys, "argv", ["grav_publisher.py", str(layout.article)])
+    monkeypatch.setattr(grav_publisher.GravPublisher, "push_article", lambda *args, **kwargs: dict(PUSHED))
+    monkeypatch.setattr(f"{GATE}.REPO_ROOT", layout.root)
+    grav_publisher.main()
+    out = capsys.readouterr().out
+    assert PUSHED["commit_url"] in out and "Warning: published, but the usage ledger was not updated" in out
+
+
+def _page(root, name, text="# Landing Page\n\nBook a demo today.\n"):
+    page = root / name
+    page.parent.mkdir(parents=True, exist_ok=True)
+    page.write_text(text, encoding="utf-8")
+    return page
+
+
+@pytest.mark.parametrize("name, text", [
+    ("landing-pages/crew-guide.md", "---\nartifact_type: blog\n---\n# Crew Guide\n\nBody.\n"),
+    ("drafts/field-service-software-2026-10-13.md", "# Landing Page\n\nBook a demo today.\n"),
+])
+def test_a_blog_cannot_publish_as_a_page(tmp_path, name, text):
+    page = _page(tmp_path, name, text)
+    publisher = _wordpress()
+    with (
+        patch.object(wordpress_publisher, "run_publish_readiness") as readiness,
+        patch.object(publisher, "create_draft") as create_draft,
+        patch.object(publisher, "set_yoast_meta", return_value={}),
+    ):
+        with pytest.raises(ValueError, match="blogs need a passing release record"):
+            publisher.publish_draft(str(page), post_type="page", workspace_root=tmp_path)
+    readiness.assert_not_called()
+    create_draft.assert_not_called()
+
+
+def test_a_real_landing_page_still_uses_the_old_gate(tmp_path):
+    page = _page(tmp_path, "landing-pages/pricing-comparison.md")
+    publisher = _wordpress()
+    with (
+        patch.object(wordpress_publisher, "run_publish_readiness", return_value={"passed": True}) as readiness,
+        patch.object(publisher, "create_draft", return_value={"id": 3, "link": ""}),
+        patch.object(publisher, "set_yoast_meta", return_value={}),
+    ):
+        publisher.publish_draft(str(page), post_type="page", workspace_root=tmp_path)
+    readiness.assert_called_once()

@@ -209,6 +209,7 @@ def _verify_selected_role(
         limit=limit,
         reference_date=reference_date,
         claim_lookup_evidence=_claim_lookup_artifact(paths),
+        pinned=str(inputs.get("selected_overrides", {}).get(role) or ""),
     )
     candidate_ids = [str(result["proof_id"]) for result in results if result.get("proof_id")]
     claim_ids = [str(result["claim_id"]) for result in results if result.get("claim_id")]

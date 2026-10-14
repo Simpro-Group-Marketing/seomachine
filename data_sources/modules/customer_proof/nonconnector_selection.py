@@ -21,6 +21,7 @@ from .nonconnector_eligibility import (
     _tokens,
 )
 from .nonconnector_inputs import _read_json
+from .ranking import with_pinned
 
 
 def select_nonvault_customer_proofs(
@@ -36,8 +37,12 @@ def select_nonvault_customer_proofs(
     require_eeat_story: bool = False,
     limit: int = 10,
     reference_date: date | None = None,
+    pinned: str = "",
 ) -> list[dict[str, Any]]:
-    """Return approved, brand-owned proof candidates for one nonconnector brand."""
+    """Return approved, brand-owned proof candidates for one nonconnector brand.
+
+    A ``pinned`` id that is still eligible is appended when its rank or the limit left it out.
+    """
     del article_slug
     if proof_role not in SUPPORTED_ROLES:
         raise NonVaultProofDataError(f"unsupported proof role: {proof_role}")
@@ -79,7 +84,7 @@ def select_nonvault_customer_proofs(
             str(row.get("proof_id") or ""),
         )
     )
-    return ranked[:limit]
+    return with_pinned(ranked[:limit], ranked, pinned)
 
 
 __all__ = [

@@ -37,6 +37,8 @@ The logic lives in `data_sources/modules/grav_publisher.py`. It:
 4. Commits `blogs/<slug>/article.en.md` to the `dev` branch (creates or updates).
 5. After a successful push, records one `config/customer-proof-usage-ledger.json` entry for each
    production BOM proof item the article links. Dry runs, refusals, and failures never write it.
+   If the ledger cannot be updated after the push, the commit is still reported with a warning to
+   add the entry by hand.
 
 ## Configuration
 
