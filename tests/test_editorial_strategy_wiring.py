@@ -43,8 +43,8 @@ def test_planning_and_writing_ownership_is_explicit() -> None:
         ".claude/commands/optimize.md",
     ):
         content = text(path)
-        assert "simpro-blog-editorial-plan/v2" in content
-        assert "simpro-blog-plan-fulfillment/v1" in content
+        assert "production BOM" in content
+        assert "simpro-blog-plan-fulfillment/v1" not in content
 
 
 def test_semantic_fulfillment_review_stays_with_content_reviewers() -> None:
@@ -57,12 +57,13 @@ def test_semantic_fulfillment_review_stays_with_content_reviewers() -> None:
         assert "planned purpose" in content
 
 
-def test_current_strategy_docs_name_plan_v2_and_bom_v4() -> None:
+def test_current_strategy_docs_name_the_production_bom_and_release_record() -> None:
     aeo = text("context/aeo-geo-blog-strategy.md")
     editorial = text("context/blog-editorial-strategy.md")
-    assert "simpro-blog-editorial-plan/v2" in aeo
-    assert "simpro-blog-assembly-bom/v4" in aeo
-    assert "simpro-blog-plan-fulfillment/v1" in aeo
+    assert "simpro-production-bom/v1" in aeo
+    assert "simpro-production-bom-spec/v1" in aeo
+    assert "simpro-release-record/v1" in aeo
+    assert "remain readable history" in aeo
     assert "simpro-blog-editorial-plan/v2" in editorial
 
 

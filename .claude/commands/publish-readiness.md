@@ -1,80 +1,93 @@
 # Publish Readiness Command
 
-Consume `context/blog-editorial-strategy.md` for the frozen editorial contract and `context/aeo-geo-blog-strategy.md` for AEO and proof governance. Current blog readiness requires editorial-plan v2, plan-fulfillment v1, BOM v4, and its immutable commercial-pillar index binding. It executes both `blog_strategy` and `schema_handoff`; it never edits the plan or public copy.
-
-Run the complete source-artifact gate stack for a blog draft, rewrite, published article artifact, or landing page.
+Use `/publish-readiness [article]` to release-check a blog in `drafts/` or `rewrites/`. The command runs the one-pass production release and reports its verdict. Consume `context/blog-editorial-strategy.md` for editorial policy and `context/aeo-geo-blog-strategy.md` for AEO, proof, production BOM, and release policy.
 
 ## Ownership
 
-`/publish-readiness` is the release owner. It validates, scores, assembles readiness evidence, and writes readiness/BOM governance artifacts. It must not draft, rewrite, or patch public blog Markdown.
+`/publish-readiness` is the release owner and the sole release verdict. It validates, scores, and writes the release record. It must not draft, rewrite, or patch public blog Markdown, and it never edits the production BOM spec. Machine reviewers are advisory; no human approval step exists.
 
-For public copy changes, return the failed gates and priority fixes to `/write`, `/rewrite`, or `/optimize`.
+For public copy changes, return the blocking findings and priority fixes to `/write`, `/rewrite`, or `/optimize`. For a refused BOM rebuild, return the refusal lines to `/research`, which fixes the BOM spec or the research inputs.
 
-## Fast sweep (run first)
+## Inputs
 
-Before the release wrapper, run the sweep with the same arguments to see every blocker in one pass:
+The command needs only the article path. Every other input derives from it (see `data_sources/modules/production/layout.py`):
 
-```powershell
-python -m data_sources.modules.blog_release_sweep "[article]" [same wrapper arguments] --sweep-output "research/prechecks/[slug]-[date]-sweep.json" [--offline] [--include-slow]
-```
+- the article `drafts/<slug>-<date>.md` or `rewrites/<slug>-<date>.md`;
+- the run state `research/runs/<slug>-<date>.json`, which holds the production `run_id` and the hash of the BOM the pipeline last wrote;
+- the BOM spec `research/production-bom-spec-<slug>-<date>.json`, written by `/research`;
+- the production BOM `research/production-bom-<slug>-<date>.json` (schema `simpro-production-bom/v1`), built by `/research`;
+- the research artifacts the BOM binds: Semrush keyword decision and shortlist, SERP evidence and page-1 coverage map, PAA artifact when the spec selects questions, customer-proof selector evidence, and the context pack and receipt for connector-bound work.
 
-The sweep never writes a release directory and never grants readiness. Fix every reported blocker, rerun the sweep until it passes, then run the wrapper. `customer_proof_diversity` runs only with `--include-slow`; it needs the vault, so `--include-slow` is not meaningful together with `--offline`. `--offline` skips exactly these checks: `url_validator`, `public_research_links`, `source_support`, `context_binding`, `named_feature_status`, `competitive_shortlist`, `fred_authority`, and `vault_brand_language`; the `blog_strategy` pillar redirect check runs only online because it needs the URL results. Offline, a failing `eeat_proof` scorer check (which needs the vault claim set) is reported as a warning prefixed "unverified offline", and `content_scorer.not_passed` is downgraded the same way only when `eeat_proof` is the sole failing check and the content, SEO, and AEO/GEO scores meet their thresholds. Every skipped gate is listed in the sweep report with its reason.
-
-The sweep does not validate the release invocation, the plan and article machine reviews, plan fulfillment, or BOM construction. A clean sweep therefore means "no known content blockers", not "the wrapper will pass".
+A missing article, spec, or BOM is an operational stop (exit `2`) that names the expected path. When the last build refused the BOM, the message names the `.refused` file and the build command `/research` runs.
 
 ## Usage
 
-```powershell
-python -m data_sources.modules.blog_release "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[scrub-receipt]" --serp-evidence "[serp-evidence]" --plan-fulfillment "[plan-fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --stage-receipt "[receipt]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]"
-```
-
-Pass each wording-edit receipt as another `--stage-receipt` directly after the Context Binding receipt it follows, in chain order. The wrapper re-checks every trailing wording edit from its evidence before it carries the scrub, Context Binding, machine review, plan fulfillment, and optimizer artifacts forward.
-
-The first wrapper run intentionally omits optimizer evidence. After it writes `pre-bom-report.json`, `provisional-bom.json`, and `preflight-readiness.json`, it starts an `/optimize` recovery handoff and returns `0` with phase `optimization_started`. When preflight readiness passes, the wrapper also writes `preflight-readiness-stage-receipt.json` and opens `optimization-state.json` from that predecessor receipt. When preflight readiness blocks before a passed receipt exists, the wrapper writes `optimization-recovery.json` without minting a fake stage receipt; `/optimize` repairs the blocker, then the wrapper runs again for the required initial scorecard. This is not final release approval.
-
-After `/optimize`, rerun the wrapper with the post-optimization scrub receipt, post-optimization stage receipts, the optimizer artifact, and the prior preflight readiness output:
+The command runs:
 
 ```powershell
-python -m data_sources.modules.blog_release "[article]" --run-id "[uuid]" --proof-sidecar "[sidecar]" --editorial-plan "[plan]" --plan-review "[plan-review]" --article-review "[article-review]" --keyword-decision "[keyword-decision]" --scrub-receipt "[post-optimization-scrub-receipt]" --serp-evidence "[serp-evidence]" --plan-fulfillment "[plan-fulfillment]" --commercial-pillar-index "context/commercial-pillar-index.json" --stage-receipt "[receipt]" --optimizer-output "[optimizer-output]" --prior-preflight-readiness "[preflight-readiness]" --workflow-mode "[new|rewrite]" --assembly-date "[YYYY-MM-DD]" --output-dir "research/releases/[slug]-[date]-[run-id]-final"
+python -m data_sources.modules.production.release "[article]" [--workers N] [--workspace-root DIR]
 ```
 
-The final wrapper run writes `pre-bom-report.json`, `provisional-bom.json`, `preflight-readiness.json`, `preflight-readiness-stage-receipt.json`, `final-bom.json`, `final-readiness.json`, and `final-readiness-stage-receipt.json` in a new run-specific release directory. Exit `0` with phase `final_readiness` means final readiness passed and its receipt persisted. Exit `0` with phase `optimization_started` means the wrapper began the required optimization recovery run and final readiness is still pending. Exit `1` means a policy, evidence, score, optimization, or readiness blocker that could not be advanced automatically. Exit `2` means invalid arguments, partial optimizer evidence, reused output directory, collision, unreadable input, or operational failure.
+`--workers N` overrides the `SEOMACHINE_RELEASE_WORKERS` environment variable, which defaults to `2`. With `1` worker everything runs sequentially in one process with no pools. Keep the default on low-memory machines.
 
-A Semrush UI timeout/reset is `blocked_semrush_ui_refresh`; rerun the authenticated main Chrome Semrush UI workflow and do not substitute Semrush API, MCP, stale exports, or estimates.
+## Phases
 
-Omit context request/pack/receipt and Fred authority evidence when Context Binding classifies the final article as nonconnector and the sidecar records the not-applicable rationale. For nonconnector AroFlo, BigChange, and ClockShark articles with no Simpro signal, supplied vault-dependent customer-proof or Fred artifacts are blockers rather than supporting evidence. If approved non-vault customer proof appears, require matching `simpro-nonvault-customer-proof-selector-evidence/v1`; otherwise omit customer-proof selector evidence.
+1. **Refresh selector evidence.** When the spec names proof or this article's selector evidence exists, the release re-runs the selector that wrote it, with the inputs recorded in the evidence, so the evidence is same-day. A connector article refreshes the vault-bound selector evidence; a nonconnector AroFlo, BigChange, or ClockShark article refreshes `simpro-nonvault-customer-proof-selector-evidence/v1` and never runs the vault-dependent customer-proof selector. A refresh failure, such as a vault outage, is exit `2`.
+2. **Rebuild the BOM.** The builder re-verifies every fact quote on its live page and re-checks every proof item against approved claims and the selector evidence. A fact whose page is merely unreachable keeps its earlier verification only when the previous BOM is the file the pipeline wrote; truth then warns. A lost quote, a gone page, or unapproved proof refuses the rebuild (exit `1`) and moves the BOM aside as `.refused`.
+3. **Check and score concurrently.** Truth and coverage run in a thread pool while the scorer runs:
+   - **Truth (blocking):** links resolve; every claim that needs a citation cites a BOM fact URL whose quote is still on the page; numbers in a claim appear in its fact's quote; customer and review quotes match a BOM proof item verbatim; every FAQ question is a BOM PAA question; and the AI copy linter's `editorial_process_leakage` rule finds nothing. Other lint findings and off-BOM links are warnings.
+   - **Coverage:** every `must` item is present (section headings, the commercial pillar link with its planned anchor, `must` facts and proof, `must` PAA questions in the FAQ, and the primary keyword in the title, H1, and first 100 words). A missing `must` item blocks; a missing `should` item warns.
+   - **Scores (blocking):** the existing content scorer, fed a proof view rendered only from the BOM, yields the three gates below.
+4. **Record.** The release writes one `release-record.json` in the next unused directory `research/releases/<slug>-<date>-<run8>-<n>/`, where `<run8>` is the first 8 characters of the run id. Every run that fails after the refresh also writes a failing record, so an older pass never stays the latest record.
 
-## Gate stack
+The AI copy linting check treats `editorial_process_leakage` as a hard public-copy blocker. Body copy that contains brief rationale, source-fit notes, feature-omission reasoning, command status, or workflow explanation blocks the release even if Content, SEO, and AEO/GEO scores otherwise pass. Return the blocker to `/write`, `/rewrite`, or `/optimize`; `/publish-readiness` must not patch the article.
 
-The runner enforces artifact identity, Context Binding, Blog Assembly BOM, public artifact checks, AI copy linting, URL validation, public research link checks, Metric Proof Pack, numeric claim source, conditional FAQ answer quality and FAQ proof, PAA provenance, editorial plan, Semrush keyword decision, source support, branch-applicable customer proof diversity, review story identity, E-E-A-T strength, early artifact, answer withholding, vault brand language, named feature status, branch-applicable Fred authority, input seal, and content scoring.
+## Score thresholds
 
-The AI copy linting gate treats `editorial_process_leakage` as a hard public-copy blocker. Final handoff is invalid when body copy contains brief rationale, source-fit notes, feature-omission reasoning, command status, or workflow explanation, even if Content, SEO, and AEO/GEO scores otherwise pass. Return the blocker to `/write`, `/rewrite`, or `/optimize`; `/publish-readiness` must not patch the article.
+The record's `scores.gates` holds one independent pass/fail gate per score:
 
-## Scorecard
+- `content_quality`: score, threshold 85, passed.
+- `seo_quality`: score, release-floor threshold 90, passed, and `critical_issue_count`, which must be 0. The 95/100 SEO optimization target is advisory and never blocks.
+- `aeo_geo`: score, threshold 90, passed, plus `failed_checks` and `failed_rules`.
 
-The readiness output must include a `scorecard` with independent pass/fail records:
+`scores.passed` is true only when all three gates pass. `scores.priority_fixes` lists the scorer's fixes for `/optimize`.
 
-- `content_quality`: score, threshold 85 for blogs, threshold 75 for landing pages, passed.
-- `seo_quality`: score, release-floor threshold 90, advisory target 95, passed, `target_met`, `target_status`, and `critical_issue_count` of 0. Blog readiness fails if the release-floor gate fails.
-- `aeo_geo`: score, threshold 90 for blogs, passed. Blog readiness fails if this gate fails.
+## Exit codes
 
-A passed blog readiness result is invalid if any scorecard gate fails, if SEO has critical issues, or if the top-level content/AEO scores disagree with the scorecard.
+- `0`: passed. The latest record has `passed: true`.
+- `1`: blocked. The BOM rebuild was refused, a truth or coverage finding blocks, or a score gate failed.
+- `2`: operational or argument error: missing BOM or spec, bad article path, selector refresh failure, stale evidence at scoring, the article edited during the run, or an unexpected error.
 
-If an upstream gate blocks scoring, report `scorecard: unavailable` and the exact blocking gate instead of leaving the score field ambiguous. Missing scores are a workflow blocker unless a pre-scoring gate blocked readiness.
+## Release record
+
+`release-record.json` uses schema `simpro-release-record/v1` and holds:
+
+- `run_id` and `created_at`;
+- `article` and `bom`: path and sha256 of the exact bytes checked;
+- `spec` and `evidence`: path and sha256 of the BOM spec and every artifact the BOM binds;
+- `findings`: one row per finding with `check`, `severity` (`block` or `warn`), `message`, and `line`;
+- `blocks` and `warns` counts;
+- `scores`: `content`, `seo`, `seo_critical`, `aeo_geo`, `priority_fixes`, `passed`, and `gates` (null when the run stopped before scoring);
+- `passed`: true only with zero blocking findings and all three score gates passed;
+- `workers`.
+
+## Publishers
+
+WordPress and Grav publishers trust only the latest record. `data_sources.modules.production.record.verify_publishable(article, root)` returns that record, or refuses when no record exists, the latest record belongs to another run or did not pass, or the article, BOM, spec, or any bound evidence changed since the passing release. Any edit after a pass therefore needs a new release. Release never writes `config/customer-proof-usage-ledger.json`; publishing records customer-proof use.
 
 ## Output
 
 Report:
 
-- Overall pass/fail.
-- One row per gate with error and warning counts.
-- Content score and threshold.
-- SEO score, release floor, advisory target, target status, and critical issue count.
-- AEO/GEO score and threshold.
-- Priority fixes and the next owning command.
+- Overall pass or blocked, with the exit code and the record path.
+- Every blocking finding with its check, line, and message.
+- Content score and threshold 85.
+- SEO score, release floor 90, critical issue count, and whether the advisory 95 target is met.
+- AEO/GEO score, threshold 90, and failed checks.
+- Warning count, scorer priority fixes, and the next owning command.
 
-If readiness fails, do not mutate article copy inside this command. Return the root cause to `/optimize`, `/write`, or `/rewrite`.
+If the run stopped before scoring, report `scores: unavailable` and the exact stop reason. Missing scores are a workflow blocker unless the release stopped before scoring.
 
-For new or changed blogs, the caller must run `/optimize` after the first readiness scorecard or exact non-scoring blocker, then rerun `/scrub` and `/publish-readiness` after any article-byte change. Final handoff must include the final scrub result and separate Content, SEO, and AEO/GEO scores or the exact pre-scoring blocker.
+If the release blocks, do not mutate article copy inside this command. Return the root cause to `/optimize`, `/write`, or `/rewrite`, then release again. Final handoff must include the final `/scrub` result and separate Content, SEO, and AEO/GEO scores from the latest release record.
 
-For detailed proof, PAA, FAQ, schema, customer proof, E-E-A-T strength, Fred authority, named feature, and vault language policy, use `context/aeo-geo-blog-strategy.md`.
+For detailed proof, PAA, FAQ, schema, customer proof, E-E-A-T, named feature, and vault language policy, use `context/aeo-geo-blog-strategy.md`.

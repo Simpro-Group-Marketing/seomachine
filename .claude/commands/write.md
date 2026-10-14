@@ -1,88 +1,62 @@
 # Write Command
 
-Use `/write [topic or research brief]` to draft a blog from an approved topic, brief, or research package.
+Use `/write [topic or article path]` to draft a new blog from its production BOM.
 
 ## Ownership
 
 The command/agent writes the public Markdown. Python must not draft, rewrite, or patch public blog Markdown in `drafts/`, `rewrites/`, or `published/`.
 
-Python may write governance artifacts only: selector output, context binding evidence, Semrush keyword decision JSON, SERP/PAA artifacts, editorial-plan JSON, BOM JSON, readiness JSON, and publisher transport payloads.
+Python may write governance artifacts only: selector evidence, context packs and receipts, the recorded Semrush keyword decision, SERP and PAA artifacts, the production BOM, the release record, and publisher transport payloads.
 
 Consume `context/blog-editorial-strategy.md` for editorial execution and the canonical AEO and proof source, `context/aeo-geo-blog-strategy.md`. Author metadata controls public identity, Person schema, and whether first-person author voice is allowed; it provides zero Expertise and zero Experience credit without selected, source-visible evidence that satisfies the corresponding proof boundary. Expertise proof requires source-visible expert evidence alongside product/workflow support.
 
-Consume the frozen `simpro-blog-editorial-plan/v2` produced by `/research`. Do not silently alter it. The plan defines outcomes, purposes, evidence provenance, target sections, metadata, and strategy; `/write` independently chooses the public language. Return plan-level defects to `/research` for a newly hashed plan.
+Consume the production BOM `research/production-bom-[slug]-[YYYY-MM-DD].json` that `/research` built. Do not edit the BOM or its spec. The BOM lists the sections, facts, approved proof, PAA questions, links, CTA, and schema notes; `/write` independently chooses the public language. A missing BOM, or a BOM defect such as a missing fact or section, returns to `/research`, which fixes the spec and rebuilds.
 
 ## Required workflow
 
-1. Read the user request and any supplied brief.
-2. Resolve topic, title, objective, audience, region, target keyword, target URL, and whether the article is new or a rewrite.
-3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts. When a separate approved non-vault proof-eligibility contract applies, use `nonvault_customer_proof_selector.py` and supply only `simpro-nonvault-customer-proof-selector-evidence/v1`. For connector-bound work, build the context packs from `research/context-build-spec-[slug]-[date].json` (written from `config/context-build-spec.example.json`) with `python -m data_sources.modules.context_build research/context-build-spec-[slug]-[date].json`. If the run stops (memory pressure, timeout), rerun with `--resume`; finished packs that still validate are reused and never rewritten. Stage `claim_requests`, claim lookups, and any proof-boundary text must come from the current topic's selector slate and claim lookups, never from the example or another topic.
-4. Run the live Semrush keyword decision workflow from `context/aeo-geo-blog-strategy.md` unless a current valid `simpro-semrush-keyword-decision/v1` artifact already exists for the same article, plan, market, and assembly date.
-5. Build or update the validation sidecar at `research/validation-[topic-slug]-[YYYY-MM-DD].md`.
-6. Run mandatory selectors when applicable:
-   - Customer proof selector before using customer proof.
-   - Fred Voccola authority selector for every new or changed Simpro blog.
-   - E-E-A-T strength decision for commercial-investigation blogs when no selected proof, review, Fred, author, or SME signal exists.
-7. Resolve `audience_language_research` in the editorial plan. Use community language only when it materially improves reader comprehension; default regulatory and licensing topics to `not_applicable` unless the brief asks for it.
-8. If the frozen plan or validation sidecar records `Hindsight Strategy Selection` with `Status: internal_strategy_only`, use that Hindsight-informed strategy only to understand the planned reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If the Hindsight-informed angle is missing or wrong, route the plan defect back to `/research` for a new plan hash.
-9. Validate the already frozen editorial plan, then run the six machine reviewers against that exact plan: Content Analyzer (`content-analyzer`), Editor (`editor`), SEO Optimizer (`seo-optimizer`), Meta Creator (`meta-creator`), Internal Linker (`internal-linker`), and Keyword Mapper (`keyword-mapper`). Save `simpro-blog-machine-review/v1` plan-review JSON. Route plan-level changes to `/research`; do not mutate the plan inside `/write`.
-10. Create `simpro-source-candidate-inventory/v1` from the external sources intended for the draft. Before opening the native draft receipt, run `python -m data_sources.modules.blog_write_preflight --draft "drafts/[topic-slug]-[YYYY-MM-DD].md" --source-candidate-inventory "research/source-candidates-[topic-slug].json" --classification-directory "research/source-classifications/[topic-slug]" --source-classification-output "research/source-classification-preflight-[topic-slug].json" --output "research/write-preflight-[topic-slug].json"`. Do not begin drafting unless it exits `0`; a blocked run has no authority to create the draft or its native edit state.
-11. Run the Reader-Facing Copy Firewall before drafting. Convert brief instructions, source-fit notes, claim-selection logic, feature-omission rationale, command results, schema notes, and readiness status into article-ready guidance or sidecar/frontmatter/BOM evidence. Public body copy must read only as a blog for the ICP and must not explain how or why the article was assembled, including phrases such as "this article uses," "the brief asks," "right editorial lane," or "does not name a specific feature."
-12. Write the draft Markdown section by section in plan order to `drafts/[topic-slug]-[YYYY-MM-DD].md` using the command, not a Python writer.
-13. After every article-byte change, regenerate `simpro-blog-plan-fulfillment/v1` with one verbatim visible excerpt per planned contribution, bound to the frozen plan and current article hashes. Freeze the article bytes, rerun the Reader-Facing Copy Firewall, and run the same six reviewers against that exact article and fulfillment evidence. Content Analyzer and Editor assess whether each excerpt accomplishes its planned purpose. Save `simpro-blog-machine-review/v1` article-review JSON. Any `editorial_process_leakage` finding is a public-copy blocker owned by `/write`.
-14. Run `/scrub [article]` for diagnostics only. If it reports needed changes, make those edits through `/write`, rerun `/scrub`, and rerun article machine review.
-15. Run the atomic release wrapper far enough to produce an initial `/publish-readiness` scorecard or an exact non-scoring blocker. Do not skip this step, because `/optimize` needs the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`. Run the fast sweep from `/publish-readiness` first.
-16. Run `/optimize [article]` for every new blog after the initial scorecard or blocker report. If no source-safe edits are needed, record a no-op optimizer output with the inspected scores, priority fixes, and reason. If `/optimize` changes article bytes, rerun `/scrub`, Context Binding, and the full six-agent article review.
-17. Run the atomic release wrapper again with the sidecar, machine reviews, evidence artifacts, stage receipts, optimizer output when present, post-optimization scrub receipt when applicable, and context artifacts when connector-bound. Do not hand off as ready until final `/publish-readiness` passes and reports separate Content, SEO, and AEO/GEO scores.
+1. Resolve the article path `drafts/[slug]-[YYYY-MM-DD].md` and read its production BOM. If the BOM does not exist, run `/research` first.
+2. Read the identity, keyword, sections, facts, proof, PAA questions, links, CTA, and schema notes from the BOM. Proof comes only from the BOM: for a connector-bound article it was selected from vault claims; for a nonconnector AroFlo, BigChange, or ClockShark article under the separate approved non-vault proof-eligibility contract it was selected by `nonvault_customer_proof_selector.py`.
+3. If the research brief records Hindsight-informed strategy with `public_claim_use: prohibited`, use it only to understand the planned reader angle, section emphasis, section purposes, objections, and commercial framing. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If the Hindsight-informed angle is missing or wrong, route the plan defect back to `/research`.
+4. Run the Reader-Facing Copy Firewall before drafting. Convert brief instructions, source-fit notes, claim-selection logic, feature-omission rationale, command results, schema notes, and readiness status into article-ready guidance or frontmatter. Public body copy must read only as a blog for the ICP and must not explain how or why the article was assembled, including phrases such as "this article uses," "the brief asks," "right editorial lane," or "does not name a specific feature." Any `editorial_process_leakage` finding is a public-copy blocker owned by `/write`.
+5. Draft with one writer, so the article keeps one voice. Claude writes the Markdown section by section in BOM order using the command, not a Python writer, and not parallel subagents:
+   - cover every `must` section and as many `should` sections as serve the reader;
+   - state a fact only as its BOM claim allows, and link its BOM URL in the same paragraph; never add a number, statistic, quote, or source that is not in the BOM;
+   - use customer and review proof verbatim from its BOM proof item, with its URL linked in the same paragraph;
+   - ask FAQ questions only from the BOM PAA questions, using their exact wording;
+   - place the commercial pillar link with its exact planned anchor, and put the primary keyword in the title, H1, and first 100 words;
+   - follow the drafting rules in `context/aeo-geo-blog-strategy.md`: direct answer first, capsules, Key Takeaways, early usable artifact, FAQ answer shape, and `schema_notes` frontmatter.
+6. Freeze the article bytes and dispatch the advisory reviewers as parallel subagents against that exact snapshot and the BOM path:
+   - **Editor** (`editor`): voice, clarity, rhythm, and reviewed Humanizer patterns;
+   - **SEO** (`seo-optimizer`, using the `meta-creator`, `internal-linker`, and `keyword-mapper` checklists): title and meta, headings, keyword placement, and links;
+   - **AEO** (`content-analyzer`): direct answers, capsules, FAQ answer shape, and extractability;
+   - **Fact-check**: a general-purpose subagent that checks every factual sentence, number, and quote against the BOM facts and proof, and flags anything the BOM does not support.
+   Reviewers return advisory findings only. They never edit the article or the BOM.
+7. The writer applies the findings in one consolidated edit batch. A finding that needs a new fact, source, or proof item routes to `/research` to add it to the spec and rebuild the BOM; the writer never adds it directly.
+8. Run `/scrub [article]` for diagnostics only. Make any needed edits through `/write` and rerun `/scrub`.
+9. Run `/publish-readiness [article]`, which runs `python -m data_sources.modules.production.release [article]`. On exit `1`, revise from the record's blocking findings, rerun `/scrub` if the bytes changed, and run the release again. On exit `2`, fix the operational cause named in the message and run it again; a refused BOM goes back to `/research`.
+10. Run `/optimize [article]` for every new blog after the first release record. It works from the record's blocking findings and `priority_fixes`; when the release passed and no source-safe fix exists, it makes no edits and the passing record stands.
+11. Do not hand off as ready until the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
 
-## Native edit receipt
+## Score requirements
 
-Open the draft receipt before native writing, then close it after the command has saved the Markdown. These Python calls hash and attest the edit; they do not create or modify the article.
-
-```powershell
-python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --article "drafts/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "write-command" --tool-version "1" --input "editorial_plan=research/editorial-plan-[topic-slug]-[YYYY-MM-DD].json"
-# /write creates and saves the public Markdown here.
-python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "drafts/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "keyword_decision=research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
-```
-
-## Wording-only edit receipt
-
-After Context Binding or post-optimization Context Binding, fix wording without a new draft receipt, `/scrub`, Context Binding, or machine review run. A wording-only edit leaves frontmatter, headings, links and anchors, numbers, FAQ questions, quotes, media placeholders, mapped proof claims, and Context Claim Use Map passages unchanged. It needs no scrub fixes, and all edits together change at most 10% of the words bound at Context Binding.
-
-```powershell
-python -m data_sources.modules.wording_edit begin --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --previous-receipt "[context-binding-or-last-wording-edit-receipt]"
-# Edit the wording in place.
-python -m data_sources.modules.wording_edit finish --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --receipt "research/stage-receipts/[topic-slug]/wording-edit-1.json" --sidecar "[validation-sidecar]"
-```
-
-`finish` refuses an edit that breaks any of these limits and leaves the edit open: revert the change and finish again, or take the full path. A plan, structure, link, number, FAQ, or proof change always takes the full path. Every readiness gate still runs on the edited article.
-
-The carry-forward reaches only the next readiness run after the edits. Edits made before preflight readiness do not survive `/optimize`: the post-optimization scrub and Context Binding bind the edited article, so rerun the machine reviews and plan fulfillment before the final run. To keep a late fix cheap, make it after post-optimization Context Binding.
-
-## Scorecard requirements
-
-`/publish-readiness` is the release owner and must report these independent gates:
+`/publish-readiness` is the release owner and reports these independent gates from the release record:
 
 - Content quality: 85/100 or higher.
 - SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 
-Do not treat an overall score as a substitute for the SEO or AEO/GEO gates.
+Do not treat an overall score as a substitute for the SEO or AEO/GEO gates. If scoring does not run because the release stopped first, report `scores: unavailable` with the exact stop reason. Missing scores are a workflow blocker unless the release stopped before scoring.
 
 ## Link policy
 
-Standard blog posts use 3 to 5 internal links and never more than 7 below 3,000 visible words. The required cluster or down-funnel industry, solution, or feature link counts toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
+Standard blog posts use 3 to 5 internal links and never more than 7 below 3,000 visible words. The commercial pillar link counts toward that total. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
 
-A valid `link_policy_override` in `simpro-blog-editorial-plan/v2` may replace the 3 to 5 target for brief-selected internal body links but can never exceed the hard maximum of 7. It must bind the brief path, SHA-256, exact source sentence, exact count, and `pre_faq_body` scope. For single-trade Simpro posts, the matching industry page remains additive unless the bound brief explicitly prohibits it. External proof and legal citations remain separate and uncapped.
+Every proof-sensitive claim falls under one citation mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; link the BOM fact or proof URL naturally in the same paragraph or row and in the FAQ's first visible paragraph. A claim that cites a source outside the BOM blocks the release.
 
-Machine-map every proof-sensitive claim to exactly one policy-engine mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; use a natural link in the same paragraph or row and in the FAQ's first visible paragraph. Lower-risk body definitions, background, and process may use `section_source_allowed`; approved low-risk product or brand language and clearly framed low-risk editorial recommendations may use `sidecar_only`. Map a Simpro sentence that says what the product is, how it works, or what it lets a user do as `Claim type: product_claim` (or `feature_claim`) with `Source class: owned_product` and its owned product-page URL; outcome, numeric, pricing, status, comparative, and guarantee wording stays `inline_required`. Only the policy engine may assign `proof_not_required` to navigation, explicit opinion, or advice with no externally verifiable factual claim. Unknown or ambiguous high-risk claims fail closed to `inline_required`.
-
-All six machine reviewers must protect required links and flag duplicate support, repeated destinations, and quota-only sources. They return advisory findings only; `/publish-readiness` is the sole verdict and no human approval step applies.
+Reviewers must protect required links and flag duplicate support, repeated destinations, and quota-only sources. They return advisory findings only; `/publish-readiness` is the sole verdict and no human approval step applies.
 
 ## Output
 
-Return the draft path, sidecar path, evidence paths, BOM/readiness paths, scorecard, failed gates, and priority fixes. Keep proof infrastructure out of public copy.
+Return the draft path, BOM path, release record path, the three scores, blocking findings, and priority fixes. Keep proof infrastructure out of public copy.
 
-If scoring does not run because an upstream gate blocks readiness, report `scorecard: unavailable` with the exact blocking gate. Missing scores are a workflow blocker unless a pre-scoring gate stopped `/publish-readiness`.
-
-For detailed proof, E-E-A-T strength, and AEO/GEO policy, use `context/aeo-geo-blog-strategy.md`.
+For detailed proof, E-E-A-T, and AEO/GEO policy, use `context/aeo-geo-blog-strategy.md`.

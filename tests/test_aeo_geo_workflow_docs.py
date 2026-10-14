@@ -8,6 +8,15 @@ COMMAND_DIR = ROOT / ".claude" / "commands"
 BLOG_WRITING_COMMANDS = ("write.md", "rewrite.md", "optimize.md")
 RESEARCH_AND_ANALYSIS_COMMANDS = ("research.md", "analyze-existing.md")
 BLOG_COMMANDS = (*BLOG_WRITING_COMMANDS, "scrub.md", "publish-readiness.md")
+RETIRED_STEPS = (
+    "blog_assembly_stage_receipt.py",
+    "wording_edit",
+    "data_sources.modules.blog_release",
+    "--stage-receipt",
+    "simpro-blog-machine-review/v1",
+    "simpro-optimizer-output",
+    "simpro-blog-plan-fulfillment/v1",
+)
 DELETED_AUTHORING_TOOLS = (
     "article_planner.py",
     "section_writer.py",
@@ -80,29 +89,16 @@ def test_original_new_blog_route_replaces_the_redundant_article_command():
         assert not re.search(r"(?:^|[\s`])/article(?:\s|\[|`)", _read(path))
 
 
-def test_writing_commands_restore_original_specialist_handoffs():
-    write = _read(COMMAND_DIR / "write.md")
-    rewrite = _read(COMMAND_DIR / "rewrite.md")
+def test_writing_commands_dispatch_parallel_advisory_reviewers():
+    reviewers = ("editor", "seo-optimizer", "content-analyzer", "meta-creator", "internal-linker", "keyword-mapper")
+    for name in ("write.md", "rewrite.md"):
+        content = _read(COMMAND_DIR / name)
+        assert "one writer" in content and "parallel subagents" in content
+        assert "Fact-check" in content and "advisory findings only" in content
+        for agent in reviewers:
+            assert agent in content
     optimize = _read(COMMAND_DIR / "optimize.md")
-
-    for agent in (
-        "content-analyzer",
-        "editor",
-        "seo-optimizer",
-        "meta-creator",
-        "internal-linker",
-        "keyword-mapper",
-    ):
-        assert agent in write
-    for agent in (
-        "content-analyzer",
-        "editor",
-        "seo-optimizer",
-        "meta-creator",
-        "internal-linker",
-        "keyword-mapper",
-    ):
-        assert agent in rewrite
+    for agent in reviewers:
         assert agent in optimize
 
 
@@ -125,7 +121,7 @@ def test_reader_facing_copy_boundary_is_enforced_by_commands_and_agents():
         assert f"owned by `{owner}`" in content
 
     assert "Reader-Facing Copy Firewall as part of optimization diagnosis" in optimize
-    assert "never record a no-op optimizer output while this blocker remains" in optimize
+    assert "never end optimization while this blocker remains" in optimize
     assert "`editorial_process_leakage`" in scrub
     assert "required public-copy recovery item" in scrub
     assert "`editorial_process_leakage` as a hard public-copy blocker" in readiness
@@ -145,12 +141,12 @@ def test_reader_facing_copy_boundary_is_enforced_by_commands_and_agents():
         assert "workflow rationale" in content or "workflow instead" in content
 
 
-def test_writing_commands_bind_reviewed_humanizer_evidence_to_native_edits():
-    """Removing Humanizer provenance from a native edit must make this fail."""
-    for name in BLOG_WRITING_COMMANDS:
+def test_blog_commands_drop_the_retired_receipt_and_review_stack():
+    """The production BOM and one release replace receipts, machine reviews, and the wrapper."""
+    for name in (*BLOG_COMMANDS, "research.md"):
         content = _read(COMMAND_DIR / name)
-        assert '--evidence "humanizer_policy=config/humanizer-policy.json"' in content
-        assert '--evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"' in content
+        for step in RETIRED_STEPS:
+            assert step not in content, (name, step)
 
 
 def test_editor_uses_reviewed_humanizer_as_advisory_style_guidance():
@@ -190,18 +186,12 @@ def test_repository_docs_describe_humanizer_as_reviewed_style_governance():
     assert "python tools/humanizer_upstream.py verify" in content
 
 
-def test_writing_commands_attest_native_edits_without_python_copy_writers():
-    expectations = {
-        "write.md": "--stage draft",
-        "rewrite.md": "--stage draft",
-        "optimize.md": "--stage optimization",
-    }
-    for name, stage_argument in expectations.items():
+def test_writing_commands_release_through_the_production_release():
+    for name in BLOG_WRITING_COMMANDS:
         content = _read(COMMAND_DIR / name)
-        assert "blog_assembly_stage_receipt.py begin-native-edit" in content
-        assert "blog_assembly_stage_receipt.py finish-native-edit" in content
-        assert stage_argument in content
-        assert "blog_assembly_mutation_recorder.py" not in content
+        assert "python -m data_sources.modules.production.release" in content
+        assert "blocking findings" in content
+        assert "production BOM" in content
 
 
 def test_specialist_agents_return_findings_and_defer_release_status():
@@ -299,79 +289,61 @@ def test_scrub_command_is_read_only_diagnostics():
         assert deleted_tool not in content
 
 
-def test_publish_readiness_documents_independent_scorecard():
+def test_publish_readiness_documents_the_production_release():
     content = _read(COMMAND_DIR / "publish-readiness.md")
 
     assert "`/publish-readiness` is the release owner" in content
-    assert "`scorecard`" in content
-    assert "`content_quality`: score, threshold 85 for blogs" in content
-    assert "`seo_quality`: score, release-floor threshold 90, advisory target 95" in content
-    assert "`critical_issue_count` of 0" in content
-    assert "`aeo_geo`: score, threshold 90 for blogs" in content
+    assert "python -m data_sources.modules.production.release" in content
+    assert "`content_quality`: score, threshold 85" in content
+    assert "`seo_quality`: score, release-floor threshold 90" in content
+    assert "`critical_issue_count`, which must be 0" in content
+    assert "`aeo_geo`: score, threshold 90" in content
+    for term in ("release-record.json", "simpro-release-record/v1", "SEOMACHINE_RELEASE_WORKERS", "verify_publishable"):
+        assert term in content
+    for code in ("`0`: passed", "`1`: blocked", "`2`: operational"):
+        assert code in content
     for deleted_tool in DELETED_AUTHORING_TOOLS:
         assert deleted_tool not in content
 
 
-def test_blog_workflow_requires_scrub_optimize_and_score_reporting_every_run():
+def test_blog_workflow_requires_scrub_release_optimize_and_score_reporting_every_run():
     universal_rule = (
-        "every new or changed blog run must include `/scrub`, an initial "
-        "`/publish-readiness` scorecard or exact non-scoring blocker, "
-        "`/optimize`, a post-optimization `/scrub` when article bytes change, "
-        "and a final `/publish-readiness` handoff"
+        "every new or changed blog run must include `/scrub`, a release through "
+        "`/publish-readiness`, `/optimize` after the first release record, and a final "
+        "release whose record passed for the exact article bytes being handed off"
     )
-    missing_score_rule = (
-        "Score absence is a workflow blocker unless a pre-scoring gate "
-        "blocked readiness"
-    )
-
-    content = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
-    assert universal_rule in content
-    assert missing_score_rule in content
+    strategy = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
+    assert universal_rule in strategy
+    assert "Score absence is a workflow blocker unless the release stopped before scoring" in strategy
+    for term in (
+        "simpro-production-bom/v1",
+        "simpro-release-record/v1",
+        "python -m data_sources.modules.production.layout",
+        "never add a BOM entry the builder has not verified",
+    ):
+        assert term in strategy
 
     for name in ("write.md", "rewrite.md"):
         content = _read(COMMAND_DIR / name)
-        assert "initial `/publish-readiness` scorecard or an exact non-scoring blocker" in content
         assert "Run `/optimize [article]` for every" in content
+        assert "On exit `1`, revise from the record's blocking findings" in content
         assert "reports separate Content, SEO, and AEO/GEO scores" in content
-        assert "Missing scores are a workflow blocker unless a pre-scoring gate stopped `/publish-readiness`" in content
+        assert "Missing scores are a workflow blocker unless the release stopped before scoring" in content
 
     optimize = _read(COMMAND_DIR / "optimize.md")
-    assert "If `/publish-readiness` stopped before scoring" in optimize
-    assert "`simpro-optimizer-output/v2` artifact" in optimize
-    assert all(
-        binding in optimize
-        for binding in (
-            "`article`",
-            "`editorial_plan`",
-            "`proof_sidecar`",
-            "`scorecard`",
-            "`prior_preflight_readiness`",
-        )
-    )
+    assert "If the release stopped before scoring" in optimize
+    assert "`scores.priority_fixes`" in optimize
 
     readiness = _read(COMMAND_DIR / "publish-readiness.md")
-    assert "If an upstream gate blocks scoring, report `scorecard: unavailable`" in readiness
-    assert "phase `optimization_started`" in readiness
-    assert "Exit `0` with phase `optimization_started`" in readiness
-    assert "optimization-state.json" in readiness
-    assert "optimization-recovery.json" in readiness
-    assert "--optimizer-output \"[optimizer-output]\"" in readiness
-    assert "--prior-preflight-readiness \"[preflight-readiness]\"" in readiness
-    assert "Final handoff must include the final scrub result and separate Content, SEO, and AEO/GEO scores" in readiness
-    assert "phase `final_readiness`" in readiness
-
-    strategy = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
-    assert "The first wrapper run must advance missing optimizer evidence into `optimization_started`" in strategy
-    assert "not a dead-end exit" in strategy
-    assert "--optimizer-output \"[optimizer-output]\"" in strategy
-    assert "--prior-preflight-readiness \"[preflight-readiness]\"" in strategy
+    assert "report `scores: unavailable`" in readiness
+    assert "Final handoff must include the final `/scrub` result and separate Content, SEO, and AEO/GEO scores" in readiness
 
 
 def test_strategy_keeps_native_boundary_and_score_thresholds():
     content = _read(ROOT / "context" / "aeo-geo-blog-strategy.md")
 
     assert "Python does not draft, rewrite, or patch Markdown" in content
-    assert "`/research` owns the research brief and validation sidecar planning" in content
+    assert "`/research` owns the research brief, the production BOM spec, and the production BOM" in content
     assert "`/analyze-existing` owns the analysis report and rewrite routing" in content
     assert "`/scrub` is read-only diagnostics" in content
     assert "`/publish-readiness` owns the scorecard" in content
@@ -399,14 +371,29 @@ def test_research_and_analyze_existing_are_lean_command_skeletons():
         content = _read(COMMAND_DIR / name)
 
         assert "context/aeo-geo-blog-strategy.md" in content
-        assert "validation sidecar" in content
-        assert "Customer Proof Pack" in content
-        assert "Fred Voccola Authority Selection" in content
         assert "SEO quality release floor 90/100+ and optimization target 95/100" in content
         assert "AEO/GEO 90/100+" in content
         assert "content quality 85/100+" in content
         for phrase in forbidden_embedded_policy:
             assert phrase not in content
+
+
+def test_research_builds_the_production_bom_with_parallel_lanes():
+    content = _read(COMMAND_DIR / "research.md")
+    for step in (
+        "python -m data_sources.modules.production.layout",
+        "parallel subagents",
+        "python -m data_sources.modules.production.serp_coverage",
+        "paa_provenance_guard.py record",
+        '--run-id "[run_id from the layout command]"',
+        "python -m data_sources.modules.production.keyword_record",
+        "one Chrome session",
+        "production-bom-spec-[slug]-[date].json",
+        "python -m data_sources.modules.production.bom_build",
+        "The BOM build must succeed before `/write`",
+        "never add a BOM entry the builder has not verified",
+    ):
+        assert step in content, step
 
 def test_readme_no_longer_lists_deleted_authoring_modules():
     content = _read(ROOT / "README.md")

@@ -1,84 +1,50 @@
 # Rewrite Command
 
-Use `/rewrite [existing article or analysis]` to revise an existing blog while preserving proof boundaries and source traceability.
+Use `/rewrite [existing article or analysis]` to revise an existing blog from a production BOM while preserving proof boundaries and source traceability.
 
 ## Ownership
 
 The command/agent rewrites public Markdown. Python must not draft, rewrite, or patch public blog Markdown in `drafts/`, `rewrites/`, or `published/`.
 
-Python may write governance artifacts only: selector output, context binding evidence, Semrush keyword decision JSON, SERP/PAA artifacts, editorial-plan JSON, BOM JSON, readiness JSON, and publisher transport payloads.
+Python may write governance artifacts only: selector evidence, context packs and receipts, the recorded Semrush keyword decision, SERP and PAA artifacts, the production BOM, the release record, and publisher transport payloads.
 
 Consume `context/blog-editorial-strategy.md` for editorial execution and the canonical AEO and proof source, `context/aeo-geo-blog-strategy.md`. Author metadata controls public identity, Person schema, and whether first-person author voice is allowed; it provides zero Expertise and zero Experience credit without selected, source-visible evidence that satisfies the corresponding proof boundary. Expertise proof requires source-visible expert evidence alongside product/workflow support.
 
-Consume the frozen `simpro-blog-editorial-plan/v2` produced by `/analyze-existing`. Do not silently alter it. The plan defines outcomes and constraints; `/rewrite` independently chooses the final prose. Return plan-level defects to `/analyze-existing` for a newly hashed plan.
-
-After every article-byte change, regenerate `simpro-blog-plan-fulfillment/v1` with one substantive verbatim visible excerpt per planned contribution, bound to the frozen plan and current article hashes.
+Consume the `/analyze-existing` findings and the production BOM for the rewrite path. Do not edit the BOM or its spec while rewriting. The BOM defines the sections, facts, approved proof, PAA questions, and links; `/rewrite` independently chooses the final prose. A BOM defect returns to the BOM build step below.
 
 ## Required workflow
 
-1. Read the existing article and analysis findings.
-2. Resolve topic, title, objective, audience, target keyword, target URL, and rewrite path.
-3. Classify Context Binding from the final brand metadata and content. Use the Simpro vault connector for Simpro-owned or cross-brand-triggered work. For AroFlo, BigChange, or ClockShark work with no Simpro name or official `simprogroup.com` URL, record the nonconnector reason and omit vault, Fred, and vault-dependent customer-proof selector artifacts. When a separate approved non-vault proof-eligibility contract applies, use `nonvault_customer_proof_selector.py` and supply only `simpro-nonvault-customer-proof-selector-evidence/v1`. For connector-bound work, build the context packs from `research/context-build-spec-[slug]-[date].json` (written from `config/context-build-spec.example.json`) with `python -m data_sources.modules.context_build research/context-build-spec-[slug]-[date].json`. If the run stops (memory pressure, timeout), rerun with `--resume`; finished packs that still validate are reused and never rewritten. Stage `claim_requests`, claim lookups, and any proof-boundary text must come from the current topic's selector slate and claim lookups, never from the example or another topic.
-4. Run the live Semrush keyword decision workflow from `context/aeo-geo-blog-strategy.md` unless a current valid `simpro-semrush-keyword-decision/v1` artifact already exists for the same article, plan, market, and assembly date.
-5. Reuse pre-picked PAA from a dedicated rewrite brief when present. If no dedicated PAA exists and PAA is required, collect structured AnswerSocrates evidence. Do not invent questions.
-6. Update the validation sidecar before changing proof-sensitive copy.
-7. Run the vault customer-proof and Fred selectors only when Context Binding requires the connector. For a nonconnector article with a separate approved non-vault proof-eligibility contract, run `nonvault_customer_proof_selector.py`, preserve its hash-bound evidence, and keep out exact quotes, metrics, ratings, and named-person attribution beyond an approved Capterra `review_site` row's `approved_quotes` on the brand's listed product page. For commercial-investigation rewrites, add `## E-E-A-T Strength Decision` when no selected proof, review, Fred, author, or SME signal exists.
-8. Require `/analyze-existing` preservation decisions in the editorial plan as `rewrite_decisions.preserve`, `update`, `add`, and `remove`; preserve original image placeholders, useful sections, internal links, and proof unless the plan explicitly updates or removes them.
-9. Resolve `audience_language_research` in the editorial plan. Use genuine Reddit, YouTube, or trade-community language only when it materially improves reader comprehension; default regulatory and licensing rewrites to `not_applicable` unless the brief asks for it.
-10. If the frozen plan or validation sidecar records `Hindsight Strategy Selection` with `Status: internal_strategy_only`, use that Hindsight-informed strategy only to understand the planned reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If the Hindsight-informed angle is missing or wrong, route the plan defect back to `/analyze-existing` for a new plan hash.
-11. Validate the already frozen editorial plan, then run the six machine reviewers against that exact plan. Route plan-level changes to `/analyze-existing`; do not mutate the plan inside `/rewrite`.
-12. Run the Reader-Facing Copy Firewall before rewriting. Convert brief instructions, source-fit notes, claim-selection logic, feature-omission rationale, command results, schema notes, and readiness status into article-ready guidance or sidecar/frontmatter/BOM evidence. Public body copy must read only as a blog for the ICP and must not explain how or why the article was assembled, including phrases such as "this article uses," "the brief asks," "right editorial lane," or "does not name a specific feature."
-13. Write the rewrite Markdown section by section in plan order through `/rewrite`.
-14. Freeze the article and fulfillment bytes, rerun the Reader-Facing Copy Firewall, and run the same six reviewers against that exact article and fulfillment evidence: `content-analyzer`, `editor`, `seo-optimizer`, `meta-creator`, `internal-linker`, and `keyword-mapper`. Content Analyzer and Editor assess whether every excerpt accomplishes its planned purpose. Save `simpro-blog-machine-review/v1` article-review JSON. Any `editorial_process_leakage` finding is a public-copy blocker owned by `/rewrite`. Apply one consolidated edit batch through `/rewrite`, regenerate fulfillment, then rerun all six reviewers after every article-byte change, including scrub, lint, or recovery-loop edits.
-15. Run `/scrub [article]` as read-only diagnostics. Apply any required edits through `/rewrite`, rerun `/scrub`, and mint the scrub stage receipt only after diagnostics are clean.
-16. Run the atomic release wrapper far enough to produce an initial `/publish-readiness` scorecard or an exact non-scoring blocker. Do not skip this step, because `/optimize` needs the failed gates, `scorecard`, `aeo_geo.checks`, and `priority_fixes`. Run the fast sweep from `/publish-readiness` first.
-17. Run `/optimize [article]` for every rewrite after the initial scorecard or blocker report. If no source-safe edits are needed, record a no-op optimizer output with the inspected scores, priority fixes, and reason. If `/optimize` changes article bytes, rerun `/scrub`, Context Binding, and the full six-agent article review.
-18. Run the atomic release wrapper again with the sidecar, machine reviews, evidence artifacts, stage receipts, optimizer output when present, post-optimization scrub receipt when applicable, and context artifacts when connector-bound. Stop unless every wrapper phase reaches final `/publish-readiness` and reports separate Content, SEO, and AEO/GEO scores.
+1. Read the existing article and the `/analyze-existing` findings.
+2. Resolve topic, title, objective, audience, target keyword, target URL, and the rewrite path `rewrites/[slug]-[YYYY-MM-DD].md`, dated today.
+3. Build the production BOM for the rewrite path with the `/research` process: run the layout command, the parallel research lanes, the single Semrush lane, the BOM spec, and `bom_build`, all against `rewrites/[slug]-[YYYY-MM-DD].md`. Use the analysis to decide which sections, facts, links, and proof to preserve, update, add, or remove. Keep original image placeholders, useful sections, internal links, and proof only when the BOM still carries them: an existing citation survives only as a BOM fact whose quote the builder verified on the live page, and existing customer proof survives only as a selected, approved BOM proof item.
+4. Proof comes only from the BOM. For a connector-bound article it was selected from vault claims. For a nonconnector AroFlo, BigChange, or ClockShark article under the separate approved non-vault proof-eligibility contract it was selected by `nonvault_customer_proof_selector.py`; keep out exact quotes, metrics, ratings, and named-person attribution beyond an approved Capterra `review_site` row's `approved_quotes` on the brand's listed product page.
+5. Pre-picked PAA questions from a dedicated rewrite brief stay only when the run's PAA artifact contains them, because the release admits FAQ questions only from the BOM. Do not invent questions.
+6. If the research brief records Hindsight-informed strategy with `public_claim_use: prohibited`, use it only to understand the planned reader angle, section emphasis, section purposes, objections, and commercial framing. Do not quote, cite, disclose, paraphrase, metricize, or convert Hindsight or deal-intelligence data into public claims. If the Hindsight-informed angle is missing or wrong, route the plan defect back to the BOM build step.
+7. Run the Reader-Facing Copy Firewall before rewriting. Convert brief instructions, source-fit notes, claim-selection logic, feature-omission rationale, command results, schema notes, and readiness status into article-ready guidance or frontmatter. Public body copy must read only as a blog for the ICP and must not explain how or why the article was assembled, including phrases such as "this article uses," "the brief asks," "right editorial lane," or "does not name a specific feature." Any `editorial_process_leakage` finding is a public-copy blocker owned by `/rewrite`.
+8. Rewrite with one writer, so the article keeps one voice. Claude writes the Markdown section by section in BOM order through `/rewrite`, following the same BOM rules as `/write`: every `must` section, facts only as their BOM claims allow with the BOM URL linked in the same paragraph, proof verbatim from its BOM item, FAQ questions only from the BOM, the commercial pillar link with its exact planned anchor, and the primary keyword in the title, H1, and first 100 words.
+9. Freeze the article bytes and dispatch the advisory reviewers as parallel subagents against that exact snapshot and the BOM path: **Editor** (`editor`), **SEO** (`seo-optimizer`, using the `meta-creator`, `internal-linker`, and `keyword-mapper` checklists), **AEO** (`content-analyzer`), and **Fact-check** (a general-purpose subagent that checks every factual sentence, number, and quote against the BOM facts and proof). Reviewers return advisory findings only and must preserve existing required links unless the BOM replaces them.
+10. The writer applies the findings in one consolidated edit batch. A finding that needs a new fact, source, or proof item goes back to the BOM build step; the writer never adds it directly.
+11. Run `/scrub [article]` as read-only diagnostics. Apply any required edits through `/rewrite` and rerun `/scrub`.
+12. Run `/publish-readiness [article]`, which runs `python -m data_sources.modules.production.release [article]`. On exit `1`, revise from the record's blocking findings, rerun `/scrub` if the bytes changed, and run the release again. On exit `2`, fix the operational cause named in the message and run it again.
+13. Run `/optimize [article]` for every rewrite after the first release record. When the release passed and no source-safe fix exists, it makes no edits and the passing record stands.
+14. Stop unless the latest release record passed for the current article bytes and reports separate Content, SEO, and AEO/GEO scores. After 2 unsuccessful repair loops, leave the article in place and report the latest record's blocking findings.
 
-## Native edit receipt
+## Score requirements
 
-Open the receipt before native rewriting, then close it after `/rewrite` has saved the Markdown. Python observes hashes only.
-
-```powershell
-python data_sources/modules/blog_assembly_stage_receipt.py begin-native-edit --article "rewrites/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --run-id "[run-id]" --stage draft --tool-name "rewrite-command" --tool-version "1" --input "analysis=research/analysis-[topic-slug]-[YYYY-MM-DD].md"
-# /rewrite creates and saves the public Markdown here.
-python data_sources/modules/blog_assembly_stage_receipt.py finish-native-edit --article "rewrites/[topic-slug]-[YYYY-MM-DD].md" --state "research/stage-receipts/[topic-slug]/draft-state.json" --receipt "research/stage-receipts/[topic-slug]/draft.json" --evidence "keyword_decision=research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json" --evidence "serp_evidence=research/serp-evidence-[topic-slug]-[YYYY-MM-DD].json" --evidence "humanizer_policy=config/humanizer-policy.json" --evidence "humanizer_upstream=vendor/blader-humanizer/UPSTREAM.json"
-```
-
-## Wording-only edit receipt
-
-After Context Binding or post-optimization Context Binding, fix wording without a new draft receipt, `/scrub`, Context Binding, or machine review run. A wording-only edit leaves frontmatter, headings, links and anchors, numbers, FAQ questions, quotes, media placeholders, mapped proof claims, and Context Claim Use Map passages unchanged. It needs no scrub fixes, and all edits together change at most 10% of the words bound at Context Binding.
-
-```powershell
-python -m data_sources.modules.wording_edit begin --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --previous-receipt "[context-binding-or-last-wording-edit-receipt]"
-# Edit the wording in place.
-python -m data_sources.modules.wording_edit finish --article "[article]" --state "research/stage-receipts/[topic-slug]/wording-edit-1-state.json" --receipt "research/stage-receipts/[topic-slug]/wording-edit-1.json" --sidecar "[validation-sidecar]"
-```
-
-`finish` refuses an edit that breaks any of these limits and leaves the edit open: revert the change and finish again, or take the full path. A plan, structure, link, number, FAQ, or proof change always takes the full path. Every readiness gate still runs on the edited article.
-
-The carry-forward reaches only the next readiness run after the edits. Edits made before preflight readiness do not survive `/optimize`: the post-optimization scrub and Context Binding bind the edited article, so rerun the machine reviews and plan fulfillment before the final run. To keep a late fix cheap, make it after post-optimization Context Binding.
-
-## Scorecard requirements
-
-`/publish-readiness` must report separate gates for:
+`/publish-readiness` reports separate gates from the release record:
 
 - Content quality: 85/100 or higher.
 - SEO quality: 90/100 release floor with zero critical SEO issues; 95/100 honest optimization target when source-safe improvements exist.
 - AEO/GEO: 90/100 or higher.
 
-If any scorecard gate fails, repair the root copy, proof, sidecar, or scorer issue and rerun `/publish-readiness`. After 2 unsuccessful repair loops, leave the article in place, write a machine-readable blocker under `research/`, and return nonzero.
-
-If scoring does not run because an upstream gate blocks readiness, report `scorecard: unavailable` with the exact blocking gate. Missing scores are a workflow blocker unless a pre-scoring gate stopped `/publish-readiness`.
+If scoring does not run because the release stopped first, report `scores: unavailable` with the exact stop reason. Missing scores are a workflow blocker unless the release stopped before scoring.
 
 ## Link policy
 
-Standard blog rewrites use 3 to 5 internal links and never more than 7 below 3,000 visible words. Existing useful links can remain, and the required cluster or down-funnel industry, solution, or feature link counts toward that total unless a valid brief-bound override narrows the supporting-link count. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
+Standard blog rewrites use 3 to 5 internal links and never more than 7 below 3,000 visible words. Existing useful links can remain when the BOM carries them, and the commercial pillar link counts toward that total. URL fragments and `mailto:` or `tel:` links do not count. Two distinct authoritative non-owned external sources pass; do not add a third source only to meet a quota, while claim-fit evidence exceptions remain uncapped.
 
-A valid `link_policy_override` in `simpro-blog-editorial-plan/v2` may replace the 3 to 5 target for brief-selected internal body links but can never exceed the hard maximum of 7. It must bind the brief path, SHA-256, exact source sentence, exact count, and `pre_faq_body` scope. For single-trade Simpro posts, the matching industry page remains additive unless the bound brief explicitly prohibits it. External proof and legal citations remain separate and uncapped.
+Every proof-sensitive claim falls under one citation mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; link the BOM fact or proof URL naturally in the same paragraph or row and in the FAQ's first visible paragraph. A claim that cites a source outside the BOM blocks the release.
 
-Machine-map every proof-sensitive claim to exactly one policy-engine mode: `inline_required`, `section_source_allowed`, `sidecar_only`, or `proof_not_required`. `inline_required` covers legal, regulatory, licensing, compliance, safety, fees, deadlines, pricing, status, material numeric, causal, comparative, benchmark, quote, customer, review, Fred, and fact-driven FAQ claims; use a natural link in the same paragraph or row and in the FAQ's first visible paragraph. Lower-risk body definitions, background, and process may use `section_source_allowed`; approved low-risk product or brand language and clearly framed low-risk editorial recommendations may use `sidecar_only`. Map a Simpro sentence that says what the product is, how it works, or what it lets a user do as `Claim type: product_claim` (or `feature_claim`) with `Source class: owned_product` and its owned product-page URL; outcome, numeric, pricing, status, comparative, and guarantee wording stays `inline_required`. Only the policy engine may assign `proof_not_required` to navigation, explicit opinion, or advice with no externally verifiable factual claim. Unknown or ambiguous high-risk claims fail closed to `inline_required`.
+Reviewers return advisory findings only; `/publish-readiness` is the sole verdict and no human approval step applies.
 
-All six machine reviewers must preserve existing required links unless a replacement retains the exact evidence mapping, and must flag duplicate support, repeated destinations, and quota-only sources. They return advisory findings only; `/publish-readiness` is the sole verdict and no human approval step applies.
-
-For detailed proof, E-E-A-T strength, FAQ, PAA, review story, named feature, schema, and vault language rules, use `context/aeo-geo-blog-strategy.md`.
+For detailed proof, E-E-A-T, FAQ, PAA, review story, named feature, schema, and vault language rules, use `context/aeo-geo-blog-strategy.md`.

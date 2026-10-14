@@ -1,117 +1,66 @@
-﻿# Research Command
+# Research Command
 
-Use this command to conduct SEO keyword research, competitor review, and evidence planning before writing new blog content.
+Use this command to research a new blog and build its production BOM before writing.
 
 ## Usage
 `/research [topic]`
 
 ## Ownership
-`/research` owns the research brief and validation sidecar planning. It does not draft, rewrite, patch, move, or publish public blog Markdown.
+`/research` owns the research brief, the production BOM spec, and the production BOM. It does not draft, rewrite, patch, move, or publish public blog Markdown.
 
-The original new-blog route remains `/research [topic]` followed by `/write [topic]`. `/write` owns the public draft. Python owns governance artifacts only: context packs and receipts, selector evidence, verified Semrush keyword decisions, verified SERP/PAA artifacts, BOM assembly, scrub/readiness diagnostics, receipts, and publishing transport.
+The new-blog route is `/research [topic]` followed by `/write [topic]`. `/write` owns the public draft. Python owns governance artifacts only: context packs and receipts, selector evidence, the recorded Semrush keyword decision, SERP evidence and the page-1 coverage map, the PAA artifact, the production BOM, the release record, and publishing transport.
 
-Use `context/blog-editorial-strategy.md` for editorial planning, reader value, originality, structure, and narrative throughlines. Use `context/aeo-geo-blog-strategy.md` for AEO, proof, vault, citation, schema, BOM, score-gate, and recovery-loop policy.
+Use `context/blog-editorial-strategy.md` for editorial planning, reader value, originality, structure, and narrative throughlines. Use `context/aeo-geo-blog-strategy.md` for AEO, proof, vault, citation, schema, production BOM, score-gate, and recovery-loop policy.
 
-`/research` creates and freezes the complete `simpro-blog-editorial-plan/v2` for a new article. The plan owns metadata plus structured search, commercial-pillar, anchor, cannibalization, and lifecycle decisions. It defines what the article must accomplish without prescribing final sentences. A plan-level reviewer finding returns here and produces a new plan hash.
-
-## What This Command Does
-1. Resolves topic, title, objective, audience, region, target keyword, and article intent.
-2. Builds the connector-backed research context when required, or an explicit nonconnector decision for qualifying AroFlo, BigChange, and ClockShark work.
-3. Performs keyword, SERP, competitor, PAA/FAQ, proof, source, and internal-link research.
-4. Identifies reader-payoff gaps, Simpro angle, proof needs, optional Hindsight-informed private reader angle, and article structure.
-5. Saves a research brief and frozen editorial-plan v2 for `/write`.
+`/research` creates and freezes the production BOM for a new article. The BOM is the only list of facts, approved proof, PAA questions, sections, and links the article may use. It defines what the article must accomplish without prescribing final sentences. A BOM defect found later returns here: fix the spec or the research inputs and rebuild.
 
 ## Process
 
-### 1. Inputs and Context
-- Resolve the working topic slug, target reader, search intent, main question, and article objective.
-- Classify Context Binding from the brand metadata and content. Run the vault connector workflow only for Simpro-owned or cross-brand-triggered work.
-- Save context request, context pack, and context receipt under `research/` only when connector-bound. Save an explicit nonconnector binding reason for qualifying AroFlo, BigChange, and ClockShark work.
-- For connector-bound work, write `research/context-build-spec-[slug]-[date].json` from `config/context-build-spec.example.json`, then run `python -m data_sources.modules.context_build research/context-build-spec-[slug]-[date].json`. If the run stops (memory pressure, timeout), rerun with `--resume`; finished packs that still validate are reused and never rewritten. Stage `claim_requests`, claim lookups, and any proof-boundary text must come from the current topic's selector slate and claim lookups, never from the example or another topic.
-- Use repo-local context files only for allowed SEO/AEO, editorial, CRO, link-map, or source-governance inputs. If vault evidence is unavailable for Simpro brand or proof work, record the blocker and stop that brand/proof use.
+### 1. Resolve the article and its run id
+- Resolve the topic, title, objective, audience, region, brand, market, working target query, and search intent.
+- Choose the article path `drafts/[slug]-[YYYY-MM-DD].md`, dated today. Use the slug of the working target query so collected SERP evidence lands on the layout path. The path stays fixed for the run.
+- The command runs `python -m data_sources.modules.production.layout "drafts/[slug]-[YYYY-MM-DD].md"`. It prints the slug, date, workflow mode, every artifact path, and the production `run_id`, minting and storing the run id in `research/runs/[slug]-[YYYY-MM-DD].json` when none exists. Every later lane uses these paths and this run id.
+- Classify the binding branch from the brand metadata: Simpro-owned or Simpro-signal work is connector-bound; AroFlo, BigChange, and ClockShark work with no Simpro signal is nonconnector (see `context/aeo-geo-blog-strategy.md`).
 
-### 2. Semrush Keyword Decision
-- Use live Semrush connector evidence for current optimization decisions; do not use repo keyword tables as current evidence.
-- Run `_keyword_research`, `_get_report_schema`, `phrase_these`, `phrase_related`, `phrase_questions`, `phrase_organic`, and `phrase_this` when exact final-primary confirmation is needed.
-- Use the default database from the canonical strategy unless the brief gives a stronger market requirement.
-- Choose by intent fit first, then page ownership/cannibalization risk, then volume, difficulty, CPC, trend, SERP shape, and competitor feasibility.
-- Save `research/semrush-keyword-decision-[topic-slug]-[YYYY-MM-DD].json` using `simpro-semrush-keyword-decision/v1`.
-- Record the selected primary keyword, secondary keywords, rejected keywords with reasons, connector report parameters, collection date, and the source boundary that Semrush is third-party opportunity/SERP context while GSC remains first-party performance truth.
+### 2. Parallel research lanes
+Dispatch these lanes as parallel subagents. Each lane writes only its own artifacts and returns a short summary. Subagents never write public copy and never add a BOM entry the builder has not verified; they return candidates, and the builder decides.
 
-### 3. SERP and Competitive Analysis
-- Review an intent-representative SERP set until the dominant format, recurring structure, and meaningful gaps are clear.
-- Use public competitor pages for format and gap analysis only.
-- Document selected/rejected competitors through the canonical `Competitive Shortlist Decision` policy when competitor-aware public copy is planned.
-- Treat competitor word count as context, not as the article target.
+- **Vault context and approved proof.** For connector-bound work, the command writes `research/context-build-spec-[slug]-[date].json` from `config/context-build-spec.example.json` and runs `python -m data_sources.modules.context_build research/context-build-spec-[slug]-[date].json`; if the run stops (memory pressure, timeout), rerun with `--resume`. Its public stage must write the layout's `context_pack` and `context_receipt` paths. Stage `claim_requests`, claim lookups, and proof-boundary text come from this topic only. Then the command runs the connector customer-proof selector selector-first, exactly as `.claude/rules/customer-proof.md` prescribes, with `--evidence-output` set to the layout's `customer_proof_evidence` path. For nonconnector work, it skips the vault and runs the nonvault selector from the same rule with `--evidence-output` set to the layout's `nonvault_customer_proof_evidence` path. Return the selected claim IDs per role, or the no-fit outcome. If both vault connector paths fail, stop and record the blocker in the research brief.
+- **SERP evidence and page-1 coverage.** Collect SERP evidence for the working target query through the `/research-serp` collector order (DataForSEO, then the Playwright fallback). If the evidence file name differs from the layout's `serp_evidence` path, copy it there byte for byte. Once the PAA lane has finished, the command runs `python -m data_sources.modules.production.serp_coverage "[article]"`; it fetches the top 10 results, extracts their H2/H3 outlines, and writes the page-1 coverage map with suggested `must` and `should` topics and the PAA questions no page covers.
+- **PAA capture.** The command runs `python data_sources/modules/paa_provenance_guard.py record --query "[working target query]" --collection-date "[article date]" --run-id "[run_id from the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[date].json" --workspace-root "." --output "[layout paa_artifact path]"`. The `--run-id` value must be the production run id and `--collection-date` must be the article date, or the BOM build refuses the artifact. Never hand-author PAA questions.
+- **Source facts.** Find authoritative public pages for every factual, numeric, regulatory, or comparative point the article will need. For each, return the page URL, an exact quote of at least 6 words copied from the visible page text, and the claim the quote supports. Numbers in a claim must appear in its quote. Prefer primary and independent sources; competitor-owned pages cannot support a neutral verdict, recommendation, or FAQ. For connector-bound Simpro work, also evaluate Fred Voccola authority under the canonical policy; a Fred observation reaches the article only as a fact whose quote the builder verifies on its public page.
 
-### 4. Brand Context and Proof Planning
-- For connector-bound work, identify relevant Simpro product, solution, industry, feature, add-on, and internal-link context through connector-backed research. For nonconnector work, use task-approved brand sources and current public evidence.
-- When Hindsight internal-strategy evidence is relevant to the topic, use the connector internal-strategy lane to shape only the private reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Record `Hindsight Strategy Selection` in the validation sidecar with `public_claim_use: prohibited` and `claim_support_allowed: false`, bind `hindsight_strategy_evidence`, and keep Hindsight out of public proof, claims, citations, metrics, quotes, rankings, and source links. If it is not relevant, record `Status: not_applicable` or omit the block.
-- Plan only the validation sidecar evidence applicable to the binding branch. Omit Vault Brand Language Alignment, Named Feature/Add-On Link Check, Customer Proof Pack selector evidence, and Fred Voccola Authority Selection from nonconnector workflows.
-- Do not select, quote, paraphrase, or metricize customer proof unless the required governance evidence exists.
-- For commercial-investigation topics, plan E-E-A-T strength early: use a positive signal when available, or the internal `proof_unavailable_safe_to_publish` sidecar decision when no approved signal fits.
+When Hindsight internal-strategy evidence is relevant, use it to shape only the private reader angle, section emphasis, section purposes, objections, and commercial framing. Record it in the brief with `public_claim_use: prohibited` and `claim_support_allowed: false`. It never becomes a BOM fact, proof item, PAA question, or link.
 
-### 5. AEO/GEO Planning
-- Resolve AEO/GEO variables: topic, audience, main question, related questions, tone, expertise, and target length.
-- Collect or document PAA/FAQ provenance according to the canonical strategy.
-- Plan the early artifact, direct-answer intro, key takeaways, Capsule Method coverage, FAQ shape, schema notes, and evidence-backed source map.
-- Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as handoff targets for the later writing/readiness workflow.
+### 3. Semrush keyword decision (one lane)
+Semrush runs in one Chrome session, so it is a single sequential lane, never parallel.
+- Use the authenticated Semrush UI in the main Chrome profile, the default database from the canonical strategy, and the connector report sequence it lists.
+- Choose by intent fit first, then page ownership and cannibalization risk, then volume, difficulty, CPC, trend, SERP shape, and competitor feasibility.
+- Save the verbatim captured Semrush page text as `research/semrush-transcript-[slug]-[date].txt` and the decision input as `research/semrush-keyword-input-[slug]-[date].json`.
+- The command runs `python -m data_sources.modules.production.keyword_record --decision "research/semrush-keyword-input-[slug]-[date].json" --transcript "research/semrush-transcript-[slug]-[date].txt" --output "[layout keyword_decision path]" --shortlist-output "[layout keyword_shortlist path]"`. It refuses any candidate metric that the transcript does not show next to its keyword. Never type Semrush numbers.
+- If the selected primary keyword changes the search intent of the working target query, rerun the SERP and coverage lane for the primary keyword.
+- A Semrush UI timeout or reset is `blocked_semrush_ui_refresh`: stop before the BOM build. Do not substitute Semrush API, MCP, stale exports, or estimates.
+
+### 4. Research brief and BOM spec
+- Save the research brief to `research/brief-[slug]-[date].md`: searcher task, intent, Reader Contract, the commercial pillar and cannibalization decision, the competitor and gap notes, the planned early artifact, and the meta title and description drafts.
+- Claude writes `research/production-bom-spec-[slug]-[date].json` (schema `simpro-production-bom-spec/v1`; see `data_sources/modules/production/bom.py` for every field):
+  - `brand`, `market`, `title`, `objective`, `audience`, `cta` (`text`, `url`), and `schema_notes` from the allowed list;
+  - `sections`: heading, purpose, and `must` or `should`. Choose them from the coverage map: confirm or override its suggestions and add the sections that give the article its own value;
+  - `facts`: id, claim, url, exact quote, priority, from the source-facts lane;
+  - `proof`: id, `claim_id`, `kind` (`metric`, `quote`, `theme`, or `experience_story`), priority, using only claim IDs the selector selected;
+  - `paa_questions`: question and priority, copied from the PAA artifact's eligible questions;
+  - `links`: url, anchor, kind (`commercial_pillar`, `internal`, `external`), priority. Connector-bound work needs exactly one `must` commercial pillar link whose `destination_id` and canonical URL match `context/commercial-pillar-index.json` and whose anchor contains that destination's main keyword;
+  - for nonconnector work only, `not_applicable_context_reason`.
+
+### 5. Build the BOM
+The command runs `python -m data_sources.modules.production.bom_build "drafts/[slug]-[date].md"`. It admits a fact only if its quote is on the live page now and supports the claim, a proof item only if its claim is approved and selected by the selector, and a PAA question only if it is in the PAA artifact for this run. Exit `1` lists every refusal reason: fix the spec or the research inputs and rebuild. Exit `2` is an operational error. The BOM build must succeed before `/write`.
 
 ## Output
-Provide a research brief with:
+Report the article path, run id, BOM path, the selected primary keyword with its Semrush numbers from the shortlist, the `must` and `should` sections, the facts and proof admitted, the PAA questions selected, and any refusal or blocker.
 
-### 1. SEO Foundation
-- Primary keyword, verified metrics if available, and search intent.
-- Secondary keywords and semantic variants.
-- Semrush keyword decision artifact path, selected/rejected keyword rationale, and database used.
-- Target word count derived from intent, reader task, and evidence depth.
-- Featured snippet and SERP feature opportunities.
-- AEO/GEO variable summary and PAA/FAQ plan.
-
-### 2. Competitive Landscape
-- Competitor evidence set with URLs, observed format, common sections, and gaps.
-- Differentiation strategy for Simpro.
-- Required competitor-proof or shortlist notes for the validation sidecar.
-
-### 3. Recommended Outline
-```markdown
-H1: [optimized headline with primary keyword]
-
-Introduction
-- Hook
-- Problem statement
-- Value proposition
-
-H2: [main section]
-H3: [supporting point]
-
-Conclusion
-- Key takeaways
-- Reader next step
-```
-
-### 4. Supporting Elements
-- Source Map needs and candidate authoritative sources.
-- Metric Proof Pack needs and verified/rejected metric candidates.
-- Customer Proof Pack needs and selected/rejected proof paths.
-- Fred Voccola Authority Selection result or blocker.
-- Visual, screenshot, video, table, checklist, calculator, or template opportunities.
-
-### 5. Internal Linking Strategy
-- Pillar page, related posts, product/solution pages, and resource links that advance the reader task.
-- Named feature/add-on link decisions that need sidecar evidence.
-
-### 6. Meta Elements Preview
-- Meta title draft.
-- Meta description draft.
-- URL slug recommendation.
-
-## File Management
-Save the brief to `research/brief-[topic-slug]-[YYYY-MM-DD].md`.
-
-Save proof-only planning in `research/validation-[topic-slug]-[YYYY-MM-DD].md`; do not put governance blocks in public blog copy.
+The release thresholds the article must meet later are content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+.
 
 ## Next Steps
-1. Run `/write [topic]` to create the public draft from the research brief.
-2. Run `/scrub` and `/publish-readiness` after the public draft, sidecar, context artifacts, BOM, and receipts exist.
-3. If scores miss thresholds, follow the recovery loop in `context/aeo-geo-blog-strategy.md`.
+1. Run `/write [topic]` to draft the article from the production BOM.
+2. `/write` runs `/scrub` and `/publish-readiness`, which runs the one-pass release.
+3. If the release blocks, follow the recovery loop in `context/aeo-geo-blog-strategy.md`.

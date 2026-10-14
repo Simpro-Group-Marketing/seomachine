@@ -32,12 +32,12 @@ This repo uses two project-scoped MCP servers, `gsc` and `analytics-mcp`. Codex 
 
 Workflow contracts live in `.claude/commands/` and are shared by Claude Code and Codex. When asked to run a command, execute the steps in its command doc.
 
-- `/research [topic]` - Keyword/competitor research and the frozen editorial plan for a new article
-- `/write [topic]` - Native draft in `drafts/` plus specialist machine reviews
-- `/rewrite [topic]` - Native rewrite in `rewrites/` with SEO plus AEO/GEO rewrite gates
-- `/optimize [file]` - Required post-preflight SEO/AEO repair or recorded no-op pass
+- `/research [topic]` - Parallel research lanes, brief, and the production BOM for a new article
+- `/write [topic]` - Native draft in `drafts/` from the production BOM, then parallel advisory reviewers
+- `/rewrite [topic]` - Native rewrite in `rewrites/` from a production BOM
+- `/optimize [file]` - Revise from the latest release record's blocking findings and priority fixes, then release again
 - `/scrub [file]` - Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts
-- `/publish-readiness [file]` - Complete source-artifact gate stack and the sole release verdict
+- `/publish-readiness [file]` - One-pass release (truth, coverage, and the three scores) that writes the release record; the sole release verdict
 - `/analyze-existing [URL or file]` - Content health and AEO/GEO rewrite-readiness audit
 - `/performance-review` - Analytics-driven content priorities
 - `/publish-draft [file]` - Publish to WordPress via REST API after readiness passes
@@ -53,7 +53,7 @@ Workflow contracts live in `.claude/commands/` and are shared by Claude Code and
 
 ## Pipeline directories
 
-`topics/` (ideas) -> `research/` (briefs, machine reviews, validation sidecars, release evidence) -> `drafts/` or `rewrites/` (articles) -> `published/` (final)
+`topics/` (ideas) -> `research/` (briefs, production BOM specs and BOMs, research artifacts, release records) -> `drafts/` or `rewrites/` (articles) -> `published/` (final)
 
 Rewrites go to `rewrites/`. Landing pages go to `landing-pages/`. Audits go to `audits/`. Repurposed content goes to `repurposed/`.
 
@@ -63,9 +63,9 @@ Command docs carry per-command steps and the selector, guard, and release comman
 
 | Canonical home | Governs |
 |---|---|
-| `context/aeo-geo-blog-strategy.md` | AEO/GEO and proof policy: Simpro vault source rule and nonconnector branch, author voice, competitor and feature guardrails, native workflow and BOM, the mandatory scrub/readiness/optimize loop, score thresholds, PAA, Metric and Customer Proof Packs, E-E-A-T, Fred authority, citation modes and link counts, reader-facing copy boundary, drafting rules, publish gates, and the recovery loop |
+| `context/aeo-geo-blog-strategy.md` | AEO/GEO and proof policy: Simpro vault source rule and nonconnector branch, author voice, competitor and feature guardrails, native workflow, production BOM, and the mandatory scrub/release/optimize loop, score thresholds, PAA, Metric and Customer Proof Packs, E-E-A-T, Fred authority, citation modes and link counts, reader-facing copy boundary, drafting rules, publish gates, and the recovery loop |
 | `context/blog-editorial-strategy.md` | Editorial plan ownership, Reader Contract, story safety, specificity, headline integrity, continuity, CTA profiles, and Reviewed Humanizer governance |
-| `.claude/commands/publish-readiness.md` | Gate stack, release wrapper phases (`optimization_started`, `final_readiness`), exit codes, and final handoff |
+| `.claude/commands/publish-readiness.md` | One-pass release phases, truth and coverage checks, score thresholds, exit codes, release record, and the publisher check |
 | `.claude/commands/*.md` | Per-command workflow steps |
 | `.agents/rules/seo-blog-strategy.md` | Editorial plan v2 strategy objects, commercial pillar destination, claim-level source quality, lifecycle, metadata handoff |
 | `.agents/rules/customer-proof.md` | Selector-first customer proof, reuse ledger, nonconnector proof selector |
