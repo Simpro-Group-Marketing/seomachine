@@ -64,10 +64,10 @@ Command docs carry per-command steps and the selector, guard, and release comman
 | Canonical home | Governs |
 |---|---|
 | `context/aeo-geo-blog-strategy.md` | AEO/GEO and proof policy: Simpro vault source rule and nonconnector branch, author voice, competitor and feature guardrails, native workflow, production BOM, and the mandatory scrub/release/optimize loop, score thresholds, PAA, Metric and Customer Proof Packs, E-E-A-T, Fred authority, citation modes and link counts, reader-facing copy boundary, drafting rules, publish gates, and the recovery loop |
-| `context/blog-editorial-strategy.md` | Editorial plan ownership, Reader Contract, story safety, specificity, headline integrity, continuity, CTA profiles, and Reviewed Humanizer governance |
+| `context/blog-editorial-strategy.md` | The production BOM as the editorial plan of record, Reader Contract, story safety, specificity, headline integrity, continuity, CTA profiles, and Reviewed Humanizer governance |
 | `.claude/commands/publish-readiness.md` | One-pass release phases, truth and coverage checks, score thresholds, exit codes, and the release record |
 | `.claude/commands/*.md` | Per-command workflow steps |
-| `.agents/rules/seo-blog-strategy.md` | Editorial plan v2 strategy objects, commercial pillar destination, claim-level source quality, lifecycle, metadata handoff |
+| `.agents/rules/seo-blog-strategy.md` | Commercial pillar destination, claim-level source quality, lifecycle, and schema and metadata guidance for the production BOM |
 | `.agents/rules/customer-proof.md` | Selector-first customer proof, reuse ledger, nonconnector proof selector |
 | `.agents/rules/faq-answer-quality.md` | FAQ answer shape and FAQ evidence-link requirements |
 | `.agents/rules/blog-schema.md` | `schema_notes` frontmatter and author mapping |
@@ -81,9 +81,9 @@ Follow `.agents/rules/repository-development.md` for every code, test, configura
 
 ## Non-negotiables
 
-- Simpro work uses the current-project Simpro vault connector as its only brand and proof context source; repo-local context files are never an active or fallback source. AroFlo, BigChange, and ClockShark artifacts with no Simpro signal follow the nonconnector branch. If both connector paths (MCP and `SimproVaultClient`) fail, stop and record the blocker in the validation sidecar.
+- Simpro work uses the current-project Simpro vault connector as its only brand and proof context source; repo-local context files are never an active or fallback source. AroFlo, BigChange, and ClockShark artifacts with no Simpro signal follow the nonconnector branch. If both connector paths (MCP and `SimproVaultClient`) fail, stop and record the blocker in the research brief.
 - Never synthesize proof-sensitive data, customer claims, review claims, metrics, rankings, PAA questions, quotes, or source support.
-- Public body copy reads as an article for the ICP. Workflow rationale, proof selection, and readiness status stay out of the body.
-- `/publish-readiness` is the sole release verdict. Machine reviewers are advisory, and no human approval step exists. Every new or changed blog runs the mandatory scrub, readiness, optimize, and final readiness loop.
-- Proof maps and proof packs live in the validation sidecar `research/validation-[topic-slug]-[YYYY-MM-DD].md`, never in public copy.
+- Public body copy reads as an article for the ICP. Workflow rationale, proof selection, and release status stay out of the body.
+- `/publish-readiness` is the sole release verdict. Specialist reviewers are advisory, and no human approval step exists. Every new or changed blog runs the mandatory scrub, release, optimize, and re-release loop.
+- Proof (verified facts, approved customer proof, and selector evidence) lives in the production BOM and research artifacts, never in public copy.
 - Do not hand Python script calls back to the user as required steps; slash commands run scripts and MCP calls internally.
