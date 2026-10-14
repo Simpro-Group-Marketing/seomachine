@@ -1,11 +1,20 @@
-"""Article layout and production run identity for the blog pipeline."""
+"""Article layout and production run identity for the blog pipeline.
+
+Usage: python -m data_sources.modules.production.layout <article> [--workspace-root DIR]
+
+Prints the article's slug, date, workflow mode, production run id (minted and stored when
+none exists), and every layout path as JSON. Exit codes: 0 printed, 2 bad layout or run state.
+"""
 
 from __future__ import annotations
 
+import argparse
 import datetime
 import json
 import re
+import sys
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -192,3 +201,44 @@ def _write_run_state(layout: Layout, run_id: str, bom_sha256: str | None = None)
         state["bom_sha256"] = bom_sha256
     layout.run_state.parent.mkdir(parents=True, exist_ok=True)
     atomic_write_json(layout.run_state, state)
+
+
+_PRINTED_PATHS = (
+    "article", "run_state", "bom", "bom_spec", "serp_evidence", "serp_coverage", "keyword_decision",
+    "keyword_shortlist", "paa_artifact", "context_pack", "context_receipt", "customer_proof_evidence",
+    "nonvault_customer_proof_evidence",
+)
+
+
+def describe(layout: Layout) -> dict:
+    """The article identity, its run id (minted when missing), and every layout path, workspace-relative."""
+    return {
+        "slug": layout.slug,
+        "date": layout.date,
+        "workflow_mode": layout.workflow_mode,
+        "run_id": load_or_create_run_id(layout),
+        "paths": {name: getattr(layout, name).relative_to(layout.root).as_posix() for name in _PRINTED_PATHS},
+    }
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="layout", description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("article", type=Path)
+    parser.add_argument("--workspace-root", type=Path, default=None)
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exit_request:
+        return int(exit_request.code or 0)
+    try:
+        layout = Layout.for_article(args.article, (args.workspace_root or Path.cwd()).resolve())
+        payload = describe(layout)
+    except (LayoutError, OSError) as error:
+        print(f"layout: {error}", file=sys.stderr)
+        return 2
+    print(json.dumps(payload, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
