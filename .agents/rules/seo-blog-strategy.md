@@ -41,7 +41,7 @@ Editorial guidance for choosing facts: statistics need an original source; regul
 
 The article frontmatter needs a valid `last_updated: YYYY-MM-DD` that is not later than the release date; the AEO scorer's metadata check blocks a missing, invalid, or future date. Missing author passes. A verified author is an optional Expertise signal; any author, reviewer, or credential claim remains proof-gated.
 
-`schema_notes` is a checked CMS handoff, not rendered implementation. The BOM spec's `schema_notes` must use the allowed vocabulary, and the AEO scorer's schema check reads the article frontmatter `schema_notes`: always `BlogPosting`, `BreadcrumbList`, `ImageObject`, and Organization as publisher reference; `FAQPage` plus nested Question/Answer only when visible FAQs exist; Person only when a named author exists; `VideoObject` if and only if a supported video is embedded. Schema notes must never be reported as rendered JSON-LD implementation.
+`schema_notes` is a checked CMS handoff, not rendered implementation. The BOM spec's `schema_notes` must use the allowed vocabulary, and the AEO scorer's schema check reads the article frontmatter `schema_notes`: both use the exact entries in `.claude/rules/blog-schema.md` (always `BlogPosting`, `BreadcrumbList`, `ImageObject for the featured image or logo`, and `Organization as publisher reference only, not a separate full schema block`; `FAQPage` plus `Question and Answer inside FAQPage` only when visible FAQs exist; `Person as author` only when a named author exists; `VideoObject` if and only if a supported video is embedded). Schema notes must never be reported as rendered JSON-LD implementation.
 
 ## Protected Gates and Scope
 
