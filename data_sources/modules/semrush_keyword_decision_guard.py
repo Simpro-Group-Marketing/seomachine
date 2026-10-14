@@ -133,10 +133,8 @@ def default_databases_for_brand_market(brand: str, market: str) -> tuple[str, ..
     """Return the default Semrush database sequence for supported brands."""
     normalized_brand = _normalize_token(brand)
     normalized_market = _normalize_token(market)
-    if normalized_brand == "simpro" and normalized_market in {"us", "usa", "unitedstates"}:
-        return ("us",)
-    if normalized_brand == "simpro" and normalized_market in {"au", "aus", "australia"}:
-        return ("au",)
+    if normalized_brand == "simpro" and normalized_market in {"us", "usa", "unitedstates", "au", "aus", "australia"}:
+        return ("au",) if normalized_market in {"au", "aus", "australia"} else ("us",)
     if normalized_brand == "clockshark" and normalized_market in {"us", "usa", "unitedstates"}:
         return ("us",)
     if normalized_brand == "bigchange" and normalized_market in {"uk", "gb", "unitedkingdom"}:
