@@ -148,10 +148,13 @@ def _carried_forward(
 
     Only an ``unreachable`` page (403, 429, 5xx, timeout) qualifies, and only for a prior fact with
     the same id, url, and quote and an ISO UTC ``verified_at``. Its original verification is kept;
-    the current check is noted.
+    the current check is noted. A fact verified from a Chrome capture never carries forward: it must
+    re-verify through its capture, under the blocked-status allowlist and the capture age limit.
     """
     prior = (prior_facts or {}).get(fact["id"])
     if check.status != "unreachable" or not isinstance(prior, Mapping):
+        return None
+    if prior.get("verified_via") == CHROME_CAPTURE:
         return None
     if prior.get("url") != fact["url"] or prior.get("quote") != fact["quote"]:
         return None
@@ -196,6 +199,7 @@ def _verified_row(
            "verified_at": verified_at, "check_detail": check.detail, "support": SUPPORT_RULE}
     if check.status == "verified_capture":
         capture = captures[fact["url"]]
+        row["verified_at"] = capture.captured_at
         row["verified_via"] = CHROME_CAPTURE
         row["capture"] = {"path": capture.path, "sha256": capture.receipt_sha256, "captured_at": capture.captured_at}
     return row

@@ -50,9 +50,19 @@ def _is_binding(value: Any) -> bool:
     )
 
 
+def _capture_bindings(bom: Mapping[str, Any]) -> dict[str, dict[str, str]]:
+    """Each fact's Chrome capture receipt as ``facts.<id>.capture``; the receipt hash covers its text hash."""
+    facts = bom.get("facts")
+    return {
+        f"facts.{fact.get('id')}.capture": {"path": fact["capture"]["path"], "sha256": fact["capture"]["sha256"]}
+        for fact in (facts if isinstance(facts, list) else [])
+        if isinstance(fact, Mapping) and _is_binding(fact.get("capture"))
+    }
+
+
 def bom_bindings(bom: Mapping[str, Any], prefix: str = "") -> dict[str, dict[str, str]]:
     """Every bound artifact in the BOM (except the spec), keyed by its dotted location."""
-    found: dict[str, dict[str, str]] = {}
+    found: dict[str, dict[str, str]] = _capture_bindings(bom) if not prefix else {}
     for key, value in bom.items():
         where = f"{prefix}{key}"
         if _is_binding(value):
