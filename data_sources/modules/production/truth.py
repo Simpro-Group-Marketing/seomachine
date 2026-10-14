@@ -9,11 +9,13 @@ the URL validator once for every article link.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 from data_sources.modules.ai_copy_lint.core import lint_content
 from data_sources.modules.faq_structure import detect_faq_structure
 from data_sources.modules.production.facts import verify_quotes
+from data_sources.modules.production.page_capture import PageCapture, load_capture
 from data_sources.modules.production.truth_cites import (
     citation_findings,
     customer_story_findings,
@@ -41,34 +43,79 @@ from data_sources.modules.url_validator import UrlValidator, validate_content_ur
 _LEAKAGE_RULE = "editorial_process_leakage"
 
 
+def _capture_bindings(
+    facts: Sequence[Mapping[str, Any]], root: Path | None
+) -> tuple[dict[str, PageCapture], dict[str, Finding]]:
+    """Re-hash each fact's bound Chrome capture; return the intact ones by url and a block for each broken one."""
+    captures: dict[str, PageCapture] = {}
+    broken: dict[str, Finding] = {}
+    for fact in facts:
+        binding = fact.get("capture")
+        if root is None or not isinstance(binding, Mapping):
+            continue
+        try:
+            capture = load_capture(str(binding.get("path")), root)
+            if capture.receipt_sha256 != binding.get("sha256") or capture.url != fact["url"]:
+                raise ValueError("the receipt differs from the capture bound in the BOM")
+        except ValueError as error:
+            broken[str(fact["id"])] = Finding(
+                "fact_quote", "block",
+                f"fact {fact['id']} Chrome capture {binding.get('path')} can no longer be trusted: {error}", None,
+            )
+            continue
+        captures[str(fact["url"])] = capture
+    return captures, broken
+
+
+def _fact_finding(fact: Mapping[str, Any], check: Any) -> Finding | None:
+    """The finding for one fact's check: nothing when verified live, a warning when only unreachable."""
+    if check.status == "verified":
+        return None
+    if check.status == "verified_capture":
+        return Finding(
+            "fact_quote", "warn",
+            f"fact {fact['id']} source {fact['url']} blocked the live check; its quote was verified from "
+            f"the Chrome capture taken at {fact['capture']['captured_at']} ({fact['capture']['path']})", None,
+        )
+    if check.status == "unreachable":
+        verified = fact.get("verified_at")
+        when = f"its quote was last verified at {verified}" if verified else "verification date unknown"
+        return Finding(
+            "fact_quote", "warn",
+            f"fact {fact['id']} source {fact['url']} was unreachable ({check.detail}); {when}", None,
+        )
+    return Finding(
+        "fact_quote", "block",
+        f"fact {fact['id']} source {fact['url']} no longer supports its verified quote "
+        f"({check.status}: {check.detail})", None,
+    )
+
+
 def _fact_findings(
-    facts: Sequence[Mapping[str, Any]], transport: Any
+    facts: Sequence[Mapping[str, Any]], transport: Any, root: Path | None = None
 ) -> tuple[list[Finding], frozenset[str]]:
-    """Verify every linked fact in one batch; return findings and the unreachable source URLs."""
+    """Verify every linked fact in one batch; return findings and the unreachable source URLs.
+
+    A fact whose page blocks the live check passes on its bound Chrome capture, with a warning, only
+    while the capture still hashes as recorded; an edited capture blocks instead.
+    """
     pairs = [(str(fact["url"]), str(fact["quote"])) for fact in facts]
     if not pairs:
         return [], frozenset()
-    results = verify_quotes(pairs, transport=transport)
+    captures, broken = _capture_bindings(facts, root)
+    results = verify_quotes(pairs, transport=transport, captures=captures)
     findings: list[Finding] = []
     unreachable: set[str] = set()
     for fact, pair in zip(facts, pairs):
         check = results[pair]
-        if check.status == "verified":
+        if check.status == "unreachable" and str(fact["id"]) in broken:
+            findings.append(broken[str(fact["id"])])
             continue
-        if check.status == "unreachable":
+        if check.status in ("unreachable", "verified_capture"):
             unreachable.add(canonical(pair[0]))
-            verified = fact.get("verified_at")
-            when = f"its quote was last verified at {verified}" if verified else "verification date unknown"
-            findings.append(Finding(
-                "fact_quote", "warn",
-                f"fact {fact['id']} source {pair[0]} was unreachable ({check.detail}); {when}", None,
-            ))
-        else:
-            findings.append(Finding(
-                "fact_quote", "block",
-                f"fact {fact['id']} source {pair[0]} no longer supports its verified quote "
-                f"({check.status}: {check.detail})", None,
-            ))
+        finding = _fact_finding(fact, check)
+        if finding is not None:
+            findings.append(finding)
     return findings, frozenset(unreachable)
 
 
@@ -99,8 +146,13 @@ def _lint_findings(article: str) -> list[Finding]:
     ]
 
 
-def check_truth(article: str, bom: Mapping[str, Any], *, transport: Any) -> list[Finding]:
-    """Check a finished article against its production BOM and return every finding."""
+def check_truth(
+    article: str, bom: Mapping[str, Any], *, transport: Any, workspace_root: Path | None = None
+) -> list[Finding]:
+    """Check a finished article against its production BOM and return every finding.
+
+    ``workspace_root`` lets a fact page that blocks bots be checked against its bound Chrome capture.
+    """
     index = BomIndex.build(bom)
     report = analyze_proof_links(article, "", brand=bom["identity"]["brand"])
     raw = body_lines(article)
@@ -113,7 +165,7 @@ def check_truth(article: str, bom: Mapping[str, Any], *, transport: Any) -> list
     findings = citation_findings(report.requirements, report.links, links, index)
     findings += customer_story_findings(links, index)
     linked_facts, _ = index.rows_for(linked_urls(links, 1, len(raw) + 1))
-    fact_findings, unreachable = _fact_findings(linked_facts, transport)
+    fact_findings, unreachable = _fact_findings(linked_facts, transport, workspace_root)
     findings += fact_findings
     units = paragraph_units(article, answer_ranges(structure))
     findings += paragraph_number_findings(units, links, index, meta, scope)

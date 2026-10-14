@@ -26,6 +26,7 @@ from data_sources.modules.context_binding_guard import NON_CONNECTOR_BRANDS, SIM
 from data_sources.modules.customer_proof.nonconnector_eligibility import _canonical_brand
 from data_sources.modules.production.bom import (
     BOM_SCHEMA,
+    CHROME_CAPTURE,
     BuildEnvironmentError,
     SpecFileError,
     load_bom,
@@ -57,6 +58,7 @@ from data_sources.modules.production.layout import (
     stored_bom_sha256,
 )
 from data_sources.modules.production.numbers import numbers_supported
+from data_sources.modules.production.page_capture import PageCapture, load_capture
 from data_sources.modules.production.record import file_sha256
 from data_sources.modules.public_http import PublicHttpTransport
 from data_sources.modules.vault_claim_receipts import load_validated_claim_set
@@ -160,19 +162,59 @@ def _carried_forward(
             "carried_forward": True, "release_check": check.detail}
 
 
+def _load_captures(layout: Layout, facts: Sequence[Mapping[str, Any]]) -> dict[str, PageCapture]:
+    """Load each fact's Chrome capture by url; a bad, mismatched, or conflicting capture refuses the build."""
+    captures: dict[str, PageCapture] = {}
+    errors = []
+    for fact in facts:
+        if "capture" not in fact:
+            continue
+        try:
+            capture = load_capture(fact["capture"], layout.root)
+        except ValueError as error:
+            errors.append(f"fact {fact['id']} capture cannot be used: {error}")
+            continue
+        if capture.url != fact["url"]:
+            errors.append(
+                f"fact {fact['id']} capture {capture.path} is for {capture.url}, not the fact url {fact['url']}"
+            )
+        elif captures.setdefault(fact["url"], capture).path != capture.path:
+            errors.append(f"fact {fact['id']} ({fact['url']}) names different captures than another fact on that url")
+    if errors:
+        raise ValueError("\n".join(errors))
+    return captures
+
+
+def _verified_row(
+    fact: Mapping[str, Any], check: Any, verified_at: str, captures: Mapping[str, PageCapture]
+) -> dict[str, Any]:
+    row = {**{key: fact[key] for key in ("id", "claim", "url", "quote", "priority")},
+           "verified_at": verified_at, "check_detail": check.detail, "support": SUPPORT_RULE}
+    if check.status == "verified_capture":
+        capture = captures[fact["url"]]
+        row["verified_via"] = CHROME_CAPTURE
+        row["capture"] = {"path": capture.path, "sha256": capture.receipt_sha256, "captured_at": capture.captured_at}
+    return row
+
+
 def verify_facts(
     facts: Sequence[Mapping[str, Any]],
     *,
     transport: Any,
     prior_facts: Mapping[str, Mapping[str, Any]] | None = None,
+    captures: Mapping[str, PageCapture] | None = None,
 ) -> list[dict[str, Any]]:
     """Verify every fact quote on its live page in one batch; any failure refuses the build.
 
     With ``prior_facts`` (a release rebuild), an unreachable page keeps the matching prior fact.
+    With ``captures``, an unreachable page is verified from its Chrome capture instead.
     """
     if not facts:
         return []
-    results = verify_quotes([(fact["url"], fact["quote"]) for fact in facts], transport=transport)
+    captures = captures or {}
+    results = verify_quotes(
+        [(fact["url"], fact["quote"]) for fact in facts], transport=transport, captures=captures
+    )
     verified_at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     errors, admitted = [], []
     for fact in facts:
@@ -180,11 +222,10 @@ def verify_facts(
         carried = _carried_forward(fact, check, prior_facts)
         if carried is not None:
             admitted.append(carried)
-        elif check.status != "verified":
+        elif check.status not in ("verified", "verified_capture"):
             errors.append(f"fact {fact['id']} ({fact['url']}) is {check.status}: {check.detail}")
         else:
-            admitted.append({**{key: fact[key] for key in ("id", "claim", "url", "quote", "priority")},
-                             "verified_at": verified_at, "check_detail": check.detail, "support": SUPPORT_RULE})
+            admitted.append(_verified_row(fact, check, verified_at, captures))
     if errors:
         raise ValueError("\n".join(errors))
     return admitted
@@ -231,6 +272,7 @@ def _local_phase(
         "links": lambda: resolve_links(spec, layout.root, nonconnector),
         "blocks": lambda: keyword_and_serp(layout),
         "customer_proof": lambda: bind_selector_evidence(layout, spec["proof"], nonconnector),
+        "captures": lambda: _load_captures(layout, spec["facts"]),
     }
     results: dict[str, Any] = {}
     errors = _fact_errors(spec["facts"])
@@ -269,7 +311,7 @@ def build_bom(
     local, errors = _local_phase(layout, spec, nonconnector, claim_loader)
     if errors:
         raise ValueError("\n".join(errors))
-    facts = verify_facts(spec["facts"], transport=transport, prior_facts=prior_facts)
+    facts = verify_facts(spec["facts"], transport=transport, prior_facts=prior_facts, captures=local["captures"])
     keyword, serp = local["blocks"]
     bom = {
         "schema": BOM_SCHEMA,

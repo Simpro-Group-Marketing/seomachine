@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from collections.abc import Mapping
 from typing import Any, Dict, Sequence, Tuple
 
 import requests
 
+from data_sources.modules.production.page_capture import PageCapture
 from data_sources.modules.source_support.retrieval import fetch_source_text_many
 from data_sources.modules.source_support.text_matching import _normalize_text
 
@@ -19,7 +21,7 @@ _DECIMAL_POINT = re.compile(r"(?<=\d)\.(?=\d)")
 @dataclass(frozen=True)
 class FactCheck:
     url: str
-    status: str  # "verified" | "quote_missing" | "gone" | "unreachable"
+    status: str  # "verified" | "verified_capture" | "quote_missing" | "gone" | "unreachable"
     detail: str
 
 
@@ -27,11 +29,29 @@ def verify_quotes(
     pairs: Sequence[Tuple[str, str]],
     *,
     transport: Any,
+    captures: Mapping[str, PageCapture] | None = None,
 ) -> Dict[Tuple[str, str], FactCheck]:
-    """Check each (url, quote) pair against its live page with one batch fetch."""
+    """Check each (url, quote) pair against its live page with one batch fetch.
+
+    A Chrome capture for the exact URL answers only when the live page is ``unreachable``; it never
+    overrides a gone, reachable, or quote-missing result.
+    """
     pairs = list(pairs)
     outcomes = _fetch_outcomes([url for url, _quote in pairs], transport=transport)
-    return {(url, quote): _check(url, quote, outcomes[url]) for url, quote in pairs}
+    checks = {(url, quote): _check(url, quote, outcomes[url]) for url, quote in pairs}
+    for (url, quote), check in checks.items():
+        capture = (captures or {}).get(url)
+        if check.status == "unreachable" and capture is not None:
+            checks[(url, quote)] = _check_capture(url, quote, capture)
+    return checks
+
+
+def _check_capture(url: str, quote: str, capture: PageCapture) -> FactCheck:
+    match = _match_quote(url, quote, capture.text)
+    where = f"Chrome capture {capture.path}"
+    if match.status == "verified":
+        return FactCheck(url, "verified_capture", f"quote found in {where} (captured {capture.captured_at})")
+    return FactCheck(url, "quote_missing", f"quote not found in {where} (captured {capture.captured_at})")
 
 
 def _fetch_outcomes(urls: Sequence[str], *, transport: Any) -> Dict[str, Any]:

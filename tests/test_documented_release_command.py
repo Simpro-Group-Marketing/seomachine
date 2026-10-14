@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 
 from data_sources.modules import paa_provenance_guard
-from data_sources.modules.production import bom_build, keyword_record, layout, record, release, serp_coverage
+from data_sources.modules.production import bom_build, keyword_record, layout, page_capture, record, release, serp_coverage
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMAND_DIR = ROOT / ".claude" / "commands"
@@ -22,6 +22,7 @@ ENTRIES = {
     "bom_build": lambda: bom_build.main([]),
     "serp_coverage": lambda: serp_coverage.main([]),
     "keyword_record": lambda: keyword_record.main([]),
+    "page_capture": lambda: page_capture.main([]),
     "paa_record": lambda: paa_provenance_guard._main(["record"]),
 }
 

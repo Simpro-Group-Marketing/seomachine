@@ -19,6 +19,7 @@ BOM_SCHEMA = "simpro-production-bom/v1"
 SPEC_SCHEMA = "simpro-production-bom-spec/v1"
 PRIORITIES = frozenset({"must", "should"})
 FACT_SUPPORT = "quote_overlap"
+CHROME_CAPTURE = "chrome_capture"
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 LINK_KINDS = frozenset({"commercial_pillar", "internal", "external"})
 
@@ -32,7 +33,7 @@ _SPEC_REQUIRED = frozenset(
 # list key -> (required item fields, optional item fields)
 _SPEC_LISTS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "sections": (frozenset({"heading", "purpose", "priority"}), frozenset()),
-    "facts": (frozenset({"id", "claim", "url", "quote", "priority"}), frozenset()),
+    "facts": (frozenset({"id", "claim", "url", "quote", "priority"}), frozenset({"capture"})),
     "proof": (frozenset({"id", "claim_id", "kind", "priority"}), frozenset()),
     "paa_questions": (frozenset({"question", "priority"}), frozenset()),
     "links": (frozenset({"url", "anchor", "kind", "priority"}), frozenset({"destination_id"})),
@@ -118,7 +119,13 @@ def _spec_list_errors(spec: Mapping[str, Any]) -> list[str]:
         for index, item in enumerate(items):
             errors += _item_errors(key, index, item, required, optional)
         errors += _priority_and_kind_errors(key, items)
-    errors += _duplicate_id_errors("fact", spec.get("facts") if isinstance(spec.get("facts"), list) else [])
+    facts = spec.get("facts") if isinstance(spec.get("facts"), list) else []
+    errors += [
+        f"facts[{index}] capture must be non-empty text"
+        for index, fact in enumerate(facts)
+        if isinstance(fact, Mapping) and "capture" in fact and not _is_text(fact["capture"])
+    ]
+    errors += _duplicate_id_errors("fact", facts)
     errors += _duplicate_id_errors("proof", spec.get("proof") if isinstance(spec.get("proof"), list) else [])
     return errors
 
@@ -193,6 +200,24 @@ def _fact_errors(bom: Mapping[str, Any]) -> list[str]:
         ]
         if fact.get("support") != FACT_SUPPORT:
             errors.append(f"facts[{index}] support must be {FACT_SUPPORT}, found: {fact.get('support')!r}")
+        errors += _capture_binding_errors(index, fact)
+    return errors
+
+
+def _capture_binding_errors(index: int, fact: Mapping[str, Any]) -> list[str]:
+    """A fact verified from a Chrome capture must carry the capture's path, receipt hash, and time."""
+    via = fact.get("verified_via")
+    if via is None:
+        return []
+    if via != CHROME_CAPTURE:
+        return [f"facts[{index}] verified_via must be {CHROME_CAPTURE}, found: {via!r}"]
+    capture = fact.get("capture")
+    if not isinstance(capture, Mapping):
+        return [f"facts[{index}] verified_via {CHROME_CAPTURE} requires a capture binding"]
+    errors = [f"facts[{index}] capture is missing {key}" for key in ("path", "captured_at") if not _is_text(capture.get(key))]
+    digest = capture.get("sha256")
+    if not (isinstance(digest, str) and _SHA256.fullmatch(digest)):
+        errors.append(f"facts[{index}] capture sha256 must be 64 lowercase hex characters")
     return errors
 
 

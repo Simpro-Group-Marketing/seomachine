@@ -6,8 +6,9 @@ Steps: refresh the customer-proof selector evidence (connector or nonvault, deci
 as the BOM build does) from the inputs recorded in it, pinned to the BOM's current selections (a
 pinned proof the selector no longer offers refuses the BOM); rebuild the production BOM (live fact
 checks and the selector-first check run again; a fact whose page is merely unreachable keeps its
-earlier verification, and truth warns); run the truth and coverage checks in a thread pool while
-the scorer runs; write one release record. Every run that fails after the refresh also writes a
+earlier verification, or is verified from its Chrome capture (``page_capture``), and truth warns,
+citing the capture date; an edited capture refuses); run the truth and coverage checks in a thread
+pool while the scorer runs; write one release record. Every run that fails after the refresh also writes a
 failing record, so an older pass never stays the latest. ``record.verify_publishable`` (the
 ``record verify`` CLI) trusts only the latest record; the WordPress and Grav publishers are not
 wired to the record. Release never writes the customer-proof usage ledger: per the customer-proof
@@ -212,7 +213,7 @@ def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list
     text = run.article_bytes.decode("utf-8")
     jobs: dict[str, Callable[[], Any]] = {
         "scores": lambda: score_article(run.layout.article, bom, workers=run.workers),
-        "truth": lambda: check_truth(text, bom, transport=transport),
+        "truth": lambda: check_truth(text, bom, transport=transport, workspace_root=run.layout.root),
         "coverage": lambda: check_coverage(text, bom),
     }
     try:

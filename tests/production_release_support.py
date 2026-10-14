@@ -72,7 +72,7 @@ class Checks:
         monkeypatch.setattr(release, "check_coverage", self.coverage)
         monkeypatch.setattr(release, "score_article", self.score)
 
-    def truth(self, article, bom, *, transport):
+    def truth(self, article, bom, *, transport, workspace_root=None):
         self.calls.append(("truth", transport))
         if self.on_truth:
             self.on_truth()
