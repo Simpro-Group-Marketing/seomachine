@@ -13,6 +13,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from data_sources.modules.content_scoring.aeo_metadata_schema import CANONICAL_SCHEMA_ENTITIES
+
 BOM_SCHEMA = "simpro-production-bom/v1"
 SPEC_SCHEMA = "simpro-production-bom-spec/v1"
 PRIORITIES = frozenset({"must", "should"})
@@ -20,18 +22,8 @@ FACT_SUPPORT = "quote_overlap"
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 LINK_KINDS = frozenset({"commercial_pillar", "internal", "external"})
 
-SCHEMA_NOTES = frozenset(
-    {
-        "BlogPosting",
-        "BreadcrumbList",
-        "ImageObject",
-        "Organization as publisher reference",
-        "FAQPage",
-        "Question and Answer inside FAQPage",
-        "Person as author",
-        "VideoObject",
-    }
-)
+# The AEO scorer's canonical schema entities, so notes copied into frontmatter score.
+SCHEMA_NOTES = CANONICAL_SCHEMA_ENTITIES
 _SPEC_TEXT_FIELDS = ("brand", "market", "title", "objective", "audience")
 _SPEC_OPTIONAL = frozenset({"not_applicable_context_reason"})
 _SPEC_REQUIRED = frozenset(

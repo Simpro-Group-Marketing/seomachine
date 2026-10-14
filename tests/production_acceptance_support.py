@@ -63,7 +63,8 @@ def spec() -> dict[str, Any]:
         "links": [{"url": OWNED_URL, "anchor": "BigChange field service management software",
                    "kind": "internal", "priority": "must"}],
         "cta": {"text": "Explore", "url": OWNED_URL},
-        "schema_notes": ["BlogPosting", "BreadcrumbList", "ImageObject", "Organization as publisher reference",
+        "schema_notes": ["BlogPosting", "BreadcrumbList", "ImageObject for the featured image or logo",
+        "Organization as publisher reference only, not a separate full schema block",
                          "FAQPage", "Question and Answer inside FAQPage"],
         "not_applicable_context_reason": "BigChange workflow with no brand-vault signal",
     }

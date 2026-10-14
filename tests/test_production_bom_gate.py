@@ -366,7 +366,7 @@ def test_schema_notes_are_restricted():
     spec = connector_spec()
     spec["schema_notes"] = ["BlogPosting", "HowTo"]
     assert any("schema_notes" in e and "HowTo" in e for e in validate_spec(spec))
-    spec["schema_notes"] = ["Organization as publisher reference", "Question and Answer inside FAQPage"]
+    spec["schema_notes"] = ["Organization as publisher reference only, not a separate full schema block", "Question and Answer inside FAQPage"]
     assert validate_spec(spec) == []
 
 
