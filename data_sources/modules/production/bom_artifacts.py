@@ -66,13 +66,14 @@ def read_spec_bound(layout: Layout) -> tuple[dict[str, Any], dict[str, str]]:
 
 def _market_errors(decision: Mapping[str, Any], market: str) -> list[str]:
     """The keyword decision must be for the spec market and that market's Semrush database."""
+    market = str(market or "").strip().upper()
     expected = SEMRUSH_DATABASE_BY_MARKET.get(market)
     if expected is None:
         return [f"spec market {market} has no Semrush database"]
     errors = []
-    if decision.get("market") != market:
+    if str(decision.get("market") or "").strip().upper() != market:
         errors.append(f"keyword decision market {decision.get('market')!r} does not match the spec market {market}")
-    if decision.get("database") != expected:
+    if str(decision.get("database") or "").strip().lower() != expected:
         errors.append(
             f"keyword decision database {decision.get('database')!r} does not match the spec market {market} "
             f"Semrush database {expected}"
