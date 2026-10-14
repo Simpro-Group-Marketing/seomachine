@@ -498,7 +498,7 @@ def test_readiness_parses_the_captured_article_without_reopening_it(files):
     article, sidecar = files
 
     with patch(
-        "data_sources.modules.publish_readiness_core.read_publishable_markdown",
+        "data_sources.modules.readiness.adapters.read_publishable_markdown",
         side_effect=AssertionError("article was reopened after immutable capture"),
     ):
         result, _, _, _ = run_with_patches(article, sidecar)
@@ -581,7 +581,7 @@ def test_final_attestation_reuses_authenticated_preflight_without_running_gates(
     final_path.write_text(json.dumps(final_bom), encoding="utf-8")
 
     with patch(
-        "data_sources.modules.publish_readiness_core._run_publish_readiness",
+        "data_sources.modules.readiness.runner._run_publish_readiness",
         side_effect=AssertionError("final attestation reran the full gate stack"),
     ):
         final = publish_readiness.build_final_readiness_attestation(

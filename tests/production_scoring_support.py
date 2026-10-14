@@ -23,7 +23,7 @@ from data_sources.modules.production.bom_selector import bind_selector_evidence
 from data_sources.modules.production.layout import Layout, load_or_create_run_id
 from tests.nonvault_proof_fixture import BIGCHANGE_CAPTERRA_URL, write_bigchange_review_proof_inputs
 from tests.research_provenance_fixtures import build_answersocrates_fixture
-from tests.test_blog_release_lifecycle_roundtrip import _ARTICLE
+from tests.production_article_fixture import ARTICLE as _ARTICLE
 
 TODAY = "2026-08-11"
 ARTICLE = f"drafts/scoring-scheduling-guide-{TODAY}.md"

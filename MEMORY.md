@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- The public artifact release owner is [artifact_release.py](data_sources/modules/artifact_release.py). Blog release implementation lives in [blog_release_impl.py](data_sources/modules/blog_release_impl.py), while [blog_release.py](data_sources/modules/blog_release.py) remains a terminal compatibility entry point.
+- The blog release owner is [release.py](data_sources/modules/production/release.py): one pass that rebuilds the production BOM and checks truth, coverage, and the three scores, then writes the release record through [record.py](data_sources/modules/production/record.py).
 - Readiness orchestration enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry; compatibility facades preserve established imports and result schemas.
 - Proof gates, connector revision checks, parsing, and lazy scoring remain serial. Only deduplicated public HTTP retrieval uses bounded worker threads behind [public_http/transport.py](data_sources/modules/public_http/transport.py), with stable result ordering.
 
