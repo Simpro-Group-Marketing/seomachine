@@ -15,18 +15,21 @@ from tests.production_bom_support import ARTICLE, write_json
 from tests.production_scoring_support import scorer_result
 
 RUN_ID = "0f1e2d3c-4b5a-4987-8a6b-5c4d3e2f1a0b"
-SPEC_BINDING = {"path": "research/production-bom-spec-field-service-software-2026-10-13.json", "sha256": "a" * 64}
-EVIDENCE_BINDING = {"path": "research/customer-proof-selector-evidence-field-service-software.json",
-                    "sha256": "b" * 64}
-PAA_BINDING = {"path": "research/paa-evidence-field-service-software-2026-10-13.json", "sha256": "c" * 64}
+SPEC_PATH = "research/production-bom-spec-field-service-software-2026-10-13.json"
+EVIDENCE_PATH = "research/customer-proof-selector-evidence-field-service-software.json"
+PAA_PATH = "research/paa-evidence-field-service-software-2026-10-13.json"
 
 
-def _bom() -> dict:
+def _binding(root, relative: str) -> dict:
+    return {"path": relative, "sha256": hashlib.sha256((root / relative).read_bytes()).hexdigest()}
+
+
+def _bom(root) -> dict:
     return {
         "schema": "simpro-production-bom/v1",
-        "identity": {"run_id": RUN_ID, "spec": dict(SPEC_BINDING)},
-        "paa": {"artifact": dict(PAA_BINDING), "questions": []},
-        "customer_proof": {"evidence": dict(EVIDENCE_BINDING), "roles": []},
+        "identity": {"run_id": RUN_ID, "spec": _binding(root, SPEC_PATH)},
+        "paa": {"artifact": _binding(root, PAA_PATH), "questions": []},
+        "customer_proof": {"evidence": _binding(root, EVIDENCE_PATH), "roles": []},
         "context": {"status": "not_applicable", "reason": "x"},
     }
 
@@ -36,7 +39,9 @@ def layout(tmp_path):
     value = Layout.for_article(ARTICLE, tmp_path)
     value.article.parent.mkdir(parents=True, exist_ok=True)
     value.article.write_text("# Article\n", encoding="utf-8", newline="\n")
-    write_json(value.bom, _bom())
+    for relative in (SPEC_PATH, EVIDENCE_PATH, PAA_PATH):
+        write_json(tmp_path / relative, {"file": relative})
+    write_json(value.bom, _bom(tmp_path))
     load_or_create_run_id(value, run_id=RUN_ID)
     return value
 
@@ -51,8 +56,8 @@ def _write(layout, *, findings=(), scores=None, article_sha=None, bom_sha=None, 
         article_sha256=article_sha or _sha(layout.article),
         bom_sha256=bom_sha or _sha(layout.bom),
         findings=list(findings),
-        scores=scores or score_gates(scorer_result()),
-        bom=_bom(),
+        scores=score_gates(scorer_result()) if scores is None else scores,
+        bom=_bom(layout.root),
         workers=workers,
     )
 
@@ -76,8 +81,9 @@ def test_record_schema_and_fields(layout):
     assert payload["article"] == {"path": ARTICLE, "sha256": _sha(layout.article)}
     assert payload["bom"] == {"path": "research/production-bom-field-service-software-2026-10-13.json",
                               "sha256": _sha(layout.bom)}
-    assert payload["spec"] == SPEC_BINDING
-    assert payload["evidence"] == {"customer_proof.evidence": EVIDENCE_BINDING, "paa.artifact": PAA_BINDING}
+    assert payload["spec"] == _binding(layout.root, SPEC_PATH)
+    assert payload["evidence"] == {"customer_proof.evidence": _binding(layout.root, EVIDENCE_PATH),
+                                   "paa.artifact": _binding(layout.root, PAA_PATH)}
     assert payload["findings"] == [
         {"check": "lint", "severity": "warn", "message": "modal_verb: x", "line": 4},
         {"check": "fact_quote", "severity": "warn", "message": "y", "line": None},
@@ -102,6 +108,31 @@ def test_each_record_gets_the_next_release_dir(layout):
     first, second = _write(layout), _write(layout)
     assert first.parent.name.endswith("-1") and second.parent.name.endswith("-2")
     assert first.is_file() and second.is_file()
+
+
+def test_next_release_dir_follows_the_highest_number_not_the_first_gap(layout):
+    _first, second, _third = _write(layout), _write(layout), _write(layout)
+    second.unlink()
+    second.parent.rmdir()
+    fourth = _write(layout)
+    assert fourth.parent.name.endswith("-4")
+    assert record.latest_record_path(layout) == fourth
+
+
+def test_unknown_severity_fails_the_record(layout):
+    payload = json.loads(_write(layout, findings=[Finding("lint", "BLOCK", "shouted", 2)]).read_text("utf-8"))
+    assert payload["passed"] is False and payload["blocks"] == 1
+
+
+def test_failure_record_without_scores_or_bom(layout):
+    path = record.write_record(
+        layout, RUN_ID, article_sha256=_sha(layout.article), bom_sha256=None,
+        findings=[Finding("bom_refused", "block", "fact f1 is quote_missing", None)],
+        scores=None, bom=None, workers=2,
+    )
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert (payload["bom"], payload["scores"], payload["spec"], payload["evidence"]) == (None, None, None, {})
+    assert payload["passed"] is False and payload["blocks"] == 1
 
 
 # ---- latest_record -----------------------------------------------------------------
@@ -161,7 +192,7 @@ def test_newer_failing_record_supersedes_an_older_pass(layout):
 
 def test_verify_publishable_refuses_a_changed_bom(layout):
     _write(layout)
-    write_json(layout.bom, {**_bom(), "sections": []})
+    write_json(layout.bom, {**_bom(layout.root), "sections": []})
     with pytest.raises(ValueError, match="BOM changed"):
         record.verify_publishable(layout.article, layout.root)
 
@@ -180,6 +211,24 @@ def test_verify_publishable_refuses_a_record_from_another_run(layout):
     payload["run_id"] = RUN_ID[:8] + "-0000-4000-8000-000000000000"
     path.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError, match="run"):
+        record.verify_publishable(layout.article, layout.root)
+
+
+def test_verify_publishable_refuses_an_identical_copy_under_rewrites(layout):
+    _write(layout)
+    copy = layout.root / "rewrites" / layout.article.name
+    copy.parent.mkdir()
+    copy.write_bytes(layout.article.read_bytes())
+    with pytest.raises(ValueError, match="drafts/"):
+        record.verify_publishable(copy, layout.root)
+    assert record.verify_publishable(layout.article, layout.root)["passed"] is True
+
+
+@pytest.mark.parametrize("relative", [SPEC_PATH, EVIDENCE_PATH, PAA_PATH])
+def test_verify_publishable_refuses_a_changed_spec_or_evidence_file(layout, relative):
+    _write(layout)
+    write_json(layout.root / relative, {"file": relative, "edited": True})
+    with pytest.raises(ValueError, match=relative):
         record.verify_publishable(layout.article, layout.root)
 
 

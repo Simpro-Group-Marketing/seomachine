@@ -117,8 +117,34 @@ def _fact_errors(facts: Sequence[Mapping[str, Any]]) -> list[str]:
     return errors
 
 
-def verify_facts(facts: Sequence[Mapping[str, Any]], *, transport: Any) -> list[dict[str, Any]]:
-    """Verify every fact quote on its live page in one batch; any failure refuses the build."""
+def _carried_forward(
+    fact: Mapping[str, Any], check: Any, prior_facts: Mapping[str, Mapping[str, Any]] | None
+) -> dict[str, Any] | None:
+    """Keep a previously verified fact when its page is merely unreachable now.
+
+    Only an ``unreachable`` page (403, 429, 5xx, timeout) qualifies, and only for a prior fact with
+    the same id, url, and quote. Its original verification is kept; the current check is noted.
+    """
+    prior = (prior_facts or {}).get(fact["id"])
+    if check.status != "unreachable" or not isinstance(prior, Mapping):
+        return None
+    if prior.get("url") != fact["url"] or prior.get("quote") != fact["quote"] or not prior.get("verified_at"):
+        return None
+    row = {key: value for key, value in prior.items() if key not in ("carried_forward", "release_check")}
+    return {**row, **{key: fact[key] for key in ("claim", "priority")},
+            "carried_forward": True, "release_check": check.detail}
+
+
+def verify_facts(
+    facts: Sequence[Mapping[str, Any]],
+    *,
+    transport: Any,
+    prior_facts: Mapping[str, Mapping[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Verify every fact quote on its live page in one batch; any failure refuses the build.
+
+    With ``prior_facts`` (a release rebuild), an unreachable page keeps the matching prior fact.
+    """
     if not facts:
         return []
     results = verify_quotes([(fact["url"], fact["quote"]) for fact in facts], transport=transport)
@@ -126,11 +152,14 @@ def verify_facts(facts: Sequence[Mapping[str, Any]], *, transport: Any) -> list[
     errors, admitted = [], []
     for fact in facts:
         check = results[(fact["url"], fact["quote"])]
-        if check.status != "verified":
+        carried = _carried_forward(fact, check, prior_facts)
+        if carried is not None:
+            admitted.append(carried)
+        elif check.status != "verified":
             errors.append(f"fact {fact['id']} ({fact['url']}) is {check.status}: {check.detail}")
-            continue
-        admitted.append({**{key: fact[key] for key in ("id", "claim", "url", "quote", "priority")},
-                         "verified_at": verified_at, "check_detail": check.detail, "support": SUPPORT_RULE})
+        else:
+            admitted.append({**{key: fact[key] for key in ("id", "claim", "url", "quote", "priority")},
+                             "verified_at": verified_at, "check_detail": check.detail, "support": SUPPORT_RULE})
     if errors:
         raise ValueError("\n".join(errors))
     return admitted
@@ -197,8 +226,13 @@ def build_bom(
     *,
     transport: Any,
     claim_loader: ClaimLoader = load_validated_claim_set,
+    prior_facts: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Build the BOM; raises ValueError listing every reason when anything is unverified."""
+    """Build the BOM; raises ValueError listing every reason when anything is unverified.
+
+    ``prior_facts`` (fact id -> previous BOM fact) is passed only by a release rebuild; a first
+    build never admits a fact it could not verify now.
+    """
     spec, spec_binding = read_spec_bound(layout)
     spec_errors = validate_spec(spec)
     if spec_errors:
@@ -210,7 +244,7 @@ def build_bom(
     local, errors = _local_phase(layout, spec, nonconnector, claim_loader)
     if errors:
         raise ValueError("\n".join(errors))
-    facts = verify_facts(spec["facts"], transport=transport)
+    facts = verify_facts(spec["facts"], transport=transport, prior_facts=prior_facts)
     keyword, serp = local["blocks"]
     bom = {
         "schema": BOM_SCHEMA,

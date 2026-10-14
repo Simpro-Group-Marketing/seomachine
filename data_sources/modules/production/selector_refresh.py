@@ -3,8 +3,10 @@
 The release needs same-day selector evidence (the rater rejects an older connector reference
 date and a moved usage ledger). This re-runs the selector recorded in the evidence, with the
 topic, title, objective, roles, overrides, limit, and artifact paths recorded there, and writes
-the result to the same path. Connector evidence re-runs the vault-bound selector; nonconnector
-evidence re-runs the nonvault selector, which needs no vault.
+the result to the same path. The caller decides connector or nonconnector from the spec (as the
+BOM build does): a connector article re-runs the vault-bound selector, a nonconnector article the
+nonvault selector, which needs no vault. Evidence whose path or schema belongs to the other branch
+is refused before any selector runs.
 """
 
 from __future__ import annotations
@@ -21,19 +23,28 @@ from data_sources.modules.customer_proof.nonconnector_contracts import SCHEMA as
 from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.customer_proof.selection import build_customer_proof_slate
 from data_sources.modules.customer_proof.slate import _write_selector_evidence
+from data_sources.modules.production.bom_selector import evidence_path
 from data_sources.modules.production.layout import Layout
 
 _TEXT_INPUTS = ("topic", "title", "objective", "article_slug")
 
 
-def _evidence_file(layout: Layout, bom: Mapping[str, Any]) -> Path:
+def _branch(nonconnector: bool) -> str:
+    return "nonconnector" if nonconnector else "connector"
+
+
+def _evidence_file(layout: Layout, nonconnector: bool, bom: Mapping[str, Any]) -> Path:
+    """The branch's evidence file; a BOM bound to another file is refused."""
+    expected = evidence_path(layout, nonconnector)
     binding = (bom.get("customer_proof") or {}).get("evidence")
     if isinstance(binding, Mapping) and isinstance(binding.get("path"), str):
-        return layout.root / binding["path"]
-    for path in (layout.customer_proof_evidence, layout.nonvault_customer_proof_evidence):
-        if path.is_file():
-            return path
-    raise ValueError("no customer-proof selector evidence to refresh")
+        bound = (layout.root / binding["path"]).resolve()
+        if bound != expected.resolve():
+            raise ValueError(
+                f"the BOM binds selector evidence {binding['path']}, but this {_branch(nonconnector)} "
+                f"article's selector evidence is {expected.relative_to(layout.root).as_posix()}"
+            )
+    return expected
 
 
 def _artifact(payload: Mapping[str, Any], name: str, root: Path) -> Path | None:
@@ -116,17 +127,21 @@ def _refresh_connector(path: Path, payload: Mapping[str, Any], root: Path, today
         )
 
 
-def refresh_selector_evidence(layout: Layout, bom: Mapping[str, Any]) -> Path:
-    """Re-run the selector recorded in the BOM's bound evidence, dated today; return the evidence path."""
-    path = _evidence_file(layout, bom)
+def refresh_selector_evidence(layout: Layout, nonconnector: bool, bom: Mapping[str, Any]) -> Path:
+    """Re-run this branch's selector with the inputs recorded in its evidence, dated today."""
+    path = _evidence_file(layout, nonconnector, bom)
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise ValueError(f"customer-proof selector evidence {path} is unreadable: {error}") from error
     schema = payload.get("schema") if isinstance(payload, Mapping) else None
-    refresh = {NONVAULT_EVIDENCE_SCHEMA: _refresh_nonvault, CONNECTOR_EVIDENCE_SCHEMA: _refresh_connector}.get(schema)
-    if refresh is None:
-        raise ValueError(f"customer-proof selector evidence {path.name} has an unknown schema: {schema!r}")
+    expected = NONVAULT_EVIDENCE_SCHEMA if nonconnector else CONNECTOR_EVIDENCE_SCHEMA
+    if schema != expected:
+        raise ValueError(
+            f"customer-proof selector evidence {path.name} has schema {schema!r}; "
+            f"a {_branch(nonconnector)} article needs {expected}"
+        )
+    refresh = _refresh_nonvault if nonconnector else _refresh_connector
     refresh(path, payload, layout.root, date.today())
     return path
 

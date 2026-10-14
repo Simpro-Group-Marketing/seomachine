@@ -2,11 +2,14 @@
 
 Usage: python -m data_sources.modules.production.release <article> [--workspace-root DIR] [--workers N]
 
-Steps: refresh the customer-proof selector evidence from the inputs recorded in it; rebuild the
-production BOM (live fact checks and the selector-first check run again); run the truth and
-coverage checks in a thread pool while the scorer runs; write one release record. Publishers
-trust only that record (see ``record.verify_publishable``). Release never writes the
-customer-proof usage ledger; publishing records proof use.
+Steps: refresh the customer-proof selector evidence (connector or nonvault, decided from the spec
+as the BOM build does) from the inputs recorded in it; rebuild the production BOM (live fact
+checks and the selector-first check run again; a fact whose page is merely unreachable keeps its
+earlier verification, and truth warns); run the truth and coverage checks in a thread pool while
+the scorer runs; write one release record. Every run that fails after the refresh also writes a
+failing record, so an older pass never stays the latest. Publishers trust only the latest record
+(see ``record.verify_publishable``). Release never writes the customer-proof usage ledger;
+publishing records proof use.
 
 Workers: ``--workers N`` overrides ``SEOMACHINE_RELEASE_WORKERS``, which defaults to 2.
 With 1 worker everything runs sequentially in this process, with no pools.
@@ -26,17 +29,21 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from data_sources.modules.production.bom import BuildEnvironmentError, SpecFileError, load_bom
-from data_sources.modules.production.bom_build import _retire_stale_bom, _write_bom, build_bom
+from data_sources.modules.production.bom_artifacts import read_spec_bound
+from data_sources.modules.production.bom_build import _retire_stale_bom, _write_bom, build_bom, is_nonconnector
+from data_sources.modules.production.bom_selector import evidence_path
 from data_sources.modules.production.coverage import check_coverage
 from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id
 from data_sources.modules.production.record import file_sha256, write_record
 from data_sources.modules.production.scoring import ScoringPreflightError, score_article
 from data_sources.modules.production.selector_refresh import refresh_selector_evidence
 from data_sources.modules.production.truth import check_truth
+from data_sources.modules.production.truth_text import Finding
 from data_sources.modules.public_http import PublicHttpTransport
 from data_sources.modules.vault_claim_receipts import load_validated_claim_set
 
@@ -46,15 +53,29 @@ _SCORE_LINES = (("content", "content_quality"), ("seo", "seo_quality"), ("aeo_ge
 
 BOM_BUILD_COMMAND = "python -m data_sources.modules.production.bom_build"
 
-Refresher = Callable[[Layout, Mapping[str, Any]], Any]
+Refresher = Callable[[Layout, bool, Mapping[str, Any]], Any]
 
 
 class ReleaseStop(Exception):
-    """Stop the release with an exit code and one message line per reason."""
+    """Stop the release with an exit code, one message line per reason, and the record check name."""
 
-    def __init__(self, code: int, lines: Sequence[str]):
+    def __init__(self, code: int, lines: Sequence[str], *, check: str = "release_error", bom_retired: bool = False):
         super().__init__("\n".join(lines))
-        self.code, self.lines = code, list(lines)
+        self.code, self.lines, self.check, self.bom_retired = code, list(lines), check, bom_retired
+
+
+@dataclass(frozen=True)
+class _Run:
+    """What the release fixed at its start: layout, run id, article bytes, spec, and the old BOM."""
+
+    layout: Layout
+    run_id: str
+    article_bytes: bytes
+    article_sha: str
+    spec: dict[str, Any]
+    old_bom: dict[str, Any]
+    nonconnector: bool
+    workers: int
 
 
 def _report(lines: Sequence[str], stream: Any = None) -> None:
@@ -78,10 +99,9 @@ def default_workers(environ: Mapping[str, str] = os.environ) -> int:
         raise ValueError(f"{ENV_WORKERS} must be a positive integer, found: {raw!r}") from error
 
 
-def needs_refresh(bom: Mapping[str, Any]) -> bool:
-    """Refresh unless the BOM has neither proof nor bound selector evidence."""
-    evidence = (bom.get("customer_proof") or {}).get("evidence")
-    return bool(bom.get("proof")) or isinstance(evidence, Mapping)
+def needs_refresh(layout: Layout, spec: Mapping[str, Any], nonconnector: bool) -> bool:
+    """Refresh when the spec names proof or this article's selector evidence exists."""
+    return bool(spec.get("proof")) or evidence_path(layout, nonconnector).is_file()
 
 
 def _missing_bom_message(layout: Layout) -> str:
@@ -96,12 +116,16 @@ def _missing_bom_message(layout: Layout) -> str:
     return f"production BOM not found; expected {layout.bom}; build it with {command}"
 
 
-def _prepare(article: Path, root: Path) -> tuple[Layout, str, bytes, dict[str, Any]]:
-    """Resolve the layout and run id, require the inputs, and hash the article once."""
+def _resolve(article: Path, root: Path) -> Layout:
     try:
-        layout = Layout.for_article(article, root)
+        return Layout.for_article(article, root)
     except LayoutError as error:
         raise ReleaseStop(2, [str(error)]) from error
+
+
+def _prepare(article: Path, root: Path, workers: int) -> _Run:
+    """Resolve the layout and run id, require the inputs, and hash the article once."""
+    layout = _resolve(article, root)
     for label, path in (("article", layout.article), ("BOM spec", layout.bom_spec)):
         if not path.is_file():
             raise ReleaseStop(2, [f"{label} not found; expected {path}"])
@@ -109,18 +133,20 @@ def _prepare(article: Path, root: Path) -> tuple[Layout, str, bytes, dict[str, A
         raise ReleaseStop(2, [_missing_bom_message(layout)])
     try:
         article_bytes = layout.article.read_bytes()
+        spec, _binding = read_spec_bound(layout)
         run_id = load_or_create_run_id(layout)
-        bom = load_bom(layout.bom)
-    except (OSError, ValueError) as error:
+        old_bom = load_bom(layout.bom)
+    except (OSError, ValueError, SpecFileError) as error:
         raise ReleaseStop(2, [str(error)]) from error
-    return layout, run_id, article_bytes, bom
+    sha = hashlib.sha256(article_bytes).hexdigest()
+    return _Run(layout, run_id, article_bytes, sha, spec, old_bom, is_nonconnector(spec), workers)
 
 
-def _refresh(layout: Layout, bom: Mapping[str, Any], refresher: Refresher) -> None:
-    if not needs_refresh(bom):
+def _refresh(run: _Run, refresher: Refresher) -> None:
+    if not needs_refresh(run.layout, run.spec, run.nonconnector):
         return
     try:
-        refresher(layout, bom)
+        refresher(run.layout, run.nonconnector, run.old_bom)
     except Exception as error:  # noqa: BLE001 - any refresh failure leaves the evidence stale
         raise ReleaseStop(2, [
             f"customer-proof selector refresh failed: {type(error).__name__}: {error}",
@@ -128,34 +154,47 @@ def _refresh(layout: Layout, bom: Mapping[str, Any], refresher: Refresher) -> No
         ]) from error
 
 
-def _rebuild(layout: Layout, transport: Any) -> tuple[dict[str, Any], str]:
-    """Rebuild and write the BOM; a refused or failed rebuild retires the earlier BOM, as bom_build does."""
+def _prior_facts(old_bom: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    facts = old_bom.get("facts") if isinstance(old_bom.get("facts"), list) else []
+    return {str(fact["id"]): fact for fact in facts if isinstance(fact, Mapping) and "id" in fact}
+
+
+def _rebuild(run: _Run, transport: Any) -> tuple[dict[str, Any], str]:
+    """Rebuild and write the BOM; a refused or failed rebuild retires the earlier BOM, as bom_build does.
+
+    Facts verified by the previous BOM survive an unreachable page (truth then warns); a lost
+    quote or a gone page still refuses.
+    """
+    layout = run.layout
     try:
-        bom = build_bom(layout, transport=transport, claim_loader=load_validated_claim_set)
+        bom = build_bom(
+            layout, transport=transport, claim_loader=load_validated_claim_set, prior_facts=_prior_facts(run.old_bom)
+        )
         _write_bom(layout, bom)
         return bom, file_sha256(layout.bom)
     except (SpecFileError, BuildEnvironmentError, OSError) as error:
         _retire_stale_bom(layout)
-        raise ReleaseStop(2, [f"BOM rebuild failed: {line}" for line in str(error).splitlines()]) from error
+        lines = [f"BOM rebuild failed: {line}" for line in str(error).splitlines()]
+        raise ReleaseStop(2, lines, check="bom_build_failed", bom_retired=True) from error
     except ValueError as error:
         _retire_stale_bom(layout)
-        raise ReleaseStop(1, [f"BOM rebuild refused: {line}" for line in str(error).splitlines()]) from error
+        lines = [f"BOM rebuild refused: {line}" for line in str(error).splitlines()]
+        raise ReleaseStop(1, lines, check="bom_refused", bom_retired=True) from error
 
 
-def _run_checks(
-    layout: Layout, text: str, bom: Mapping[str, Any], transport: Any, workers: int
-) -> tuple[list[Any], dict[str, Any]]:
+def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list[Any], dict[str, Any]]:
     """Truth and coverage beside scoring; scoring is submitted first so the slow jobs overlap."""
+    text = run.article_bytes.decode("utf-8")
     jobs: dict[str, Callable[[], Any]] = {
-        "scores": lambda: score_article(layout.article, bom, workers=workers),
+        "scores": lambda: score_article(run.layout.article, bom, workers=run.workers),
         "truth": lambda: check_truth(text, bom, transport=transport),
         "coverage": lambda: check_coverage(text, bom),
     }
     try:
-        if workers <= 1:
+        if run.workers <= 1:
             results = {name: job() for name, job in jobs.items()}
         else:
-            with ThreadPoolExecutor(max_workers=workers) as pool:
+            with ThreadPoolExecutor(max_workers=run.workers) as pool:
                 futures = {name: pool.submit(job) for name, job in jobs.items()}
                 results = {name: future.result() for name, future in futures.items()}
     except ScoringPreflightError as error:
@@ -187,25 +226,61 @@ def _summary(record: Mapping[str, Any], path: Path) -> None:
     _report(lines, sys.stdout)
 
 
-def _release(
-    article: Path, root: Path, *, workers: int, transport: Any, refresher: Refresher
-) -> int:
-    layout, run_id, article_bytes, old_bom = _prepare(article, root)
-    start_sha = hashlib.sha256(article_bytes).hexdigest()
-    _refresh(layout, old_bom, refresher)
+def _current_article_sha(layout: Layout) -> str:
+    return file_sha256(layout.article) if layout.article.is_file() else "missing"
+
+
+def _check_and_record(run: _Run, transport: Any) -> int:
     scope = nullcontext(transport) if transport is not None else PublicHttpTransport()
     with scope as shared:
-        bom, bom_sha = _rebuild(layout, shared)
-        findings, scores = _run_checks(layout, article_bytes.decode("utf-8"), bom, shared, workers)
-    if not layout.article.is_file() or file_sha256(layout.article) != start_sha:
-        raise ReleaseStop(2, ["article changed during release; nothing was recorded, release it again"])
+        bom, bom_sha = _rebuild(run, shared)
+        findings, scores = _run_checks(run, bom, shared)
+    if _current_article_sha(run.layout) != run.article_sha:
+        raise ReleaseStop(2, ["article changed during release; release it again"])
     path = write_record(
-        layout, run_id, article_sha256=start_sha, bom_sha256=bom_sha,
-        findings=findings, scores=scores, bom=bom, workers=workers,
+        run.layout, run.run_id, article_sha256=run.article_sha, bom_sha256=bom_sha,
+        findings=findings, scores=scores, bom=bom, workers=run.workers,
     )
     record = json.loads(path.read_text(encoding="utf-8"))
     _summary(record, path)
     return 0 if record["passed"] else 1
+
+
+def _failure_bom_file(layout: Layout, stop: ReleaseStop) -> Path | None:
+    """The refused BOM after a refused rebuild (None if it was not moved aside); else the current BOM."""
+    if stop.bom_retired:
+        refused = layout.bom.with_name(layout.bom.name + ".refused")
+        return refused if refused.is_file() and not layout.bom.exists() else None
+    return layout.bom if layout.bom.is_file() else None
+
+
+def _record_failure(run: _Run, stop: ReleaseStop) -> str:
+    """Write a failing record so an older pass never stays the latest record; return a report line."""
+    bom_file = _failure_bom_file(run.layout, stop)
+    try:
+        path = write_record(
+            run.layout, run.run_id, article_sha256=run.article_sha,
+            bom_sha256=file_sha256(bom_file) if bom_file else None, bom_path=bom_file,
+            findings=[Finding(stop.check, "block", line, None) for line in stop.lines],
+            scores=None, bom=None, workers=run.workers,
+        )
+    except Exception as error:  # noqa: BLE001 - report it; the release already failed
+        return f"could not write the failure record: {type(error).__name__}: {error}"
+    return f"failure recorded: {path}"
+
+
+def _release(article: Path, root: Path, *, workers: int, transport: Any, refresher: Refresher) -> int:
+    run = _prepare(article, root, workers)
+    _refresh(run, refresher)
+    try:
+        return _check_and_record(run, transport)
+    except ReleaseStop as stop:
+        stop.lines.append(_record_failure(run, stop))
+        raise
+    except Exception as error:  # noqa: BLE001 - recorded as a failure, then reported without a traceback
+        stop = ReleaseStop(2, [f"unexpected error: {type(error).__name__}: {error}"])
+        stop.lines.append(_record_failure(run, stop))
+        raise stop from error
 
 
 def run_release(

@@ -10,12 +10,12 @@ from datetime import date
 from unittest.mock import patch
 
 import pytest
-from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.blog_assembly_contract import canonical_artifact
 from data_sources.modules.customer_proof.connector_evidence import verify_connector_selector_evidence
 from data_sources.modules.customer_proof.contracts import CustomerProofDataError
 from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.customer_proof.selector_cli import _main as connector_selector_main
-from data_sources.modules.production import bom_build, release, selector_refresh
+from data_sources.modules.production import release, selector_refresh
 from data_sources.modules.production.bom_selector import bind_selector_evidence
 from data_sources.modules.production.layout import Layout
 from data_sources.modules.production.record import file_sha256, latest_record, verify_publishable
@@ -27,16 +27,14 @@ from tests.production_bom_support import (
     NONVAULT_ID,
     TODAY,
     good_transport,
-    make_workspace,
-    nonconnector_spec,
     response,
     write_json,
 )
+from tests.production_release_support import ARTICLE_TEXT, Checks, noop_refresher, release_dirs, run, workspace
 from tests.production_scoring_support import make_scoring_workspace, scorer_result
 from tests.test_customer_proof_selector import proof_claims, write_ledger
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test, write_connector_context_fixture
 
-ARTICLE_TEXT = "# Crew Time Tracking Guide\n\nCrews log time from any phone.\n"
 VAULT_PATCH = "data_sources.modules.customer_proof.connector_inputs.load_validated_claim_set"
 
 
@@ -46,46 +44,6 @@ def _environment(monkeypatch):
     monkeypatch.delenv(release.ENV_WORKERS, raising=False)
 
 
-def _workspace(root):
-    """A nonconnector workspace with an article and a BOM built from its spec."""
-    layout = make_workspace(root, spec=nonconnector_spec())
-    layout.article.parent.mkdir(parents=True, exist_ok=True)
-    layout.article.write_text(ARTICLE_TEXT, encoding="utf-8", newline="\n")
-    atomic_write_json(layout.bom, bom_build.build_bom(layout, transport=good_transport()))
-    return layout
-
-
-class Checks:
-    """Stand-ins for truth, coverage, and scoring that record how they were called."""
-
-    def __init__(self, monkeypatch):
-        self.calls: list[tuple] = []
-        self.truth_findings: list[Finding] = []
-        self.coverage_findings: list[Finding] = []
-        self.scores = score_gates(scorer_result())
-        self.on_score = None
-        self.on_truth = None
-        monkeypatch.setattr(release, "check_truth", self.truth)
-        monkeypatch.setattr(release, "check_coverage", self.coverage)
-        monkeypatch.setattr(release, "score_article", self.score)
-
-    def truth(self, article, bom, *, transport):
-        self.calls.append(("truth", transport))
-        if self.on_truth:
-            self.on_truth()
-        return list(self.truth_findings)
-
-    def coverage(self, article, bom):
-        self.calls.append(("coverage",))
-        return list(self.coverage_findings)
-
-    def score(self, article_path, bom, *, workers):
-        self.calls.append(("score", workers))
-        if self.on_score:
-            self.on_score(article_path)
-        return copy.deepcopy(self.scores)
-
-
 @pytest.fixture
 def checks(monkeypatch):
     return Checks(monkeypatch)
@@ -93,23 +51,12 @@ def checks(monkeypatch):
 
 @pytest.fixture
 def layout(tmp_path):
-    return _workspace(tmp_path)
+    return workspace(tmp_path)
 
 
-def _noop_refresher(layout, bom):
-    return None
-
-
-def _run(layout, *, workers=2, refresher=_noop_refresher, transport=None, **kwargs):
-    return release.run_release(
-        ARTICLE, layout.root, workers=workers, transport=transport or good_transport(),
-        refresher=refresher, **kwargs,
-    )
-
-
-def _release_dirs(layout):
-    folder = layout.root / "research" / "releases"
-    return sorted(folder.iterdir()) if folder.is_dir() else []
+_noop_refresher = noop_refresher
+_run = run
+_release_dirs = release_dirs
 
 
 # ---- pass and block ------------------------------------------------------------------
@@ -249,21 +196,31 @@ def test_refresher_runs_before_the_rebuild(layout, checks, monkeypatch):
         return real_build(*args, **kwargs)
 
     monkeypatch.setattr(release, "build_bom", build)
-    assert _run(layout, refresher=lambda _layout, bom: order.append(("refresh", bom["proof"][0]["claim_id"]))) == 0
-    assert order == [("refresh", NONVAULT_ID), "build"]
+    assert _run(layout, refresher=lambda _layout, nonconnector, _bom: order.append(("refresh", nonconnector))) == 0
+    assert order == [("refresh", True), "build"]
 
 
-def test_refresh_is_skipped_when_the_bom_has_no_proof_and_no_evidence(layout, checks):
+def test_refresh_is_skipped_when_the_spec_has_no_proof_and_no_evidence_exists(layout, checks):
+    spec = json.loads(layout.bom_spec.read_text(encoding="utf-8"))
+    spec["proof"] = []
+    write_json(layout.bom_spec, spec)
+    layout.nonvault_customer_proof_evidence.unlink()
+    calls = []
+    assert _run(layout, refresher=lambda *args: calls.append(args)) == 1  # the rebuild needs the evidence file
+    assert calls == []
+
+
+def test_refresh_follows_the_spec_proof_not_the_old_bom(layout, checks):
     bom = json.loads(layout.bom.read_text(encoding="utf-8"))
     bom["proof"] = []
     del bom["customer_proof"]
     write_json(layout.bom, bom)
     calls = []
-    assert _run(layout, refresher=lambda *args: calls.append(args)) == 0
-    assert calls == []
+    assert _run(layout, refresher=lambda *args: calls.append(args[1])) == 0
+    assert calls == [True]
 
 
-def _reselect_nothing(layout, bom):
+def _reselect_nothing(layout, *_args):
     """A refresh whose selector now selects nothing for any role."""
     evidence = json.loads(layout.nonvault_customer_proof_evidence.read_text(encoding="utf-8"))
     inputs = evidence["inputs"]
@@ -281,7 +238,13 @@ def test_refresh_that_changes_the_selection_refuses_the_rebuild_with_exit_one(la
     err = capsys.readouterr().err
     assert NONVAULT_ID in err and "not a selected candidate" in err
     assert not layout.bom.exists() and layout.bom.with_name(layout.bom.name + ".refused").exists()
-    assert _release_dirs(layout) == [] and checks.calls == []
+    assert checks.calls == []
+    record = latest_record(layout)
+    assert record["passed"] is False and record["scores"] is None
+    assert {row["check"] for row in record["findings"]} == {"bom_refused"}
+    assert any(NONVAULT_ID in row["message"] for row in record["findings"])
+    refused = layout.bom.with_name(layout.bom.name + ".refused")
+    assert record["bom"] == {"path": refused.relative_to(layout.root).as_posix(), "sha256": file_sha256(refused)}
 
 
 def test_refused_rebuild_names_every_reason(layout, checks, capsys):
@@ -298,7 +261,7 @@ def test_refused_rebuild_names_every_reason(layout, checks, capsys):
 def test_refresh_failure_such_as_a_vault_outage_exits_two(layout, checks, capsys):
     before = layout.bom.read_bytes()
 
-    def outage(_layout, _bom):
+    def outage(*_args):
         raise CustomerProofDataError("Customer proof context receipt is invalid: live connector could not validate")
 
     assert _run(layout, refresher=outage) == 2
@@ -312,7 +275,10 @@ def test_scoring_preflight_error_exits_two(layout, checks, capsys):
 
     checks.on_score = stale
     assert _run(layout) == 2
-    assert "stale" in capsys.readouterr().err and _release_dirs(layout) == []
+    assert "stale" in capsys.readouterr().err
+    record = latest_record(layout)
+    assert record["passed"] is False and record["scores"] is None
+    assert record["bom"]["sha256"] == file_sha256(layout.bom)
 
 
 def test_unexpected_exception_exits_two_without_a_traceback(layout, checks, capsys):
@@ -323,16 +289,19 @@ def test_unexpected_exception_exits_two_without_a_traceback(layout, checks, caps
     assert _run(layout) == 2
     err = capsys.readouterr().err
     assert "socket exploded" in err and "Traceback" not in err
+    assert latest_record(layout)["passed"] is False
 
 
 # ---- article integrity -----------------------------------------------------------------
 
 
-def test_article_edited_mid_run_exits_two_and_records_nothing(layout, checks, capsys):
+def test_article_edited_mid_run_exits_two_and_records_a_failure(layout, checks, capsys):
     checks.on_score = lambda path: path.write_text(ARTICLE_TEXT + "\nEdited.\n", encoding="utf-8")
     assert _run(layout) == 2
     assert "article changed during release" in capsys.readouterr().err
-    assert _release_dirs(layout) == []
+    assert latest_record(layout)["passed"] is False
+    with pytest.raises(ValueError):
+        verify_publishable(layout.article, layout.root)
 
 
 # ---- ledger ----------------------------------------------------------------------------
@@ -402,7 +371,7 @@ def test_default_refresher_reruns_the_nonvault_selector_with_its_recorded_inputs
     path = layout.nonvault_customer_proof_evidence
     before = _stale(path)
     bom = json.loads(layout.bom.read_text(encoding="utf-8"))
-    assert selector_refresh.refresh_selector_evidence(layout, bom) == path
+    assert selector_refresh.refresh_selector_evidence(layout, True, bom) == path
     after = json.loads(path.read_text(encoding="utf-8"))
     assert after["inputs"]["reference_date"] == date.today().isoformat()
     assert {k: v for k, v in after["inputs"].items() if k != "reference_date"} == {
@@ -428,7 +397,7 @@ def test_default_refresher_reruns_the_connector_selector_with_its_recorded_input
         before = _stale(output)
         bom = {"proof": [{"claim_id": "claim-zebra-metric"}],
                "customer_proof": {"evidence": {"path": output.relative_to(tmp_path).as_posix(), "sha256": "0" * 64}}}
-        assert selector_refresh.refresh_selector_evidence(layout, bom) == output
+        assert selector_refresh.refresh_selector_evidence(layout, False, bom) == output
         after = json.loads(output.read_text(encoding="utf-8"))
         assert verify_connector_selector_evidence(after) is not None
     assert after["inputs"]["reference_date"] == date.today().isoformat()
@@ -440,7 +409,7 @@ def test_default_refresher_rejects_unknown_evidence(layout):
     write_json(layout.nonvault_customer_proof_evidence, {"schema": "something-else/v9"})
     bom = json.loads(layout.bom.read_text(encoding="utf-8"))
     with pytest.raises(ValueError, match="something-else/v9"):
-        selector_refresh.refresh_selector_evidence(layout, bom)
+        selector_refresh.refresh_selector_evidence(layout, True, bom)
 
 
 # ---- end to end with real scoring ------------------------------------------------------------
@@ -466,11 +435,13 @@ def test_end_to_end_release_with_real_scoring_on_the_nonconnector_fixture(tmp_pa
         encoding="utf-8", newline="\n",
     )
     layout = Layout.for_article(article, tmp_path)
-    write_json(layout.bom_spec, {"spec": "stand-in; the builder below binds the fixture BOM"})
+    write_json(layout.bom_spec, {"brand": "BigChange", "proof": [{"claim_id": bom["proof"][0]["claim_id"]}],
+                                 "not_applicable_context_reason": "stand-in; the builder below binds the fixture BOM"})
     write_json(layout.bom, bom)
 
-    def build(build_layout, *, transport, claim_loader):
+    def build(build_layout, *, transport, claim_loader, prior_facts):
         rebuilt = copy.deepcopy(bom)
+        rebuilt["identity"]["spec"] = canonical_artifact(build_layout.bom_spec, workspace_root=tmp_path)
         rebuilt["customer_proof"] = bind_selector_evidence(build_layout, rebuilt["proof"], True)
         return rebuilt
 

@@ -107,13 +107,28 @@ class Layout:
     def run_state(self) -> Path:
         return self.root / "research" / "runs" / f"{self.slug}-{self.date}.json"
 
+    def release_dirs(self, run_id: str) -> list[Path]:
+        """Existing release directories for this run, in release-number order."""
+        parent, base = self._release_base(run_id)
+        pattern = re.compile(re.escape(base) + r"-(\d+)")
+        if not parent.is_dir():
+            return []
+        numbered = [
+            (int(match.group(1)), path)
+            for path in parent.iterdir()
+            if (match := pattern.fullmatch(path.name)) and path.is_dir()
+        ]
+        return [path for _number, path in sorted(numbered)]
+
     def release_dir(self, run_id: str) -> Path:
-        """Return the first unused release directory for this run; does not create it."""
-        base = self.root / "research" / "releases" / f"{self.slug}-{self.date}-{run_id[:8]}"
-        n = 1
-        while base.with_name(f"{base.name}-{n}").exists():
-            n += 1
-        return base.with_name(f"{base.name}-{n}")
+        """Return the directory after the highest-numbered release for this run; does not create it."""
+        parent, base = self._release_base(run_id)
+        existing = self.release_dirs(run_id)
+        number = int(existing[-1].name.rsplit("-", 1)[1]) + 1 if existing else 1
+        return parent / f"{base}-{number}"
+
+    def _release_base(self, run_id: str) -> tuple[Path, str]:
+        return self.root / "research" / "releases", f"{self.slug}-{self.date}-{run_id[:8]}"
 
     def _research(self, name: str) -> Path:
         return self.root / "research" / name

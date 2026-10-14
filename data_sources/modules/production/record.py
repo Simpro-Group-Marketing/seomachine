@@ -12,7 +12,6 @@ import dataclasses
 import datetime
 import hashlib
 import json
-import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
@@ -59,9 +58,14 @@ def _finding_row(finding: Any) -> dict[str, Any]:
     return {key: row.get(key) for key in ("check", "severity", "message", "line")}
 
 
-def record_passed(findings: Iterable[Mapping[str, Any]], scores: Mapping[str, Any]) -> bool:
-    """A release passes only with no block finding and all three score gates passed."""
-    return scores.get("passed") is True and not any(row["severity"] == "block" for row in findings)
+def _blocks(findings: Iterable[Mapping[str, Any]]) -> int:
+    """Anything that is not a warning blocks, including unknown severities."""
+    return sum(row["severity"] != "warn" for row in findings)
+
+
+def record_passed(findings: Iterable[Mapping[str, Any]], scores: Mapping[str, Any] | None) -> bool:
+    """A release passes only with no blocking finding and all three score gates passed."""
+    return scores is not None and scores.get("passed") is True and _blocks(findings) == 0
 
 
 def _claim_release_dir(layout: Layout, run_id: str) -> Path:
@@ -81,27 +85,34 @@ def write_record(
     run_id: str,
     *,
     article_sha256: str,
-    bom_sha256: str,
+    bom_sha256: str | None,
     findings: Iterable[Any],
-    scores: Mapping[str, Any],
-    bom: Mapping[str, Any],
+    scores: Mapping[str, Any] | None,
+    bom: Mapping[str, Any] | None,
     workers: int,
+    bom_path: Path | None = None,
 ) -> Path:
-    """Write one release record into a new release directory and return its path."""
+    """Write one release record into a new release directory and return its path.
+
+    A failure record may have no scores, no BOM (``bom_sha256`` None), or bind a refused BOM file
+    through ``bom_path``; it never passes.
+    """
     rows = [_finding_row(finding) for finding in findings]
+    bom = bom or {}
     spec = (bom.get("identity") or {}).get("spec")
+    bom_file = bom_path or layout.bom
     payload = {
         "schema": RECORD_SCHEMA,
         "run_id": run_id,
         "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "article": {"path": _relative(layout, layout.article), "sha256": article_sha256},
-        "bom": {"path": _relative(layout, layout.bom), "sha256": bom_sha256},
+        "bom": {"path": _relative(layout, bom_file), "sha256": bom_sha256} if bom_sha256 else None,
         "spec": {"path": spec["path"], "sha256": spec["sha256"]} if _is_binding(spec) else None,
         "evidence": bom_bindings(bom),
         "findings": rows,
-        "blocks": sum(row["severity"] == "block" for row in rows),
+        "blocks": _blocks(rows),
         "warns": sum(row["severity"] == "warn" for row in rows),
-        "scores": dict(scores),
+        "scores": dict(scores) if scores is not None else None,
         "passed": record_passed(rows, scores),
         "workers": workers,
     }
@@ -113,16 +124,8 @@ def write_record(
 def latest_record_path(layout: Layout) -> Path | None:
     """Path of the record in the highest-numbered release directory for this run, or None."""
     run_id = stored_run_id(layout)
-    if not run_id:
-        return None
-    probe = layout.release_dir(run_id)
-    pattern = re.compile(re.escape(probe.name.rsplit("-", 1)[0]) + r"-(\d+)")
-    numbered = [
-        (int(match.group(1)), path)
-        for path in (probe.parent.iterdir() if probe.parent.is_dir() else [])
-        if path.is_dir() and (match := pattern.fullmatch(path.name))
-    ]
-    return max(numbered)[1] / RECORD_NAME if numbered else None
+    existing = layout.release_dirs(run_id) if run_id else []
+    return existing[-1] / RECORD_NAME if existing else None
 
 
 def latest_record(layout: Layout) -> dict[str, Any] | None:
@@ -148,6 +151,19 @@ def _recorded_sha(payload: Mapping[str, Any], key: str) -> Any:
     return block.get("sha256") if isinstance(block, Mapping) else None
 
 
+def _binding_errors(layout: Layout, payload: Mapping[str, Any]) -> list[str]:
+    """The spec and every evidence binding must still match the files on disk."""
+    bindings = dict(payload.get("evidence") or {})
+    bindings["spec"] = payload.get("spec")
+    errors = []
+    for name, binding in sorted(bindings.items()):
+        if not _is_binding(binding):
+            errors.append(f"release record has no {name} binding")
+        elif _current_sha(layout.root / binding["path"]) != binding["sha256"]:
+            errors.append(f"{binding['path']} changed since the passing release")
+    return errors
+
+
 def verify_publishable(article_path: Path, root: Path) -> dict[str, Any]:
     """Return the latest release record, or raise ValueError unless it passed for these exact bytes."""
     layout = Layout.for_article(article_path, root)
@@ -158,10 +174,16 @@ def verify_publishable(article_path: Path, root: Path) -> dict[str, Any]:
         raise ValueError("latest release record belongs to another run of this article; release it again")
     if payload.get("passed") is not True:
         raise ValueError(f"latest release of {layout.article.name} did not pass; fix it and release again")
+    article = _relative(layout, layout.article)
+    if (payload.get("article") or {}).get("path") != article:
+        raise ValueError(f"latest release record is for {(payload.get('article') or {}).get('path')}, not {article}")
     if _recorded_sha(payload, "article") != _current_sha(layout.article):
         raise ValueError(f"article changed since its passing release: {layout.article.name}; release it again")
     if _recorded_sha(payload, "bom") != _current_sha(layout.bom):
         raise ValueError(f"production BOM changed since the passing release: {layout.bom.name}; release it again")
+    errors = _binding_errors(layout, payload)
+    if errors:
+        raise ValueError("; ".join(errors) + "; release it again")
     return payload
 
 
