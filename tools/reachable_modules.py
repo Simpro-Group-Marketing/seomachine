@@ -128,8 +128,10 @@ def _edges(root: Path, path: Path) -> set[Path]:
         return set()
     targets: set[Path] = set()
     for name in _import_names(root, path, tree):
-        if name.startswith("data_sources"):
-            resolved = _dotted_to_path(root, name)
+        if name.startswith(("data_sources", "modules.")):
+            # Scripts put data_sources/ on sys.path and import ``modules.x``.
+            dotted = name if name.startswith("data_sources") else f"data_sources.{name}"
+            resolved = _dotted_to_path(root, dotted)
             targets |= {resolved} if resolved else set()
         else:
             targets |= set(_bare_paths(root, path, name))

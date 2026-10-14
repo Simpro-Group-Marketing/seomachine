@@ -74,3 +74,11 @@ def test_doc_references_find_paths_and_dotted_names(tmp_path):
     assert "data_sources/modules/orphan.py" in refs
     assert "data_sources/modules/pkg/inner.py" in refs
     assert "data_sources/modules/orphan_pkg/leaf.py" in refs
+
+
+def test_scripts_importing_modules_via_data_sources_on_sys_path(tmp_path):
+    _package(tmp_path)
+    _write(tmp_path, "scripts/run.py", "import sys\nsys.path.insert(0, 'data_sources')\nfrom modules.orphan import x\nimport modules.orphan_pkg.leaf\n")
+    names = {path.relative_to(tmp_path).as_posix() for path in reachable(tmp_path, ["scripts/run.py"])}
+    assert "data_sources/modules/orphan.py" in names
+    assert "data_sources/modules/orphan_pkg/leaf.py" in names
