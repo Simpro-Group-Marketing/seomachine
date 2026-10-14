@@ -14,6 +14,9 @@ from data_sources.modules.source_support.retrieval import fetch_source_text_many
 from data_sources.modules.source_support.text_matching import _normalize_text
 
 _GONE_STATUSES = frozenset({404, 410})
+# A Chrome capture may stand in only when the page refused or could not answer an automated client.
+_CAPTURE_STATUSES = frozenset({403, 429, 503})
+_CAPTURE_ERRORS = (requests.Timeout, requests.ConnectionError, TimeoutError, ConnectionError)
 _THOUSANDS_COMMA = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
 _DECIMAL_POINT = re.compile(r"(?<=\d)\.(?=\d)")
 
@@ -33,17 +36,24 @@ def verify_quotes(
 ) -> Dict[Tuple[str, str], FactCheck]:
     """Check each (url, quote) pair against its live page with one batch fetch.
 
-    A Chrome capture for the exact URL answers only when the live page is ``unreachable``; it never
-    overrides a gone, reachable, or quote-missing result.
+    A Chrome capture for the exact URL answers only when the live fetch was blocked (HTTP 403, 429, or
+    503, or a timeout or connection error); it never overrides a gone, reachable, or quote-missing
+    page, nor a 401, 451, other 4xx, or 500/502 answer.
     """
     pairs = list(pairs)
     outcomes = _fetch_outcomes([url for url, _quote in pairs], transport=transport)
     checks = {(url, quote): _check(url, quote, outcomes[url]) for url, quote in pairs}
     for (url, quote), check in checks.items():
         capture = (captures or {}).get(url)
-        if check.status == "unreachable" and capture is not None:
+        if capture is not None and check.status == "unreachable" and _is_blocked(outcomes[url]):
             checks[(url, quote)] = _check_capture(url, quote, capture)
     return checks
+
+
+def _is_blocked(outcome: Any) -> bool:
+    if isinstance(outcome, requests.HTTPError):
+        return getattr(outcome.response, "status_code", None) in _CAPTURE_STATUSES
+    return isinstance(outcome, _CAPTURE_ERRORS)
 
 
 def _check_capture(url: str, quote: str, capture: PageCapture) -> FactCheck:

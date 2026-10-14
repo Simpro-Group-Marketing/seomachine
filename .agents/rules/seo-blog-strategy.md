@@ -34,7 +34,7 @@ Record the volatility and the next review date in the brief. High-volatility pri
 
 ## Claim-Level Source Quality
 
-A public fact reaches the article only as a BOM fact. The build admits a fact only when its exact quote is on the live page at build time, the quote supports the claim, and every number in the claim appears in the quote. The release re-verifies every linked fact quote, blocks a material number that no BOM fact or proof item linked in the same paragraph supports, and blocks a claim that cites a source outside the BOM.
+A public fact reaches the article only as a BOM fact. The build admits a fact only when its exact quote is on the live page at build time (or, only when the live fetch is blocked by a 403, 429, 503, timeout, or connection error, in a hash-bound Chrome page capture of that exact URL, per `context/aeo-geo-blog-strategy.md`), the quote supports the claim, and every number in the claim appears in the quote. The release re-verifies every linked fact quote, blocks a material number that no BOM fact or proof item linked in the same paragraph supports, and blocks a claim that cites a source outside the BOM.
 
 Editorial guidance for choosing facts: statistics need an original source; regulations and standards need official sources; competitor-owned evidence cannot support a neutral verdict, recommendation, or FAQ; historical or undated evidence needs a scoped freshness decision in the brief. The release enforces the FAQ part: the AEO scorer's FAQ proof check prohibits competitor-owned FAQ sources. BOM facts never bypass approved customer proof, vault receipts, or named-feature requirements.
 

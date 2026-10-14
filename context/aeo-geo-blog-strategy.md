@@ -101,7 +101,7 @@ The BOM holds identity (slug, date, run id, brand, market, workflow mode, articl
 
 The BOM is honest by construction. Claude writes the judgment in `research/production-bom-spec-[slug]-[YYYY-MM-DD].json` (schema `simpro-production-bom-spec/v1`), and `python -m data_sources.modules.production.bom_build [article]` admits only what it can verify:
 
-- a fact only when its exact quote is on the live page at build time, the quote supports the claim, and every number in the claim is in the quote;
+- a fact only when its exact quote is on the live page at build time (or, only when that live fetch is blocked, in the hash-bound Chrome page capture of that exact URL under the capture exception in Source Map and BOM rules), the quote supports the claim, and every number in the claim is in the quote;
 - a proof item only when its claim ID is an approved claim in the validated context receipt and a selected candidate in the customer-proof selector evidence; nonconnector brands take proof only from approved rows in `config/nonvault-customer-proof-index.json` selected by the nonvault selector;
 - a PAA question only when it is in the eligible questions of the PAA artifact captured for this run id on the article date;
 - a commercial pillar link only when its destination ID and canonical URL match a valid record in `context/commercial-pillar-index.json` and its anchor contains that record's main keyword; connector-bound work needs exactly one, marked `must`;
@@ -231,6 +231,8 @@ If the main Chrome Semrush UI opens but DOM or screenshot extraction times out o
 
 Use `chrome_connector` only when a live browser session (already authenticated, human-driven navigation) is the only way to reach the locale or surface needed, and record it as such rather than presenting it as an equivalent-strength capture. This is a documented boundary, not a defect: `execution_attestation.py` itself states its HMAC signature is a local integrity check, not a claim that a remote publisher signed the underlying data, so no SERP evidence collector proves more than "this workspace attests it collected this."
 
+The same caveat applies to a Chrome page capture of a fact page that blocks bots (see the capture exception in the Source Map and BOM rules): its receipt proves the text is unchanged since capture, not where the text came from, and its `surface` value is self-declared. Record it as such rather than as a machine-captured page.
+
 ## Required Variable Resolution
 
 Before drafting with `/write` or `/rewrite`, resolve these variables from the user prompt, research brief, generated vault context binding, and allowed repo-local SEO/AEO/editorial/link-map inputs. `/analyze-existing` must audit which inputs are present, missing, or blocked before a rewrite proceeds.
@@ -271,7 +273,7 @@ Required proof sources:
 - Use the claim registry's public URL and source-visibility decision for public citations. Repo-local proof indexes and ledgers are operational selection and reuse state only; they cannot approve a claim or override the connector.
 - Connector-backed metrics are valid only when the context pack carries an approved claim, permitted use mode, public proof URL, and source-visible evidence anchor. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - Every public metric must be a BOM fact whose verified quote contains the number, or an approved BOM proof item. The release blocks a material number that is not in a BOM fact quote or proof item linked in the same paragraph.
-- Every external factual, comparative, causal, commercial, absolute, or guarantee claim needs a BOM fact: the builder admits it only when the exact quote is on the live page and supports the claim, and the release blocks a claim that cites a source outside the BOM. A link alone does not prove the proposition. Explicit first-person opinion, direct imperative instructions, and non-outcome explanatory scenarios need no fact. Do not write unsupported outcome promises such as always, never, eliminates, guarantees, and ensures.
+- Every external factual, comparative, causal, commercial, absolute, or guarantee claim needs a BOM fact: the builder admits it only when the exact quote is on the live page (or, only when the live fetch is blocked, in the hash-bound Chrome capture of that exact URL) and supports the claim, and the release blocks a claim that cites a source outside the BOM. A link alone does not prove the proposition. Explicit first-person opinion, direct imperative instructions, and non-outcome explanatory scenarios need no fact. Do not write unsupported outcome promises such as always, never, eliminates, guarantees, and ensures.
 - Each visible FAQ question must be a BOM PAA question, copied from the AnswerSocrates artifact captured for the production run. Proof links and supplemental SERP, Reddit, and YouTube research do not prove PAA provenance.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
@@ -531,7 +533,7 @@ Two distinct authoritative non-owned external sources satisfy the standard-blog 
 
 Reviewers must preserve every `inline_required` link and every other specialist-required public link. They must report any proposed deletion, anchor rewrite, or relocation that would break the mapping, and flag repeated destinations, duplicate support, or a quota-only third external source as redundancy. Reviewers return advisory findings only. `/publish-readiness` remains the sole release verdict; this workflow has no human approval stage.
 
-The builder admits a fact only when it can verify the quote on the live page itself. A locally authored capture or evidence file never admits a fact.
+The builder admits a fact only when it can verify the quote on the live page itself. The single exception is the user's 2026-10-14 decision: a Chrome page capture (`simpro-chrome-page-capture/v1`, written by `python -m data_sources.modules.production.page_capture record`) admits a fact only when the live fetch is blocked (HTTP 403, 429, or 503, a timeout, or a connection error). It never admits a fact for a 404 or 410, for a reachable page, or for a 401, 451, other 4xx, or 500/502 answer. It applies only to the exact fact URL, with the page text and receipt saved under `research/source-captures/` and bound by hash, and a capture older than 90 days refuses the build. The release re-checks the live page every time, warns while the page stays blocked and cites the capture's `captured_at`, and blocks an edited capture. Provenance caveat: the receipt proves the text is unchanged since capture, not where it came from. Its `surface` value is self-declared, and no automated check can tell a faithful Chrome capture from typed text, so treat it with the same reduced provenance as `chrome_connector` SERP evidence. Any other locally authored capture or evidence file never admits a fact.
 
 ### Known Vocabulary Drift
 

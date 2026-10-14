@@ -3,10 +3,13 @@
 Usage: python -m data_sources.modules.production.page_capture record --url URL --title TITLE
        --text-file FILE --output RECEIPT [--workspace-root DIR]
 
-A receipt (``simpro-chrome-page-capture/v1``) binds the exact page text Claude saved from Chrome to
-its URL, capture time, and SHA-256. ``load_capture`` re-hashes the saved text and refuses any edit,
-so a capture can only stand in for a page that the normal fetch could not read. The text itself is
-never summarized or retyped. Exit codes: 0 recorded, 2 error (one line on stderr).
+A receipt (``simpro-chrome-page-capture/v1``) binds saved page text to its URL, capture time, and
+SHA-256, and ``load_capture`` refuses any edit made after capture. The receipt proves the text is
+unchanged since it was captured, not where it came from: ``surface`` is self-declared, and no
+automated check can tell a faithful Chrome capture from typed text. The text and the receipt must
+both live under ``research/source-captures/``. A capture may stand in only for a fact page whose live
+fetch was blocked (``facts.verify_quotes`` decides), and never for a gone or reachable page.
+Exit codes: 0 recorded, 2 error (one line on stderr).
 """
 
 from __future__ import annotations
@@ -28,6 +31,13 @@ SCHEMA = "simpro-chrome-page-capture/v1"
 SURFACE = "chrome_main_window"
 _KEYS = frozenset({"schema", "url", "captured_at", "surface", "page_title", "text_path", "text_sha256"})
 _STAMP = "%Y-%m-%dT%H:%M:%SZ"
+CAPTURE_DIR = "research/source-captures"
+_CLOCK_SKEW = datetime.timedelta(minutes=5)
+
+
+def utc_now() -> datetime.datetime:
+    """The current UTC time; tests replace this to move the clock."""
+    return datetime.datetime.now(datetime.timezone.utc)
 
 
 @dataclass(frozen=True)
@@ -39,6 +49,11 @@ class PageCapture:
     text_sha256: str
     path: str  # workspace-relative posix path of the receipt
     receipt_sha256: str
+
+    def age(self) -> datetime.timedelta:
+        """Time since capture, by the module clock."""
+        taken = datetime.datetime.strptime(self.captured_at, _STAMP).replace(tzinfo=datetime.timezone.utc)
+        return utc_now() - taken
 
 
 def _inside(root: Path, path: str | Path, label: str) -> Path:
@@ -52,6 +67,14 @@ def _inside(root: Path, path: str | Path, label: str) -> Path:
     except ValueError as error:
         raise ValueError(f"{label} is outside the workspace: {path}") from error
     return candidate
+
+
+def _in_capture_dir(root: Path, path: Path, label: str) -> Path:
+    try:
+        path.relative_to(root / CAPTURE_DIR)
+    except ValueError as error:
+        raise ValueError(f"{label} must be under {CAPTURE_DIR}/: {path.relative_to(root).as_posix()}") from error
+    return path
 
 
 def _require_http_url(url: Any) -> str:
@@ -77,18 +100,20 @@ def record_capture(
     _require_http_url(url)
     if not isinstance(title, str) or not title.strip():
         raise ValueError("capture title must be non-empty text")
-    text_path = _inside(root, text_file, "text file")
-    destination = _inside(root, output, "receipt")
+    text_path = _in_capture_dir(root, _inside(root, text_file, "text file"), "text file")
+    destination = _in_capture_dir(root, _inside(root, output, "receipt"), "receipt")
+    relative_text = text_path.relative_to(root).as_posix()
+    resolve_artifact(relative_text, workspace_root=root)  # canonical spelling: no spaces, case aliases, or dots
     raw, text = _read_text(text_path, "text file")
     if not text.strip():
         raise ValueError(f"captured text is empty: {text_file}")
     payload = {
         "schema": SCHEMA,
         "url": url,
-        "captured_at": datetime.datetime.now(datetime.timezone.utc).strftime(_STAMP),
+        "captured_at": utc_now().strftime(_STAMP),
         "surface": SURFACE,
         "page_title": title.strip(),
-        "text_path": text_path.relative_to(root).as_posix(),
+        "text_path": relative_text,
         "text_sha256": hashlib.sha256(raw).hexdigest(),
     }
     atomic_write_json(destination, payload)
@@ -107,41 +132,53 @@ def _receipt_errors(payload: Mapping[str, Any]) -> list[str]:
 
 def _stamp_error(value: Any) -> str | None:
     try:
-        datetime.datetime.strptime(value if isinstance(value, str) else "", _STAMP)
+        taken = datetime.datetime.strptime(value if isinstance(value, str) else "", _STAMP)
     except ValueError:
         return f"captured_at must be a UTC time like 2026-10-14T08:00:00Z, found: {value!r}"
+    if taken.replace(tzinfo=datetime.timezone.utc) > utc_now() + _CLOCK_SKEW:
+        return f"captured_at {value} is in the future"
     return None
+
+
+def _field_errors(payload: Mapping[str, Any]) -> list[str]:
+    problems = [_stamp_error(payload["captured_at"])]
+    for field in ("page_title", "text_sha256"):
+        if not (isinstance(payload[field], str) and payload[field].strip()):
+            problems.append(f"{field} must be non-empty text")
+    return [problem for problem in problems if problem]
+
+
+def _read_receipt(root: Path, path: str | Path) -> tuple[dict[str, Any], str, bytes]:
+    """Parse a receipt under the capture folder and check its shape; returns payload, label, raw bytes."""
+    receipt = _in_capture_dir(root, _inside(root, path, "capture receipt"), "capture receipt")
+    raw, text = _read_text(receipt, "capture receipt")
+    label = receipt.relative_to(root).as_posix()
+    try:
+        payload = json.loads(text)
+    except ValueError as error:
+        raise ValueError(f"capture receipt {label} is not valid JSON: {error}") from error
+    if not isinstance(payload, dict):
+        raise ValueError(f"capture receipt {label} is not a JSON object")
+    errors = _receipt_errors(payload) or _field_errors(payload)
+    if errors:
+        raise ValueError(f"capture receipt {label}: {'; '.join(errors)}")
+    return payload, label, raw
 
 
 def load_capture(path: str | Path, workspace_root: str | Path) -> PageCapture:
     """Read a receipt, re-hash its saved text, and return the capture; any inconsistency raises ValueError."""
     root = Path(workspace_root).resolve()
-    receipt = _inside(root, path, "capture receipt")
-    receipt_raw, receipt_text = _read_text(receipt, "capture receipt")
-    label = receipt.relative_to(root).as_posix()
-    try:
-        payload = json.loads(receipt_text)
-    except ValueError as error:
-        raise ValueError(f"capture receipt {label} is not valid JSON: {error}") from error
-    if not isinstance(payload, dict):
-        raise ValueError(f"capture receipt {label} is not a JSON object")
-    errors = _receipt_errors(payload)
-    if errors:
-        raise ValueError(f"capture receipt {label}: {'; '.join(errors)}")
-    problems = [_stamp_error(payload["captured_at"])]
-    for field in ("page_title", "text_sha256"):
-        if not (isinstance(payload[field], str) and payload[field].strip()):
-            problems.append(f"{field} must be non-empty text")
-    if any(problems):
-        raise ValueError(f"capture receipt {label}: {'; '.join(p for p in problems if p)}")
+    payload, label, receipt_raw = _read_receipt(root, path)
     _require_http_url(payload["url"])
     try:
-        text_file = resolve_artifact(payload["text_path"], workspace_root=root)
+        text_file = _in_capture_dir(root, resolve_artifact(payload["text_path"], workspace_root=root), "text_path")
     except ValueError as error:
         raise ValueError(f"capture receipt {label} text_path is not usable: {error}") from error
     raw, text = _read_text(text_file, "captured text")
     if hashlib.sha256(raw).hexdigest() != payload["text_sha256"]:
         raise ValueError(f"capture {label} text hash does not match its receipt: the saved text was edited")
+    if not text.strip():
+        raise ValueError(f"capture {label} captured text is empty")
     return PageCapture(
         url=payload["url"], captured_at=payload["captured_at"], page_title=payload["page_title"],
         text=text, text_sha256=payload["text_sha256"], path=label,

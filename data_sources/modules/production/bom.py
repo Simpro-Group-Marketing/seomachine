@@ -7,6 +7,7 @@ time. The ``claim`` is Claude's wording, admitted only because the quote support
 
 from __future__ import annotations
 
+import datetime
 import json
 import re
 from collections.abc import Mapping, Sequence
@@ -204,20 +205,34 @@ def _fact_errors(bom: Mapping[str, Any]) -> list[str]:
     return errors
 
 
+def _is_utc_stamp(value: Any) -> bool:
+    try:
+        datetime.datetime.strptime(value if isinstance(value, str) else "", "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return False
+    return True
+
+
 def _capture_binding_errors(index: int, fact: Mapping[str, Any]) -> list[str]:
-    """A fact verified from a Chrome capture must carry the capture's path, receipt hash, and time."""
+    """A Chrome-verified fact carries exactly its capture's path, receipt hash, and UTC capture time."""
     via = fact.get("verified_via")
-    if via is None:
-        return []
-    if via != CHROME_CAPTURE:
-        return [f"facts[{index}] verified_via must be {CHROME_CAPTURE}, found: {via!r}"]
+    where = f"facts[{index}]"
+    if via is not None and via != CHROME_CAPTURE:
+        return [f"{where} verified_via must be {CHROME_CAPTURE}, found: {via!r}"]
     capture = fact.get("capture")
+    if via is None:
+        return [f"{where} has a capture binding but verified_via is not {CHROME_CAPTURE}"] if "capture" in fact else []
     if not isinstance(capture, Mapping):
-        return [f"facts[{index}] verified_via {CHROME_CAPTURE} requires a capture binding"]
-    errors = [f"facts[{index}] capture is missing {key}" for key in ("path", "captured_at") if not _is_text(capture.get(key))]
-    digest = capture.get("sha256")
-    if not (isinstance(digest, str) and _SHA256.fullmatch(digest)):
-        errors.append(f"facts[{index}] capture sha256 must be 64 lowercase hex characters")
+        return [f"{where} verified_via {CHROME_CAPTURE} requires a capture binding"]
+    keys = {"path", "sha256", "captured_at"}
+    errors = [f"{where} capture has unknown key: {key}" for key in sorted(set(capture) - keys)]
+    errors += [f"{where} capture is missing {key}" for key in sorted(keys - set(capture))]
+    if "path" in capture and not _is_text(capture["path"]):
+        errors.append(f"{where} capture path must be non-empty text")
+    if "sha256" in capture and not (isinstance(capture["sha256"], str) and _SHA256.fullmatch(capture["sha256"])):
+        errors.append(f"{where} capture sha256 must be 64 lowercase hex characters")
+    if "captured_at" in capture and not _is_utc_stamp(capture["captured_at"]):
+        errors.append(f"{where} capture captured_at must be a UTC time like 2026-10-14T08:00:00Z")
     return errors
 
 

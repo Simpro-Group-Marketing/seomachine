@@ -162,6 +162,10 @@ def _carried_forward(
             "carried_forward": True, "release_check": check.detail}
 
 
+CAPTURE_MAX_AGE_DAYS = 90
+_MAX_CAPTURE_AGE = datetime.timedelta(days=CAPTURE_MAX_AGE_DAYS)
+
+
 def _load_captures(layout: Layout, facts: Sequence[Mapping[str, Any]]) -> dict[str, PageCapture]:
     """Load each fact's Chrome capture by url; a bad, mismatched, or conflicting capture refuses the build."""
     captures: dict[str, PageCapture] = {}
@@ -207,7 +211,8 @@ def verify_facts(
     """Verify every fact quote on its live page in one batch; any failure refuses the build.
 
     With ``prior_facts`` (a release rebuild), an unreachable page keeps the matching prior fact.
-    With ``captures``, an unreachable page is verified from its Chrome capture instead.
+    With ``captures``, a page that blocked the live check is verified from its Chrome capture instead,
+    unless the capture is older than ``CAPTURE_MAX_AGE_DAYS``.
     """
     if not facts:
         return []
@@ -224,6 +229,12 @@ def verify_facts(
             admitted.append(carried)
         elif check.status not in ("verified", "verified_capture"):
             errors.append(f"fact {fact['id']} ({fact['url']}) is {check.status}: {check.detail}")
+        elif check.status == "verified_capture" and captures[fact["url"]].age() > _MAX_CAPTURE_AGE:
+            errors.append(
+                f"fact {fact['id']} ({fact['url']}) Chrome capture {captures[fact['url']].path} is older than "
+                f"{CAPTURE_MAX_AGE_DAYS} days (captured {captures[fact['url']].captured_at}); "
+                "re-capture the page in Chrome"
+            )
         else:
             admitted.append(_verified_row(fact, check, verified_at, captures))
     if errors:
