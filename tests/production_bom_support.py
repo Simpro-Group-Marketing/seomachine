@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from data_sources.modules.commercial_pillar_index import SEMRUSH_DATABASE_BY_MARKET
 from data_sources.modules.customer_proof.nonconnector_contracts import NonVaultProofDataError
 from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.production.bom_build import is_nonconnector
@@ -229,13 +230,19 @@ def paa_artifact(run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]
             "run_receipt": {"run_id": run_id}}
 
 
+def keyword_decision(market: str) -> dict[str, Any]:
+    """A bound keyword decision for ``market`` and its Semrush database."""
+    return {"schema": "decision", "primary": "fsm", "market": market,
+            "database": SEMRUSH_DATABASE_BY_MARKET.get(market, market.casefold())}
+
+
 def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
                    paa: bool = True, context: bool = True) -> Layout:
     """Write every artifact a build needs and return the layout."""
     layout = Layout.for_article(ARTICLE, root)
     spec = copy.deepcopy(spec if spec is not None else connector_spec())
     write_json(layout.bom_spec, spec)
-    write_json(layout.keyword_decision, {"schema": "decision", "primary": "fsm"})
+    write_json(layout.keyword_decision, keyword_decision(spec["market"]))
     write_json(layout.keyword_shortlist, {
         "schema": "simpro-keyword-shortlist/v1", "primary": "field service software",
         "secondary": ["fsm software"], "candidates": [{"keyword": "fsm", "volume": 100}],

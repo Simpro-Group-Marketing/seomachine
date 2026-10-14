@@ -69,7 +69,8 @@ def bind_selector_evidence(
         raise ValueError("\n".join(errors))
     if nonconnector and verify_nonconnector_selector_evidence(payload) is None:
         raise ValueError(
-            f"{label} failed verification: the nonvault selector does not reproduce it from its bound index and ledger"
+            f"{label} failed verification: the nonvault selector does not reproduce it from its bound index and "
+            "ledger (a publish moves the usage ledger); re-run the nonvault customer proof selector, then rebuild"
         )
     roles = payload["roles"]
     errors = _unselected_errors(proof, roles)

@@ -12,6 +12,8 @@ The BOM's current selections are pinned: each role's selected id in the BOM is p
 selector as its override, so a moved usage ledger re-checks freshness and eligibility without
 re-choosing. A pinned id the selector no longer offers (the claim lost approval or eligibility)
 raises ``PinnedSelectionRejected``; the release treats that as a refused BOM, not an outage.
+The release passes the BOM's selections only while the BOM is still the file the pipeline wrote;
+for a hand-edited BOM it passes none, so a fresh selection must match the spec.
 """
 
 from __future__ import annotations

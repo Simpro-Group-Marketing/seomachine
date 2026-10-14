@@ -285,7 +285,7 @@ def _local_phase(
         ),
         "paa": lambda: resolve_paa(spec, layout),
         "links": lambda: resolve_links(spec, layout.root, nonconnector),
-        "blocks": lambda: keyword_and_serp(layout),
+        "blocks": lambda: keyword_and_serp(layout, spec["market"]),
         "customer_proof": lambda: bind_selector_evidence(layout, spec["proof"], nonconnector),
         "captures": lambda: _load_captures(layout, spec["facts"]),
     }

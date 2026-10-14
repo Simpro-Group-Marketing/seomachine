@@ -10,6 +10,7 @@ from tests.production_bom_support import (
     FROZEN,
     good_loader,
     good_transport,
+    keyword_decision,
     make_workspace,
     write_json,
     write_pillar_index,
@@ -38,6 +39,7 @@ def _au_workspace(tmp_path):
     spec["market"] = "AU"
     spec["links"][0]["destination_id"] = AU_ID
     write_json(layout.bom_spec, spec)
+    write_json(layout.keyword_decision, keyword_decision("AU"))
     write_pillar_index(layout.root, _au_record())
     return layout
 
@@ -52,5 +54,6 @@ def test_au_pillar_refuses_a_us_article(tmp_path):
     spec = json.loads(layout.bom_spec.read_text(encoding="utf-8"))
     spec["market"] = "US"
     write_json(layout.bom_spec, spec)
+    write_json(layout.keyword_decision, keyword_decision("US"))
     with pytest.raises(ValueError, match="market"):
         _build(layout)

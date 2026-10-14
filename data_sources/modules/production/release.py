@@ -149,7 +149,7 @@ def _refresh(run: _Run, refresher: Refresher) -> None:
     if not needs_refresh(run.layout, run.spec, run.nonconnector):
         return
     try:
-        refresher(run.layout, run.nonconnector, run.old_bom)
+        refresher(run.layout, run.nonconnector, _pin_source(run))
     except PinnedSelectionRejected as error:
         _retire_stale_bom(run.layout)
         stop = ReleaseStop(1, [f"BOM rebuild refused: {error}"], check="bom_refused", bom_retired=True)
@@ -162,10 +162,24 @@ def _refresh(run: _Run, refresher: Refresher) -> None:
         ]) from error
 
 
+def _pipeline_wrote_bom(layout: Layout) -> bool:
+    """True while the BOM on disk is still the file the pipeline wrote (its hash was recorded)."""
+    recorded = stored_bom_sha256(layout)
+    return recorded is not None and file_sha256(layout.bom) == recorded
+
+
+def _pin_source(run: _Run) -> Mapping[str, Any]:
+    """The old BOM to pin selections from; a hand-edited BOM keeps only its evidence binding and pins nothing."""
+    if _pipeline_wrote_bom(run.layout):
+        return run.old_bom
+    binding = run.old_bom.get("customer_proof")
+    evidence = binding.get("evidence") if isinstance(binding, Mapping) else None
+    return {"customer_proof": {"evidence": evidence}} if evidence is not None else {}
+
+
 def _prior_facts(layout: Layout, old_bom: Mapping[str, Any]) -> dict[str, Mapping[str, Any]] | None:
     """The old BOM's facts, only when it is still the file the pipeline wrote (its hash was recorded)."""
-    recorded = stored_bom_sha256(layout)
-    if recorded is None or file_sha256(layout.bom) != recorded:
+    if not _pipeline_wrote_bom(layout):
         return None
     facts = old_bom.get("facts") if isinstance(old_bom.get("facts"), list) else []
     return {str(fact["id"]): fact for fact in facts if isinstance(fact, Mapping) and "id" in fact}

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from data_sources.modules.blog_assembly_contract import canonical_artifact
+from data_sources.modules.commercial_pillar_index import SEMRUSH_DATABASE_BY_MARKET
 from data_sources.modules.production.bom import SpecFileError
 from data_sources.modules.production.layout import Layout, stored_run_id
 
@@ -63,11 +64,33 @@ def read_spec_bound(layout: Layout) -> tuple[dict[str, Any], dict[str, str]]:
     return payload, _bind_bytes(layout, path, raw)
 
 
-def keyword_and_serp(layout: Layout) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Copy the keyword and SERP blocks from the shortlist and coverage files, with bindings."""
+def _market_errors(decision: Mapping[str, Any], market: str) -> list[str]:
+    """The keyword decision must be for the spec market and that market's Semrush database."""
+    expected = SEMRUSH_DATABASE_BY_MARKET.get(market)
+    if expected is None:
+        return [f"spec market {market} has no Semrush database"]
+    errors = []
+    if decision.get("market") != market:
+        errors.append(f"keyword decision market {decision.get('market')!r} does not match the spec market {market}")
+    if decision.get("database") != expected:
+        errors.append(
+            f"keyword decision database {decision.get('database')!r} does not match the spec market {market} "
+            f"Semrush database {expected}"
+        )
+    return errors
+
+
+def keyword_and_serp(layout: Layout, market: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Copy the keyword and SERP blocks from the shortlist and coverage files, with bindings.
+
+    The bound keyword decision must agree with the spec ``market`` and its Semrush database.
+    """
     shortlist, shortlist_binding = read_bound(layout, layout.keyword_shortlist, "keyword shortlist", _SHORTLIST_KEYS)
     coverage, coverage_binding = read_bound(layout, layout.serp_coverage, "SERP coverage", _COVERAGE_KEYS)
-    _, decision_binding = read_bound(layout, layout.keyword_decision, "keyword decision")
+    decision, decision_binding = read_bound(layout, layout.keyword_decision, "keyword decision")
+    errors = _market_errors(decision, market)
+    if errors:
+        raise ValueError("\n".join(errors))
     _, evidence_binding = read_bound(layout, layout.serp_evidence, "SERP evidence")
     keyword = {key: copy.deepcopy(shortlist[key]) for key in _SHORTLIST_KEYS}
     keyword.update(decision=decision_binding, shortlist=shortlist_binding)
