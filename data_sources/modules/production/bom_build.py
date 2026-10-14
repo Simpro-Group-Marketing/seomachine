@@ -4,6 +4,9 @@ Usage: python -m data_sources.modules.production.bom_build <article> [--workspac
 
 Exit codes: 0 built, 1 refused (unverified content; one line per reason), 2 operational error.
 A refused or failed run moves any earlier BOM aside as ``<name>.refused`` so it cannot be released.
+A fact whose page is merely unreachable keeps its earlier verification only from the BOM the
+pipeline last wrote (the BOM, or its ``.refused`` twin when the BOM is gone, whose sha256 matches
+the hash recorded in the run state); a first build or a hand-edited BOM carries nothing forward.
 """
 
 from __future__ import annotations
@@ -25,6 +28,7 @@ from data_sources.modules.production.bom import (
     BOM_SCHEMA,
     BuildEnvironmentError,
     SpecFileError,
+    load_bom,
     validate_bom,
     validate_spec,
 )
@@ -45,7 +49,13 @@ from data_sources.modules.production.bom_selector import bind_selector_evidence,
 from data_sources.modules.production.bom_text import free_text_number_errors
 from data_sources.modules.production.claim_support import SUPPORT_RULE, claim_support_errors
 from data_sources.modules.production.facts import verify_quotes
-from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id, record_bom_sha256
+from data_sources.modules.production.layout import (
+    Layout,
+    LayoutError,
+    load_or_create_run_id,
+    record_bom_sha256,
+    stored_bom_sha256,
+)
 from data_sources.modules.production.numbers import numbers_supported
 from data_sources.modules.production.record import file_sha256
 from data_sources.modules.public_http import PublicHttpTransport
@@ -311,12 +321,26 @@ def _write_bom(layout: Layout, bom: Mapping[str, Any]) -> None:
     record_bom_sha256(layout, file_sha256(layout.bom))
 
 
+def _pipeline_prior_facts(layout: Layout) -> dict[str, Mapping[str, Any]] | None:
+    """The facts of the BOM the pipeline last wrote, or None when no such file is on disk unchanged."""
+    recorded = stored_bom_sha256(layout)
+    source = layout.bom if layout.bom.is_file() else layout.bom.with_name(layout.bom.name + ".refused")
+    if recorded is None or not source.is_file() or file_sha256(source) != recorded:
+        return None
+    facts = load_bom(source).get("facts")
+    rows = facts if isinstance(facts, list) else []
+    return {str(fact["id"]): fact for fact in rows if isinstance(fact, Mapping) and "id" in fact}
+
+
 def _run(args: argparse.Namespace, root: Path, holder: list[Layout]) -> int:
     try:
         layout = Layout.for_article(args.article, root)
         holder.append(layout)
+        prior_facts = _pipeline_prior_facts(layout)
         with PublicHttpTransport() as transport:
-            bom = build_bom(layout, transport=transport, claim_loader=load_validated_claim_set)
+            bom = build_bom(
+                layout, transport=transport, claim_loader=load_validated_claim_set, prior_facts=prior_facts
+            )
         _write_bom(layout, bom)
     except (LayoutError, SpecFileError, BuildEnvironmentError, OSError) as error:
         _report(error)

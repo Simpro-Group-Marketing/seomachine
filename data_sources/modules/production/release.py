@@ -3,7 +3,8 @@
 Usage: python -m data_sources.modules.production.release <article> [--workspace-root DIR] [--workers N]
 
 Steps: refresh the customer-proof selector evidence (connector or nonvault, decided from the spec
-as the BOM build does) from the inputs recorded in it; rebuild the production BOM (live fact
+as the BOM build does) from the inputs recorded in it, pinned to the BOM's current selections (a
+pinned proof the selector no longer offers refuses the BOM); rebuild the production BOM (live fact
 checks and the selector-first check run again; a fact whose page is merely unreachable keeps its
 earlier verification, and truth warns); run the truth and coverage checks in a thread pool while
 the scorer runs; write one release record. Every run that fails after the refresh also writes a
@@ -41,7 +42,7 @@ from data_sources.modules.production.coverage import check_coverage
 from data_sources.modules.production.layout import Layout, LayoutError, load_or_create_run_id, stored_bom_sha256
 from data_sources.modules.production.record import file_sha256, write_record
 from data_sources.modules.production.scoring import ScoringPreflightError, score_article
-from data_sources.modules.production.selector_refresh import refresh_selector_evidence
+from data_sources.modules.production.selector_refresh import PinnedSelectionRejected, refresh_selector_evidence
 from data_sources.modules.production.truth import check_truth
 from data_sources.modules.production.truth_text import Finding
 from data_sources.modules.public_http import PublicHttpTransport
@@ -147,7 +148,12 @@ def _refresh(run: _Run, refresher: Refresher) -> None:
         return
     try:
         refresher(run.layout, run.nonconnector, run.old_bom)
-    except Exception as error:  # noqa: BLE001 - any refresh failure leaves the evidence stale
+    except PinnedSelectionRejected as error:
+        _retire_stale_bom(run.layout)
+        stop = ReleaseStop(1, [f"BOM rebuild refused: {error}"], check="bom_refused", bom_retired=True)
+        stop.lines.append(_record_failure(run, stop))
+        raise stop from error
+    except Exception as error:  # noqa: BLE001 - any other refresh failure leaves the evidence stale
         raise ReleaseStop(2, [
             f"customer-proof selector refresh failed: {type(error).__name__}: {error}",
             "the bound selector evidence was not refreshed; fix the cause and release again",

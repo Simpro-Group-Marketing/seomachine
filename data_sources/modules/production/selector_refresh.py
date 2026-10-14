@@ -7,6 +7,11 @@ the result to the same path. The caller decides connector or nonconnector from t
 BOM build does): a connector article re-runs the vault-bound selector, a nonconnector article the
 nonvault selector, which needs no vault. Evidence whose path or schema belongs to the other branch
 is refused before any selector runs.
+
+The BOM's current selections are pinned: each role's selected id in the BOM is passed to the
+selector as its override, so a moved usage ledger re-checks freshness and eligibility without
+re-choosing. A pinned id the selector no longer offers (the claim lost approval or eligibility)
+raises ``PinnedSelectionRejected``; the release treats that as a refused BOM, not an outage.
 """
 
 from __future__ import annotations
@@ -19,7 +24,9 @@ from typing import Any
 
 from data_sources.modules.customer_proof.connector_evidence import CONNECTOR_EVIDENCE_SCHEMA
 from data_sources.modules.customer_proof.connector_inputs import _selector_input_snapshot
+from data_sources.modules.customer_proof.contracts import CustomerProofDataError
 from data_sources.modules.customer_proof.nonconnector_contracts import SCHEMA as NONVAULT_EVIDENCE_SCHEMA
+from data_sources.modules.customer_proof.nonconnector_contracts import NonVaultProofDataError
 from data_sources.modules.customer_proof.nonconnector_persistence import write_nonvault_selector_evidence
 from data_sources.modules.customer_proof.selection import build_customer_proof_slate
 from data_sources.modules.customer_proof.slate import _write_selector_evidence
@@ -27,6 +34,25 @@ from data_sources.modules.production.bom_selector import evidence_path
 from data_sources.modules.production.layout import Layout
 
 _TEXT_INPUTS = ("topic", "title", "objective", "article_slug")
+# Both selectors word an override outside the verified slate this way.
+_REJECTED_OVERRIDE = "Selected customer proof ID is not in the verified"
+
+
+class PinnedSelectionRejected(ValueError):
+    """The selector no longer offers a proof the BOM selected: it lost approval or eligibility."""
+
+
+def pinned_selections(bom: Mapping[str, Any]) -> dict[str, str]:
+    """The BOM's selected id per role; a role the BOM left at "none" binds no proof and stays unpinned."""
+    binding = bom.get("customer_proof")
+    roles = binding.get("roles") if isinstance(binding, Mapping) else None
+    rows = [row for row in roles if isinstance(row, Mapping)] if isinstance(roles, list) else []
+    return {
+        row["role"]: row["selected_id"]
+        for row in rows
+        if isinstance(row.get("role"), str) and isinstance(row.get("selected_id"), str)
+        and row["selected_id"].strip().casefold() not in ("", "none")
+    }
 
 
 def _branch(nonconnector: bool) -> str:
@@ -62,8 +88,8 @@ def _required_artifact(payload: Mapping[str, Any], name: str, root: Path) -> Pat
     return path
 
 
-def _common_inputs(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """The selector inputs every evidence schema records, checked for shape."""
+def _common_inputs(payload: Mapping[str, Any], pins: Mapping[str, str]) -> dict[str, Any]:
+    """The selector inputs every evidence schema records, checked for shape, with the BOM pins applied."""
     inputs = payload.get("inputs")
     if not isinstance(inputs, Mapping):
         raise ValueError("selector evidence does not record its inputs")
@@ -75,13 +101,15 @@ def _common_inputs(payload: Mapping[str, Any]) -> dict[str, Any]:
         "roles": list(inputs["roles"]),
         "require_eeat_story": inputs.get("require_eeat_story") is True,
         "limit": int(inputs["limit"]),
-        "selected_overrides": dict(inputs.get("selected_overrides") or {}),
+        "selected_overrides": {**dict(inputs.get("selected_overrides") or {}), **pins},
         "rejected_overrides": {role: dict(rows) for role, rows in (inputs.get("rejected_overrides") or {}).items()},
     }
 
 
-def _refresh_nonvault(path: Path, payload: Mapping[str, Any], root: Path, today: date) -> None:
-    inputs = _common_inputs(payload)
+def _refresh_nonvault(
+    path: Path, payload: Mapping[str, Any], root: Path, today: date, pins: Mapping[str, str]
+) -> None:
+    inputs = _common_inputs(payload, pins)
     write_nonvault_selector_evidence(
         path,
         brand=str((payload.get("inputs") or {}).get("brand") or ""),
@@ -92,9 +120,11 @@ def _refresh_nonvault(path: Path, payload: Mapping[str, Any], root: Path, today:
     )
 
 
-def _refresh_connector(path: Path, payload: Mapping[str, Any], root: Path, today: date) -> None:
+def _refresh_connector(
+    path: Path, payload: Mapping[str, Any], root: Path, today: date, pins: Mapping[str, str]
+) -> None:
     """Run the connector selector exactly as its CLI does with --slate --evidence-output."""
-    inputs = _common_inputs(payload)
+    inputs = _common_inputs(payload, pins)
     allow_no_proof = (payload.get("inputs") or {}).get("allow_no_proof") is True
     paths = {name: _required_artifact(payload, name, root) for name in ("ledger", "context_pack", "context_receipt")}
     claim_lookup = _artifact(payload, "claim_lookup", root)
@@ -128,7 +158,7 @@ def _refresh_connector(path: Path, payload: Mapping[str, Any], root: Path, today
 
 
 def refresh_selector_evidence(layout: Layout, nonconnector: bool, bom: Mapping[str, Any]) -> Path:
-    """Re-run this branch's selector with the inputs recorded in its evidence, dated today."""
+    """Re-run this branch's selector with the inputs recorded in its evidence, dated today, pinned to the BOM."""
     path = _evidence_file(layout, nonconnector, bom)
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -142,8 +172,13 @@ def refresh_selector_evidence(layout: Layout, nonconnector: bool, bom: Mapping[s
             f"a {_branch(nonconnector)} article needs {expected}"
         )
     refresh = _refresh_nonvault if nonconnector else _refresh_connector
-    refresh(path, payload, layout.root, date.today())
+    try:
+        refresh(path, payload, layout.root, date.today(), pinned_selections(bom))
+    except (CustomerProofDataError, NonVaultProofDataError) as error:
+        if str(error).startswith(_REJECTED_OVERRIDE):
+            raise PinnedSelectionRejected(f"the BOM's proof selection is no longer offered: {error}") from error
+        raise
     return path
 
 
-__all__ = ["refresh_selector_evidence"]
+__all__ = ["PinnedSelectionRejected", "pinned_selections", "refresh_selector_evidence"]
