@@ -71,9 +71,13 @@ The record's `scores.gates` holds one independent pass/fail gate per score:
 - `passed`: true only with zero blocking findings and all three score gates passed;
 - `workers`.
 
-## Publishers
+## Latest record
 
-WordPress and Grav publishers trust only the latest record. `data_sources.modules.production.record.verify_publishable(article, root)` returns that record, or refuses when no record exists, the latest record belongs to another run or did not pass, or the article, BOM, spec, or any bound evidence changed since the passing release. Any edit after a pass therefore needs a new release. Release never writes `config/customer-proof-usage-ledger.json`; publishing records customer-proof use.
+Only the latest release record counts: it must have passed, and the article, BOM, spec, and every bound artifact must still match the hashes it recorded. Any edit after a pass therefore needs a new release.
+
+## Usage ledger
+
+Release never writes `config/customer-proof-usage-ledger.json`; record the customer-proof use in `config/customer-proof-usage-ledger.json` before final handoff, as `.claude/rules/customer-proof.md` requires.
 
 ## Output
 

@@ -300,7 +300,7 @@ def test_publish_readiness_documents_the_production_release():
     assert "`seo_quality`: score, release-floor threshold 90" in content
     assert "`critical_issue_count`, which must be 0" in content
     assert "`aeo_geo`: score, threshold 90" in content
-    for term in ("release-record.json", "simpro-release-record/v1", "SEOMACHINE_RELEASE_WORKERS", "verify_publishable"):
+    for term in ("release-record.json", "simpro-release-record/v1", "SEOMACHINE_RELEASE_WORKERS", "customer-proof-usage-ledger.json"):
         assert term in content
     for code in ("`0`: passed", "`1`: blocked", "`2`: operational"):
         assert code in content

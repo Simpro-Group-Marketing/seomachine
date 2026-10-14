@@ -65,7 +65,7 @@ Command docs carry per-command steps and the selector, guard, and release comman
 |---|---|
 | `context/aeo-geo-blog-strategy.md` | AEO/GEO and proof policy: Simpro vault source rule and nonconnector branch, author voice, competitor and feature guardrails, native workflow, production BOM, and the mandatory scrub/release/optimize loop, score thresholds, PAA, Metric and Customer Proof Packs, E-E-A-T, Fred authority, citation modes and link counts, reader-facing copy boundary, drafting rules, publish gates, and the recovery loop |
 | `context/blog-editorial-strategy.md` | Editorial plan ownership, Reader Contract, story safety, specificity, headline integrity, continuity, CTA profiles, and Reviewed Humanizer governance |
-| `.claude/commands/publish-readiness.md` | One-pass release phases, truth and coverage checks, score thresholds, exit codes, release record, and the publisher check |
+| `.claude/commands/publish-readiness.md` | One-pass release phases, truth and coverage checks, score thresholds, exit codes, and the release record |
 | `.claude/commands/*.md` | Per-command workflow steps |
 | `.agents/rules/seo-blog-strategy.md` | Editorial plan v2 strategy objects, commercial pillar destination, claim-level source quality, lifecycle, metadata handoff |
 | `.agents/rules/customer-proof.md` | Selector-first customer proof, reuse ledger, nonconnector proof selector |
