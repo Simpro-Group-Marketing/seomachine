@@ -1,8 +1,0 @@
-Simpro page titles and canonical URLs read in the main Chrome window on 2026-10-14 (document.title and link[rel=canonical] of each fetched page; HTTP status 200 for all)
-/ | https://www.simprogroup.com/ | Field Service Management Software | Simpro AI-First Platform
-/industries/electrical-software | https://www.simprogroup.com/industries/electrical-software | Electrical Contractor Software | Simpro
-/industries/plumbing-software | https://www.simprogroup.com/industries/plumbing-software | Plumbing Contractor Software | Simpro
-/industries/hvac-software | https://www.simprogroup.com/industries/hvac-software | HVAC Software | Simpro
-/features/scheduling-software | https://www.simprogroup.com/features/scheduling-software | Service Scheduling Software for Field Teams | Simpro
-/features/estimating-software | https://www.simprogroup.com/features/estimating-software | Job Estimating & Quoting Software | Simpro
-/solutions/job-management-software | https://www.simprogroup.com/solutions/job-management-software | Jobs Management Software for Field and Office Teams | Simpro
