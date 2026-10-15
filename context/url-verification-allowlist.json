@@ -203,6 +203,15 @@
       "observed_text_length": 50000,
       "evidence": "Reviews of Simpro",
       "reason": "capterra.com returns HTTP 403 to the validator's request client. The page loads normally in the Chrome connector."
+    },
+    {
+      "url": "https://www.g2.com/products/simpro/reviews/simpro-review-12102935",
+      "verified_via": "chrome_connector",
+      "verified_at": "2026-10-15T14:19:03Z",
+      "page_title": "G2",
+      "observed_text_length": 2380,
+      "evidence": "Single source of truth: Quoting, scheduling, job costing, purchasing, invoicing, and asset management all sit in one system, reducing duplication and errors.",
+      "reason": "g2.com returns HTTP 403 to the validator's request client. The review page loads normally in the Chrome connector."
     }
   ]
 }
