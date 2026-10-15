@@ -8,7 +8,9 @@ from unittest import mock
 import pytest
 
 from data_sources.modules import paa_provenance_guard
-from data_sources.modules.production import bom_build, keyword_record, layout, page_capture, record, release, serp_coverage
+from data_sources.modules.production import (
+    bom_build, browser_capture, keyword_record, layout, page_capture, record, release, serp_coverage,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 COMMAND_DIR = ROOT / ".claude" / "commands"
@@ -24,7 +26,10 @@ ENTRIES = {
     "keyword_record": lambda: keyword_record.main([]),
     "page_capture": lambda: page_capture.main([]),
     "paa_record": lambda: paa_provenance_guard._main(["record"]),
+    "browser_capture paa": lambda: browser_capture.main(["paa"]),
+    "browser_capture serp": lambda: browser_capture.main(["serp"]),
 }
+SUBCOMMAND_CLIS = frozenset({"browser_capture"})
 
 
 class _Captured(Exception):
@@ -48,7 +53,12 @@ def _invocations():
     found = []
     for path in sorted(COMMAND_DIR.glob("*.md")):
         text = path.read_text(encoding="utf-8")
-        found += [(path.name, match.group(1), match.group(2)) for match in PRODUCTION_RE.finditer(text)]
+        for match in PRODUCTION_RE.finditer(text):
+            name, args = match.group(1), match.group(2)
+            if name in SUBCOMMAND_CLIS:  # the first word names the subcommand parser
+                subcommand, _, args = args.strip().partition(" ")
+                name = f"{name} {subcommand}"
+            found.append((path.name, name, args))
         found += [(path.name, "paa_record", match.group(1)) for match in PAA_RECORD_RE.finditer(text)]
     return found
 
