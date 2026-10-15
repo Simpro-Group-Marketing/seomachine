@@ -166,11 +166,11 @@ The report and receipt are advisory internal evidence, not public-claim proof, n
 
 ## PAA Provenance and Intent-Driven FAQ Policy
 
-- Every new article and rewrite requires a structured AnswerSocrates artifact, recorded under the production run id on the article date, even when no FAQ is useful.
-- The production BOM admits a FAQ question only from that artifact's eligible questions, and the release blocks any visible FAQ question that is not a BOM PAA question.
+- Every new article and rewrite requires a PAA capture recorded under the production run id on the article date, even when no FAQ is useful: a structured AnswerSocrates artifact or, when AnswerSocrates is unavailable, the Google SERP PAA fallback.
+- The production BOM admits a FAQ question only from that capture's eligible questions, and the release blocks any visible FAQ question that is not a BOM PAA question.
 - Rewrites follow the same rule: there is no pre-picked brief precedence. Existing FAQ questions that the run's capture does not contain are removed or turned into body sections.
-- When AnswerSocrates records a genuine blocked state (login, CAPTCHA, quota, or unavailability), keep the blocked artifact and either retry the capture or ship without a visible FAQ. A user CSV cannot supply FAQ questions to the production BOM.
-- SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
+- When AnswerSocrates shows a genuine blocked state (login, CAPTCHA, quota, or unavailability), record the Google SERP PAA fallback: the Google results page's "People also ask" questions for the same query, together with the observed AnswerSocrates blocker (see Google SERP PAA Fallback). The BOM build refuses a bare blocked AnswerSocrates artifact, because the release scorer accepts only a collected capture or the fallback. A user CSV cannot supply FAQ questions to the production BOM.
+- Outside that recorded fallback, SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
 - Match source kinds exactly. Reject stale artifacts, mismatched queries or dates, keyword fragments, and questions found only outside the eligible question section.
 - Record `FAQ policy: required | not_applicable` in the research brief. `required` applies when the BOM spec selects useful PAA questions. `not_applicable` requires a non-empty rationale.
 - Run FAQ answer-quality, proof, `FAQPage`/`Question`/`Answer` schema, and FAQ scoring only when visible FAQs exist.
@@ -242,7 +242,7 @@ Before drafting with `/write` or `/rewrite`, resolve these variables from the us
 | `topic` | User prompt or topic file | Ask the user |
 | `audience` | Connector-discovered messaging and vertical resources | Stop if unavailable for Simpro brand work |
 | `main_question` | SERP/PAA intent, title, or brief | Ask if no clear primary question exists |
-| `related_questions` | Structured AnswerSocrates artifact captured under the production run id, for new articles and rewrites alike | None: a blocked capture means no visible FAQ until a retried capture succeeds; no pre-picked brief precedence and no CSV fallback |
+| `related_questions` | Structured AnswerSocrates artifact captured under the production run id, for new articles and rewrites alike | The Google SERP PAA fallback when AnswerSocrates records a blocker; no pre-picked brief precedence and no CSV fallback |
 | `tone` | Connector semantic search and `resource_id` reads for current messaging and style guidance | Stop if unavailable for Simpro brand work |
 | `expertise` | Connector-discovered product/workflow resources and approved claims, plus verified expert sources | Ask if a named author/reviewer is required and missing |
 | `length` | Complete Reader Contract, verified intent, and available evidence | Keep the scope intent-complete without competitor-derived or universal word targets |
@@ -253,7 +253,7 @@ Do not synthesize facts, search volume, PAA questions, customer claims, or exper
 
 For `/analyze-existing`, audit whether the current post has the strategy inputs needed for a safe rewrite: main answer target, related-question provenance, source-backed claims, Source Map, E-E-A-T proof, direct-answer opportunities, capsule opportunities, schema notes, and quality-gate risks.
 
-For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. Collect a current structured AnswerSocrates artifact under the production run id; existing FAQ questions that it does not contain are removed or turned into body sections. If source-backed claims or proof are missing, collect them or mark the blocker before writing.
+For `/rewrite`, resolve the same variables before drafting. Reuse existing strategy artifacts only when they match the post topic and current rewrite direction. Collect a current PAA capture under the production run id (AnswerSocrates, or the Google SERP fallback when it is unavailable); existing FAQ questions that it does not contain are removed or turned into body sections. If source-backed claims or proof are missing, collect them or mark the blocker before writing.
 
 Do not invent replacement questions, customer proof, author names, reviewer names, search-volume data, ranking data, or external claims to fill rewrite gaps.
 
@@ -274,7 +274,7 @@ Required proof sources:
 - Connector-backed metrics are valid only when the context pack carries an approved claim, permitted use mode, public proof URL, and source-visible evidence anchor. Public copy must link to the public case study, review site, or source URL, not to internal context files.
 - Every public metric must be a BOM fact whose verified quote contains the number, or an approved BOM proof item. The release blocks a material number that is not in a BOM fact quote or proof item linked in the same paragraph.
 - Every external factual, comparative, causal, commercial, absolute, or guarantee claim needs a BOM fact: the builder admits it only when the exact quote is on the live page (or, only when the live fetch is blocked, in the hash-bound Chrome capture of that exact URL) and supports the claim, and the release blocks a claim that cites a source outside the BOM. A link alone does not prove the proposition. Explicit first-person opinion, direct imperative instructions, and non-outcome explanatory scenarios need no fact. Do not write unsupported outcome promises such as always, never, eliminates, guarantees, and ensures.
-- Each visible FAQ question must be a BOM PAA question, copied from the AnswerSocrates artifact captured for the production run. Proof links and supplemental SERP, Reddit, and YouTube research do not prove PAA provenance.
+- Each visible FAQ question must be a BOM PAA question, copied from the PAA capture recorded for the production run (AnswerSocrates, or the Google SERP fallback). Proof links and supplemental SERP, Reddit, and YouTube research do not prove PAA provenance.
 - Do not write source/proof meta-commentary in public copy, such as "that case study is useful for this topic" or "this source is relevant for the article." Translate proof into audience-facing takeaways, outcomes, or workflow lessons.
 
 ## Metric Proof Pack
@@ -486,9 +486,9 @@ Required fixed collector flow:
 5. Emit exact JSON to stdout containing observed page URL, title, diagnostic body text, section headings/items, and structurally scoped blocker observations from the fixed selector set. General body text never establishes a blocker.
 6. Immediately record the observed run at the layout's PAA path, `research/paa-evidence-[slug]-[YYYY-MM-DD].json`, with the recorder below. Do not hand-author the JSON or its hashes.
 
-If AnswerSocrates records a genuine blocked state such as login, CAPTCHA, quota, or unavailability, preserve that structured blocker artifact. Do not invent replacement questions.
+If AnswerSocrates shows a genuine blocked state such as login, CAPTCHA, quota, or unavailability, switch to the Google SERP PAA fallback below. Do not invent replacement questions.
 
-For `/rewrite`, collect a current structured AnswerSocrates artifact under the production run id. There is no pre-picked brief precedence: existing FAQ questions that the capture does not contain are removed or turned into body sections. SERP, Reddit, and YouTube stay supplemental and never satisfy PAA provenance.
+For `/rewrite`, collect a current PAA capture under the production run id, AnswerSocrates first. There is no pre-picked brief precedence: existing FAQ questions that the capture does not contain are removed or turned into body sections. Apart from the recorded Google SERP fallback, SERP, Reddit, and YouTube stay supplemental and never satisfy PAA provenance.
 
 ### Collected AnswerSocrates Artifact Template
 
@@ -502,15 +502,19 @@ The recorder emits `simpro-answersocrates-artifact/v1` with a nested `simpro-ans
 
 When the Playwright collector cannot complete a session, pass an already-collected Chrome-connector capture with `--raw-capture-input "research/answersocrates-chrome-raw-[topic-slug]-[YYYY-MM-DD].json"` in place of `--raw-capture-output`. The two flags are mutually exclusive and exactly one is required. The recorder then skips collection and validates the supplied capture's schema, execution attestation, query, collection date, and run ID exactly as it validates one it collected itself. A `simpro-answersocrates-chrome-connector-capture/v1` capture is operator-transcribed browser observation, not raw tool output, so record it as that lane and use it only when a live browser session is the only way to reach the page.
 
-### Blocked AnswerSocrates Artifact Template
+### Google SERP PAA Fallback
 
-Save the observed blocker. The blocker reason must describe what the browser actually showed.
+Use the fallback only when AnswerSocrates shows a genuine blocked state: a login wall, a CAPTCHA, a search quota or daily-limit message, or an unavailable page.
+
+1. In the user's main Chrome window, note the UTC time and save the AnswerSocrates blocker text exactly as the live tab shows it as `research/answersocrates-blocker-[slug]-[YYYY-MM-DD].txt`.
+2. Open `https://www.google.com/search?q=[the exact SERP evidence query]&hl=en&gl=[google-country]&pws=0`, read the "People also ask" questions from the page's `[data-q]` attributes in page order, and save them as a JSON list, `research/google-paa-questions-[slug]-[YYYY-MM-DD].json` (an empty list when Google shows no PAA box). Note the UTC time.
+3. Confirm both saved files against the live tabs, then record:
 
 ```powershell
-python data_sources/modules/paa_provenance_guard.py record --query "[the exact SERP evidence query]" --collection-date "[article date, YYYY-MM-DD]" --run-id "[production run_id printed by the layout command]" --raw-capture-output "research/answersocrates-playwright-raw-[slug]-[YYYY-MM-DD].json" --workspace-root "." --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
+python -m data_sources.modules.production.google_paa --query "[the exact SERP evidence query]" --run-id "[production run_id printed by the layout command]" --google-country [au|gb|us] --page-url "[the Google results URL]" --collected-at "[UTC time, YYYY-MM-DDTHH:MM:SSZ]" --questions-file "research/google-paa-questions-[slug]-[YYYY-MM-DD].json" --answersocrates-state [login|captcha|quota|unavailability] --answersocrates-text-file "research/answersocrates-blocker-[slug]-[YYYY-MM-DD].txt" --answersocrates-url "[the AnswerSocrates tab URL]" --answersocrates-observed-at "[UTC time, YYYY-MM-DDTHH:MM:SSZ]" --output "research/paa-evidence-[slug]-[YYYY-MM-DD].json"
 ```
 
-A blocked artifact has no eligible questions, so the BOM spec selects no PAA questions and the article ships without a visible FAQ unless a retried capture succeeds.
+The recorder writes an attested `simpro-google-serp-paa-capture/v1` capture (source kind `google_serp_paa`) at the layout's PAA path. The BOM build and the release scorer accept it only with a valid blocker observed on the article date before the Google capture, and with the run's query, date, and run id. Its questions are eligible PAA questions under the same FAQ rules. The release record carries a `paa_google_serp_fallback` warning that names the blocker. Provenance caveat: the attestation proves the workspace wrote the record and that it is unchanged, not that Google or AnswerSocrates served it; both observations are self-declared. The BOM build refuses a bare blocked AnswerSocrates artifact.
 
 ## Question Relevance Selection
 
@@ -591,7 +595,7 @@ Every `/write` plan and every moderate, major, or complete `/rewrite` plan, acro
 | Main answer target | The core question the article answers |
 | Capsule targets | H1 plus 60%+ major H2s |
 | Selected PAA questions | Complete eligible questions selected by intent, without a fixed count |
-| PAA/FAQ provenance | Questions copied from the AnswerSocrates artifact captured under the production run id on the article date |
+| PAA/FAQ provenance | Questions copied from the PAA capture (AnswerSocrates, or the Google SERP fallback) recorded under the production run id on the article date |
 | BOM facts | Claim, URL, exact quote, priority, and target section |
 | Metrics | Numbers only from BOM facts or approved proof; search log and rejected candidates as private notes |
 | E-E-A-T Proof Map | Experience proof, Expertise proof, Authority/Trust proof, case-study candidates, review-site VoC candidates, omitted unsupported claims |

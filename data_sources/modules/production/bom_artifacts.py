@@ -12,6 +12,7 @@ from typing import Any
 
 from data_sources.modules.blog_assembly_contract import canonical_artifact
 from data_sources.modules.commercial_pillar_index import SEMRUSH_DATABASE_BY_MARKET
+from data_sources.modules.paa_provenance.google_serp import GOOGLE_SERP_PAA_SCHEMA, google_serp_questions
 from data_sources.modules.production.bom import SpecFileError
 from data_sources.modules.production.layout import Layout, stored_run_id
 
@@ -104,6 +105,9 @@ def resolve_paa(spec: Mapping[str, Any], layout: Layout) -> dict[str, Any]:
     """Bind the PAA capture, even a blocked one, and admit only questions found in it, in its own wording."""
     questions = spec["paa_questions"]
     artifact, binding = read_bound(layout, layout.paa_artifact, "PAA artifact", ("eligible_questions",))
+    source_error = _paa_source_error(artifact, layout)
+    if source_error:
+        raise ValueError(source_error)
     eligible = artifact["eligible_questions"]
     if not isinstance(eligible, list) or not all(isinstance(q, str) for q in eligible):
         raise ValueError(f"PAA artifact {layout.paa_artifact.name} eligible_questions must be a list of text")
@@ -119,6 +123,23 @@ def resolve_paa(spec: Mapping[str, Any], layout: Layout) -> dict[str, Any]:
         raise ValueError("\n".join(dict.fromkeys(errors)))
     admitted = [{"question": known[squash(item["question"])], "priority": item["priority"]} for item in questions]
     return {"artifact": binding, "questions": admitted, "collection_date": collection_date, "run_id": run_id}
+
+
+def _paa_source_error(artifact: Mapping[str, Any], layout: Layout) -> str:
+    """A blocked AnswerSocrates capture or an invalid Google SERP fallback never passes the scorer."""
+    name = layout.paa_artifact.name
+    if artifact.get("status") == "blocked":
+        return (
+            f"PAA artifact {name} records a blocked AnswerSocrates capture; record the Google SERP PAA fallback "
+            "with python -m data_sources.modules.production.google_paa, including that blocker, then rebuild"
+        )
+    if artifact.get("schema") != GOOGLE_SERP_PAA_SCHEMA:
+        return ""
+    _questions, _blocker, error = google_serp_questions(
+        layout.paa_artifact, None, expected_query=None, expected_collection_date=layout.date,
+        expected_run_id=stored_run_id(layout),
+    )
+    return f"Google SERP PAA fallback {name} is invalid: {error}" if error else ""
 
 
 def _paa_identity(artifact: Mapping[str, Any], layout: Layout) -> tuple[str, str, list[str]]:

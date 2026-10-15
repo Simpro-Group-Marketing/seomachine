@@ -20,7 +20,8 @@ SELECTED_RE = re.compile(r"^-\s*Selected questions:\s*$", re.IGNORECASE)
 
 BULLET_RE = re.compile(r"^\s*-\s+(.+?)\s*$")
 
-PRIMARY_SOURCE_KINDS = frozenset({"answersocrates", "brief_paa", "user_csv"})
+# google_serp_paa: the Google SERP fallback, valid only with a recorded AnswerSocrates blocker (google_serp.py).
+PRIMARY_SOURCE_KINDS = frozenset({"answersocrates", "brief_paa", "user_csv", "google_serp_paa"})
 
 SUPPLEMENTAL_SOURCE_KINDS = frozenset({"serp", "reddit", "youtube"})
 

@@ -47,7 +47,7 @@ When routing to `/rewrite`, `/analyze-existing` produces the rewrite findings th
 - Identify every existing claim, number, quote, customer story, and source link, and decide whether it survives: an existing citation survives only as a BOM fact whose quote the builder verifies on the live page, and existing customer proof survives only as a selected, approved BOM proof item. Note the facts and proof the rewrite needs, the E-E-A-T strength, and branch-applicable proof needs. Vault brand language, named feature and add-on checks, connector customer proof, and Fred Voccola authority apply only when Context Binding requires the connector. For commercial-investigation rewrites, `no_fit_customer_proof` is anti-invention only; plan a positive signal or record a private `proof_unavailable_safe_to_publish` note in the findings.
 - When Hindsight internal-strategy evidence is relevant to the rewrite angle, use the connector internal-strategy lane to shape only the private reader angle, section emphasis, planned contribution purposes, objections, and commercial framing. Record `Hindsight Strategy Selection` in the findings for the research brief with `public_claim_use: prohibited` and `claim_support_allowed: false`, and keep Hindsight out of public proof, claims, citations, metrics, quotes, rankings, and source links. Hindsight never becomes a BOM fact, proof item, PAA question, or link. If it is not relevant, record `Status: not_applicable` or omit the block.
 - Treat content quality 85/100+, SEO quality release floor 90/100+ and optimization target 95/100, and AEO/GEO 90/100+ as rewrite or optimization acceptance targets.
-- FAQ questions come only from the AnswerSocrates capture recorded for the rewrite's production run: there is no pre-picked brief precedence and no CSV fallback. Flag existing FAQ questions for removal, or for conversion into body sections, when the capture does not contain them.
+- FAQ questions come only from the PAA capture recorded for the rewrite's production run (AnswerSocrates, or the Google SERP fallback): there is no pre-picked brief precedence and no CSV fallback. Flag existing FAQ questions for removal, or for conversion into body sections, when the capture does not contain them.
 - Do not invent replacement PAA questions, customer proof, author names, reviewer names, search-volume data, ranking data, traffic forecasts, or external claims.
 
 ### 5. Competitive Context
@@ -66,7 +66,7 @@ Provide an analysis report with:
 - Top 3-5 fixes suitable for `/optimize`, such as metadata, headings, internal links, readability, stale references, or missing evidence links.
 
 ### 3. Strategic Improvements
-- Larger changes suitable for `/rewrite`, including intent realignment, proof rebuilding, new sections, FAQ replacement from the run's AnswerSocrates capture, source-fact work, or major structure changes.
+- Larger changes suitable for `/rewrite`, including intent realignment, proof rebuilding, new sections, FAQ replacement from the run's PAA capture, source-fact work, or major structure changes.
 
 ### 4. Detailed Analysis Reports
 - Search intent, keyword coverage, observed competitor context, readability, source support, proof gaps, and AEO/GEO readiness.
@@ -76,7 +76,7 @@ Provide an analysis report with:
 - Expected impact stated as evidence-bound reader value or search alignment direction, not unsupported ranking or traffic forecasts.
 
 ### 6. Rewrite Findings for the BOM
-If a rewrite is recommended, list the inputs `/rewrite` carries into the `/research` BOM process: preserve, update, add, and remove decisions per section; candidate facts with their public source pages; existing links to keep; proof needs; FAQ questions to re-check against the run's AnswerSocrates capture; the current and candidate target keywords for the Semrush lane; competitor observations; the commercial pillar candidate; and the Simpro angle.
+If a rewrite is recommended, list the inputs `/rewrite` carries into the `/research` BOM process: preserve, update, add, and remove decisions per section; candidate facts with their public source pages; existing links to keep; proof needs; FAQ questions to re-check against the run's PAA capture; the current and candidate target keywords for the Semrush lane; competitor observations; the commercial pillar candidate; and the Simpro angle.
 
 ## File Management
 Save the report to `research/analysis-[post-slug]-[YYYY-MM-DD].md`.

@@ -9,7 +9,7 @@ import pytest
 
 from data_sources.modules import paa_provenance_guard
 from data_sources.modules.production import (
-    bom_build, browser_capture, keyword_record, layout, page_capture, record, release, serp_coverage,
+    bom_build, browser_capture, google_paa, keyword_record, layout, page_capture, record, release, serp_coverage,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +28,7 @@ ENTRIES = {
     "paa_record": lambda: paa_provenance_guard._main(["record"]),
     "browser_capture paa": lambda: browser_capture.main(["paa"]),
     "browser_capture serp": lambda: browser_capture.main(["serp"]),
+    "google_paa": lambda: google_paa.main([]),
 }
 SUBCOMMAND_CLIS = frozenset({"browser_capture"})
 

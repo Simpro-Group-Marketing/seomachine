@@ -11,6 +11,7 @@ from ..guard_common import Finding
 from .snapshot_validation import extract_csv_questions_content
 from .artifact import _extract_csv_questions, _parse_question_artifact
 from .contracts import FaqQuestion, ProvenanceBlock, _DuplicateBriefPaaSectionsError
+from .google_serp import GOOGLE_SERP_PAA_SOURCE_KIND, google_serp_questions
 from .matching import (
     _artifact_workspace_root,
     _extract_brief_paa_questions,
@@ -91,6 +92,13 @@ def _artifact_questions(
         )
     if resolved.source_kind == "brief_paa":
         return _brief_questions(resolved, artifact_path, paa_artifact_content)
+    if resolved.source_kind == GOOGLE_SERP_PAA_SOURCE_KIND:
+        return _google_questions(
+            resolved, artifact_path, paa_artifact_content,
+            expected_query=expected_query,
+            expected_collection_date=expected_collection_date,
+            expected_run_id=expected_run_id,
+        )
     return _answersocrates_questions(
         resolved,
         artifact_path,
@@ -239,6 +247,35 @@ def _answersocrates_questions(
         () if record is None else record.ineligible_fragments,
         finding,
     )
+
+
+def _google_questions(
+    resolved: _ResolvedEvaluation,
+    path: Path,
+    content: str | None,
+    *,
+    expected_query: str | None,
+    expected_collection_date: str | None,
+    expected_run_id: str | None,
+) -> tuple[tuple[str, ...], tuple[str, ...], Finding | None]:
+    """The Google SERP fallback capture; see ``google_serp``."""
+    questions, _blocker, error = google_serp_questions(
+        path,
+        content,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
+    )
+    if error:
+        return (), (), _finding(
+            "paa_google_serp_capture_invalid",
+            resolved.provenance.line,
+            None,
+            f"The Google SERP PAA capture is invalid: {error}.",
+            "Re-record the Google SERP fallback with production.google_paa, including the AnswerSocrates blocker.",
+            match=resolved.provenance.artifact,
+        )
+    return questions, (), None
 
 
 def _artifact_text(path: Path, content: str | None) -> tuple[str, bool]:

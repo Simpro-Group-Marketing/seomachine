@@ -36,6 +36,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from data_sources.modules.paa_provenance import google_serp
 from data_sources.modules.production.bom import BuildEnvironmentError, SpecFileError, load_bom
 from data_sources.modules.production.bom_artifacts import read_spec_bound
 from data_sources.modules.production.bom_build import _retire_stale_bom, _write_bom, build_bom, is_nonconnector
@@ -222,6 +223,20 @@ def _carried_findings(bom: Mapping[str, Any]) -> list[Finding]:
     ]
 
 
+def _paa_source_findings(root: Path, bom: Mapping[str, Any]) -> list[Finding]:
+    """One warning naming the Google SERP PAA fallback and its AnswerSocrates blocker, so the record shows it."""
+    binding = (bom.get("paa") or {}).get("artifact")
+    path = root / str(binding.get("path")) if isinstance(binding, Mapping) else None
+    if path is None or not google_serp.is_google_serp_capture(path):
+        return []
+    blocker = json.loads(path.read_text(encoding="utf-8")).get("answersocrates_blocker") or {}
+    message = (
+        f"PAA came from the Google SERP fallback ({binding.get('path')}): AnswerSocrates showed "
+        f"{blocker.get('state')} at {blocker.get('observed_at')}"
+    )
+    return [Finding(google_serp.RELEASE_CHECK, "warn", message, None)]
+
+
 def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list[Any], dict[str, Any]]:
     """Truth and coverage beside scoring; scoring is submitted first so the slow jobs overlap."""
     text = run.article_bytes.decode("utf-8")
@@ -239,7 +254,8 @@ def _run_checks(run: _Run, bom: Mapping[str, Any], transport: Any) -> tuple[list
                 results = {name: future.result() for name, future in futures.items()}
     except ScoringPreflightError as error:
         raise ReleaseStop(2, [f"scoring preflight: {error}"]) from error
-    return [*results["truth"], *results["coverage"], *_carried_findings(bom)], results["scores"]
+    paa_source = _paa_source_findings(run.layout.root, bom)
+    return [*results["truth"], *results["coverage"], *_carried_findings(bom), *paa_source], results["scores"]
 
 
 def _score_lines(scores: Mapping[str, Any]) -> list[str]:

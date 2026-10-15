@@ -12,7 +12,7 @@ Analyzes an intent-representative verified result set until dominant patterns an
 - Average, median, range, and individual competitor word counts as context only
 - SERP features present (featured snippet, PAA, video, etc.)
 - AEO/GEO variable candidates for blog writing
-- Supplemental visible PAA observations that may refine the AnswerSocrates query or research brief but never become provenance
+- Supplemental visible PAA observations that may refine the AnswerSocrates query or research brief but never become provenance (the recorded Google SERP PAA fallback is a separate capture; see `context/aeo-geo-blog-strategy.md`)
 - Observed freshness signals
 - Competitive difficulty
 - Search intent
@@ -67,7 +67,7 @@ The Playwright fallback must use this controlled Google URL pattern:
 Unless explicitly overridden, `google-country` is `us`; a UK run uses `gb`.
 
 Before running Playwright, verify `npx` is available. If it is not available, stop with this blocker:
-`npx unavailable; install Node/npm or provide a SERP export. PAA provenance still requires AnswerSocrates or the rewrite-only brief exception.`
+`npx unavailable; install Node/npm or provide a SERP export. PAA provenance still requires AnswerSocrates or its recorded Google SERP fallback.`
 
 The Playwright fallback may collect only browser-visible facts:
 - Top visible organic result titles, URLs, snippets, and observed positions
@@ -91,7 +91,7 @@ When fallback is used, the report must include a `Playwright SERP Fallback` sect
 - Raw artifact path
 - Limitations: browser-visible only, no search volume, no DataForSEO rank metrics, no invented competitor metrics
 
-If Playwright fallback is blocked, the report must state that DataForSEO failed, Playwright SERP fallback failed, no SERP competitor metrics were used, and the next acceptable SERP evidence is a user-provided SERP export, verified Asana brief, GSC, live page evidence, and public sources. A user PAA CSV remains invalid unless a saved AnswerSocrates artifact records a genuine blocked state.
+If Playwright fallback is blocked, the report must state that DataForSEO failed, Playwright SERP fallback failed, no SERP competitor metrics were used, and the next acceptable SERP evidence is a user-provided SERP export, verified Asana brief, GSC, live page evidence, and public sources. A user PAA CSV is never PAA provenance; when AnswerSocrates is blocked, use the recorded Google SERP PAA fallback.
 
 ## Output
 
@@ -112,11 +112,11 @@ The report includes:
 
 ### AEO/GEO Inputs
 - Candidate `main_question` for direct-answer-first drafting
-- Supplemental PAA observations with intent labels; these cannot replace the AnswerSocrates capture
+- Supplemental PAA observations with intent labels; these cannot replace the run's PAA capture
 - Capsule Method opportunities by H2/definition/comparison section
 - Source mapping needs for credible external claims
 
-PAA provenance remains a separate lane. Every new article and rewrite requires a structured AnswerSocrates artifact recorded under the production run id, even when `FAQ policy: required | not_applicable` resolves to `not_applicable` with a non-empty rationale. The production BOM admits FAQ questions only from that capture: there is no pre-picked brief precedence for rewrites, and a user CSV cannot supply FAQ questions. When AnswerSocrates records a genuine blocked state (login, CAPTCHA, quota, or unavailability), retry the capture or ship without a visible FAQ. SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
+PAA provenance remains a separate lane. Every new article and rewrite requires a PAA capture recorded under the production run id (AnswerSocrates, or the Google SERP fallback when AnswerSocrates is blocked), even when `FAQ policy: required | not_applicable` resolves to `not_applicable` with a non-empty rationale. The production BOM admits FAQ questions only from that capture: there is no pre-picked brief precedence for rewrites, and a user CSV cannot supply FAQ questions. When AnswerSocrates records a genuine blocked state (login, CAPTCHA, quota, or unavailability), retry the capture or ship without a visible FAQ. SERP, Reddit, and YouTube are supplemental research and cannot satisfy PAA provenance.
 
 ### Content Brief
 - Article context (caller-supplied word target or unresolved status, observed type, tone)
@@ -151,7 +151,7 @@ Check whether visible SERP patterns have changed, then evaluate them against the
 
 After running `/research-serp`:
 - Use the content brief to guide writing
-- Use visible PAA observations only to refine the AnswerSocrates query or editorial intent. Never write SERP questions into the AnswerSocrates artifact or treat them as eligible provenance.
+- Use visible PAA observations only to refine the AnswerSocrates query or editorial intent. Never write SERP questions into the AnswerSocrates artifact or treat them as eligible provenance; only the Google SERP PAA fallback recorder turns them into a PAA capture.
 - Use `/write [keyword]` with insights from SERP analysis
 - Match the dominant observed content type by default; evaluate recurring observed structure, include each applicable structure, target every applicable SERP feature, and document any Reader Contract exception
 - Use competitor length only as observed context; resolve scope from the Reader Contract, reader payoff, task coverage, and available evidence

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from data_sources.modules.production import bom_build
+from data_sources.modules.production import bom_build, google_paa
 from data_sources.modules.production.layout import load_or_create_run_id
 from tests.production_bom_support import (
     STORY_NO_FIT,
@@ -56,12 +56,44 @@ def test_missing_paa_artifact_aborts_even_without_questions(tmp_path):
         _build(layout)
 
 
-def test_blocked_paa_capture_with_no_eligible_questions_builds(tmp_path):
+def test_blocked_answersocrates_capture_aborts_naming_the_google_fallback(tmp_path):
     layout = make_workspace(tmp_path)
     _no_questions(layout)
     blocked = {**paa_artifact(load_or_create_run_id(layout)), "eligible_questions": [], "status": "blocked"}
     write_json(layout.paa_artifact, blocked)
-    assert _build(layout)["paa"]["questions"] == []
+    with pytest.raises(ValueError, match="google_paa"):
+        _build(layout)
+
+
+def _google_capture(layout, *, observed_at=f"{TODAY}T08:00:00Z"):
+    research = layout.root / "research"
+    questions, blocker = research / "google-questions.json", research / "answersocrates-blocker.txt"
+    write_json(questions, ["What is field service software?"])
+    blocker.write_text("You've Used All Your Searches", encoding="utf-8")
+    return google_paa.main([
+        "--query", "field service software", "--run-id", load_or_create_run_id(layout), "--google-country", "us",
+        "--page-url", "https://www.google.com/search?q=field+service+software", "--collected-at",
+        f"{TODAY}T09:00:00Z", "--questions-file", str(questions), "--answersocrates-state", "quota",
+        "--answersocrates-text-file", str(blocker), "--answersocrates-url", "https://answersocrates.com/",
+        "--answersocrates-observed-at", observed_at, "--output", str(layout.paa_artifact),
+        "--workspace-root", str(layout.root),
+    ])
+
+
+def test_google_serp_fallback_capture_builds_with_its_questions(tmp_path):
+    layout = make_workspace(tmp_path)
+    assert _google_capture(layout) == 0
+    assert _build(layout)["paa"]["questions"][0]["question"] == "What is field service software?"
+
+
+def test_edited_google_serp_fallback_capture_aborts(tmp_path):
+    layout = make_workspace(tmp_path)
+    assert _google_capture(layout) == 0
+    payload = json.loads(layout.paa_artifact.read_text(encoding="utf-8"))
+    payload["answersocrates_blocker"]["state"] = "login"
+    write_json(layout.paa_artifact, payload)
+    with pytest.raises(ValueError, match="attestation"):
+        _build(layout)
 
 
 def test_paa_capture_from_another_run_aborts_even_without_questions(tmp_path):

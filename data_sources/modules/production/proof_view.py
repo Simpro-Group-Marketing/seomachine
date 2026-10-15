@@ -13,11 +13,12 @@ from typing import Any
 
 from data_sources.modules.faq_proof_guard import _extract_public_urls
 from data_sources.modules.faq_structure import detect_faq_structure
+from data_sources.modules.paa_provenance.google_serp import GOOGLE_SERP_PAA_SOURCE_KIND, is_google_serp_capture
 from data_sources.modules.production.source_class import classify_source
 from data_sources.modules.proof_link_policy import canonicalize_link_identity
 
-# The production PAA lane records AnswerSocrates captures (paa_provenance_guard record);
-# the rater rejects any bound artifact that is not a structured AnswerSocrates record.
+# The production PAA lane records AnswerSocrates captures (paa_provenance_guard record), or the
+# Google SERP fallback (production.google_paa) when AnswerSocrates showed a recorded blocker.
 PAA_SOURCE_KIND = "answersocrates"
 INDEPENDENT_AUTHORITY_CLASSES = frozenset({"primary_authority", "independent_research"})
 FAQ_SOURCE_POLICY = (
@@ -46,7 +47,9 @@ def _paa_block(bom: Mapping[str, Any], root: Path | None) -> str:
     if not isinstance(binding, Mapping):
         return ""
     selected = [f"  - {_cell(item['question'])}" for item in paa.get("questions") or []]
-    lines = ["## PAA/FAQ Provenance", f"- Source: {PAA_SOURCE_KIND}", f"- Artifact: {_path(binding, root)}"]
+    path = _path(binding, root)
+    source = GOOGLE_SERP_PAA_SOURCE_KIND if is_google_serp_capture(Path(path)) else PAA_SOURCE_KIND
+    lines = ["## PAA/FAQ Provenance", f"- Source: {source}", f"- Artifact: {path}"]
     return "\n".join([*lines, "- Selected questions:", *selected])
 
 

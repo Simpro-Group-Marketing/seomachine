@@ -642,7 +642,7 @@ Use an FAQ section only when the research brief records `FAQ policy: required` a
 
 - Write FAQ questions in natural prompt language (how real people ask, not SEO-speak)
 - Answer each question directly in the first sentence, then expand
-- Include only the useful complete questions the production BOM admitted from the run's structured AnswerSocrates artifact, for new articles and rewrites alike; do not target a fixed count
+- Include only the useful complete questions the production BOM admitted from the run's PAA capture (AnswerSocrates, or the Google SERP fallback), for new articles and rewrites alike; do not target a fixed count
 - Reddit, YouTube comments, and search suggestions may inform intent but cannot satisfy PAA provenance
 
 ### Content Repurposing for AI Citation Surface
