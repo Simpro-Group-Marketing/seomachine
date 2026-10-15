@@ -1,12 +1,9 @@
 from datetime import date
-from pathlib import Path
 
 import pytest
 
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.faq_structure import faq_question_match_key, faq_questions_match
-from tests.test_blog_assembly_bom import _build, _fixture
-from tests.test_blog_assembly_bom_guard import _rules
 
 
 @pytest.fixture(autouse=True)
@@ -40,14 +37,3 @@ def test_brief_paa_stays_exact_except_outer_whitespace() -> None:
     assert not faq_questions_match(["is simpro a crm system?"], ["Is Simpro a CRM system?"], source_kind="brief_paa")
     assert faq_questions_match([" Is Simpro a CRM system? "], ["Is Simpro a CRM system?"], source_kind="brief_paa")
 
-
-def test_paa_selected_questions_match_visible_headings_case_insensitively(tmp_path: Path):
-    paths = _fixture(tmp_path, visible_faq=True)
-    bom = _build(tmp_path, paths)
-    bom["paa_policy"]["selected_questions"] = [
-        question.lower() for question in bom["paa_policy"]["selected_questions"]
-    ]
-
-    rules = _rules(tmp_path, bom, paths)
-
-    assert "bom_paa_questions_mismatch" not in rules

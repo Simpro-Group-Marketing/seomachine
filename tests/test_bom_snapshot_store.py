@@ -7,10 +7,6 @@ from pathlib import Path
 import pytest
 
 from data_sources.modules.readiness.inputs import ReadinessInputs
-from data_sources.modules import blog_assembly_contract
-from data_sources.modules.blog_assembly_bom_guard import check_bom
-from tests.test_blog_assembly_bom import _build
-from tests.test_blog_assembly_bom_v4 import _upgrade_to_v4
 
 def _write(path: Path, content: str, *, root: Path) -> dict[str, str]:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -87,73 +83,3 @@ def test_row_view_rejects_an_uncaptured_or_mismatched_binding(tmp_path: Path) ->
             {"path": row["path"], "sha256": "0" * 64},
             field="record",
         )
-
-def test_current_bom_gate_does_not_reopen_captured_inputs(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        blog_assembly_contract,
-        "current_utc_date",
-        lambda: __import__("datetime").date(2026, 8, 11),
-    )
-    paths = _upgrade_to_v4(tmp_path)
-    bom = _build(
-        tmp_path,
-        paths,
-        plan_fulfillment_path=paths["plan_fulfillment"],
-        commercial_pillar_index_path=paths["commercial_pillar_index"],
-    )
-    bom_path = tmp_path / "research" / "bom.json"
-    bom_path.write_text(json.dumps(bom), encoding="utf-8")
-    inputs = ReadinessInputs.capture(
-        {
-            "article": paths["article"],
-            "validation_sidecar": paths["sidecar"],
-            "assembly_bom": bom_path,
-        },
-        workspace_root=tmp_path,
-    )
-    captured_paths = {
-        inputs.snapshot(label).path for label in inputs.hash_inventory()
-    }
-    original_read_text = Path.read_text
-    original_read_bytes = Path.read_bytes
-    def guarded_read_text(path: Path, *args, **kwargs):
-        if path.resolve() in captured_paths:
-            raise AssertionError("captured input was reopened with read_text")
-        return original_read_text(path, *args, **kwargs)
-
-    def guarded_read_bytes(path: Path, *args, **kwargs):
-        if path.resolve() in captured_paths:
-            raise AssertionError("captured input was reopened with read_bytes")
-        return original_read_bytes(path, *args, **kwargs)
-
-    monkeypatch.setattr(
-        Path,
-        "read_text",
-        guarded_read_text,
-    )
-    monkeypatch.setattr(
-        Path,
-        "read_bytes",
-        guarded_read_bytes,
-    )
-
-    findings = check_bom(
-        inputs.json_row_copy(
-            {
-                "path": inputs.snapshot("assembly_bom").relative_path,
-                "sha256": inputs.snapshot("assembly_bom").sha256,
-            },
-            field="assembly_bom",
-        ),
-        article_path=paths["article"],
-        validation_sidecar_path=paths["sidecar"],
-        workspace_root=tmp_path,
-        expected_lifecycle_state="provisional",
-        require_current_schema=True,
-        captured=inputs,
-    )
-
-    assert findings == []

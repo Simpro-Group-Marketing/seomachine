@@ -1,5 +1,4 @@
 from data_sources.modules.content_scorer import ContentScorer
-from data_sources.modules.keyword_analyzer import KeywordAnalyzer
 from data_sources.modules.seo_quality_rater import SEOQualityRater
 
 
@@ -68,23 +67,14 @@ def test_complete_short_blog_has_no_word_count_penalty_in_both_scorers():
 
 def test_low_keyword_density_has_no_recommendation_or_score_penalty():
     content = _article(30)
-    low_keyword_content = (
-        "# Field Service Workflow\n\n"
-        + "Teams coordinate jobs, exceptions, responsibilities, and next steps. " * 250
-    )
-    keyword_result = KeywordAnalyzer().analyze(low_keyword_content, PRIMARY_KEYWORD)
     no_density = SEOQualityRater().rate(content, **_metadata())
     low_density = SEOQualityRater().rate(content, keyword_density=0.1, **_metadata())
 
-    recommendations = "\n".join(keyword_result["recommendations"]).lower()
     low_findings = "\n".join(
         low_density["critical_issues"]
         + low_density["warnings"]
         + low_density["suggestions"]
     ).lower()
-    assert "density is too low" not in recommendations
-    assert "density is slightly low" not in recommendations
-    assert keyword_result["primary_keyword"]["density"] < 0.5
     assert "density is too low" not in low_findings
     assert low_density["category_scores"]["keyword_optimization"] == no_density["category_scores"]["keyword_optimization"]
 
@@ -100,31 +90,22 @@ def test_h1_and_first_100_word_placement_checks_remain_active():
 
 def test_high_keyword_density_still_produces_stuffing_findings():
     content = _article(6)
-    keyword_result = KeywordAnalyzer().analyze(
-        "# Field Service Workflow\n\n" + (PRIMARY_KEYWORD + ". ") * 80,
-        PRIMARY_KEYWORD,
-    )
     rater_result = SEOQualityRater().rate(
         content,
         keyword_density=4.0,
         **_metadata(),
     )
 
-    assert keyword_result["keyword_stuffing"]["risk_level"] == "high"
-    assert any("stuffing" in item.lower() for item in keyword_result["recommendations"])
     assert any("too high" in item.lower() for item in rater_result["critical_issues"])
 
 
 def test_word_count_and_density_remain_available_as_diagnostics():
     content = _article(6)
-    keyword_result = KeywordAnalyzer().analyze(content, PRIMARY_KEYWORD)
     rater_result = SEOQualityRater().rate(
         content,
         keyword_density=0.4,
         **_metadata(),
     )
 
-    assert isinstance(keyword_result["word_count"], int)
-    assert isinstance(keyword_result["primary_keyword"]["density"], float)
     assert isinstance(rater_result["details"]["word_count"], int)
     assert rater_result["details"]["keyword_density"] == 0.4

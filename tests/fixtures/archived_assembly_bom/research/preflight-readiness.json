@@ -1,0 +1,415 @@
+{
+  "aeo_geo": {
+    "passed": true,
+    "score": 95,
+    "threshold": 90
+  },
+  "artifact_kind": "blog",
+  "assembly_bom": "C:\\Users\\patrick.grueschow\\AppData\\Local\\Temp\\archived-bom-0d0p2_kz\\research\\provisional-bom.json",
+  "completed_at": "2026-08-11T14:07:00Z",
+  "context_pack": null,
+  "context_receipt": null,
+  "context_request": null,
+  "file": "C:\\Users\\patrick.grueschow\\AppData\\Local\\Temp\\archived-bom-0d0p2_kz\\drafts\\scheduling-guide-2026-08-11.md",
+  "gate_inventory": [
+    "artifact_identity",
+    "context_boundary",
+    "context_binding",
+    "blog_assembly_bom",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "industry_cluster_link_policy",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "paa_provenance",
+    "editorial_plan",
+    "semrush_keyword_decision",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "content_scorer",
+    "input_seal"
+  ],
+  "gates": [
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Artifact Identity",
+      "name": "artifact_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Boundary",
+      "name": "context_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Context Binding",
+      "name": "context_binding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Blog Assembly Bom",
+      "name": "blog_assembly_bom",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Artifact",
+      "name": "public_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Ai Copy Linter",
+      "name": "ai_copy_linter",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Url Validator",
+      "name": "url_validator",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Public Research Links",
+      "name": "public_research_links",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Industry Cluster Link Policy",
+      "name": "industry_cluster_link_policy",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Metric Proof Pack",
+      "name": "metric_proof_pack",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Numeric Claim Source",
+      "name": "numeric_claim_source",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Paa Provenance",
+      "name": "paa_provenance",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Editorial Plan",
+      "name": "editorial_plan",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Semrush Keyword Decision",
+      "name": "semrush_keyword_decision",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Competitive Shortlist",
+      "name": "competitive_shortlist",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Hindsight Boundary",
+      "name": "hindsight_boundary",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Support",
+      "name": "source_support",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Source Quality",
+      "name": "source_quality",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Customer Proof Diversity",
+      "name": "customer_proof_diversity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Review Story Identity",
+      "name": "review_story_identity",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Eeat Strength",
+      "name": "eeat_strength",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Early Artifact",
+      "name": "early_artifact",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Answer Withholding",
+      "name": "answer_withholding",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Content Scorer",
+      "name": "content_scorer",
+      "passed": true,
+      "warnings": 0
+    },
+    {
+      "blockers": [],
+      "errors": 0,
+      "findings": [],
+      "label": "Input Seal",
+      "name": "input_seal",
+      "passed": true,
+      "warnings": 0
+    }
+  ],
+  "input_hashes": {
+    "agent_definition.content-analyzer": {
+      "path": ".claude/agents/content-analyzer.md",
+      "sha256": "b4c832daa8f6148510bf5db5278f7880c5f31e76f578f516e4f9ce345553dff1"
+    },
+    "agent_definition.internal-linker": {
+      "path": ".claude/agents/internal-linker.md",
+      "sha256": "4d0568711cbe5cca5fc551c2f02151b1dd57181c727285afedae406f2fbf7cec"
+    },
+    "agent_definition.keyword-mapper": {
+      "path": ".claude/agents/keyword-mapper.md",
+      "sha256": "76f9ec670c09ef7c74adad4c530bdc15e70e2d9dccff415eafdf0baac2b81d84"
+    },
+    "agent_definition.meta-creator": {
+      "path": ".claude/agents/meta-creator.md",
+      "sha256": "2b591864e1cb145a19d940f85ba7f462729aa32f354d009fafa0b7640af04d4d"
+    },
+    "agent_definition.seo-optimizer": {
+      "path": ".claude/agents/seo-optimizer.md",
+      "sha256": "544ab947f9f965d8b80197f16d4134fbcdafe5ac5f5778b650eb5d4a5157cd3b"
+    },
+    "agent_output.content-analyzer": {
+      "path": "research/agent-outputs/content-analyzer-scheduling-guide-2026-08-11.md",
+      "sha256": "c0a8f2ca47fe5387f1683d7516ee6f857e1c4a433083e7a257c5935a5f24a090"
+    },
+    "agent_output.internal-linker": {
+      "path": "research/agent-outputs/internal-linker-scheduling-guide-2026-08-11.md",
+      "sha256": "b5d8a292ccb8df73517418eb6527d8e67ab596b6e89ccd978e4d0d321c80a219"
+    },
+    "agent_output.keyword-mapper": {
+      "path": "research/agent-outputs/keyword-mapper-scheduling-guide-2026-08-11.md",
+      "sha256": "87bdb54fa9d7ae43fac8dca00cd8287ee49467e51f8c7f6f5e656376897ce673"
+    },
+    "agent_output.meta-creator": {
+      "path": "research/agent-outputs/meta-creator-scheduling-guide-2026-08-11.md",
+      "sha256": "1cc46d6d3e18966dbfcd35223b030d7a8c2d7c2329f223a9903b21247a3c5899"
+    },
+    "agent_output.seo-optimizer": {
+      "path": "research/agent-outputs/seo-optimizer-scheduling-guide-2026-08-11.md",
+      "sha256": "594a7e2fb156ac774d518a3cbab87d414b7d5ca8706496929716d31fa017cf78"
+    },
+    "article": {
+      "path": "drafts/scheduling-guide-2026-08-11.md",
+      "sha256": "d97849a079b0281b8ca0ddec5960a3f4f45b7a648be244adf10eebcb5c51ee21"
+    },
+    "assembly_bom": {
+      "path": "research/provisional-bom.json",
+      "sha256": "2552ed9426a273ef6f22a3792c23a71001487938bdb27db69e04031176a02ede"
+    },
+    "command_definition.write-command": {
+      "path": ".claude/commands/write.md",
+      "sha256": "1faf65c9888b0b14295daa0c50f3f11fdebae3c3d4acdb750685e72c6048d343"
+    },
+    "editorial_plan": {
+      "path": "research/editorial-plan.json",
+      "sha256": "0288d7e5c3b47ddb5eeff56a82025f0435462b7e26608d944e2904b5fc9a3d1a"
+    },
+    "keyword_decision": {
+      "path": "research/semrush-keyword-decision-scheduling-guide-2026-08-11.json",
+      "sha256": "20b36c37fddda128634978f159d221a2dfe3e6fda88c339425709ed3fb143de6"
+    },
+    "machine_reviews.article": {
+      "path": "research/machine-review-article.json",
+      "sha256": "ecfb2ecc75e0585b0eb5f41e200d0d2d7deaf7fd584f6435bde7d88af92f2561"
+    },
+    "machine_reviews.plan": {
+      "path": "research/machine-review-plan.json",
+      "sha256": "a3b533548ac130147d7aa82ba29772a4ebd3ac8c5cda309069896a84aa43684b"
+    },
+    "paa_artifact": {
+      "path": "research/paa-questions.md",
+      "sha256": "6cb7b2315960f6e93436c625b213f106d80ecfee4907dcea0d1903075c798c77"
+    },
+    "paa_raw_capture": {
+      "path": "research/answersocrates-raw-blog-run-5bd0957248e2db9593f82d07fc52895840f72d2f8ef8bf138dee96313941f1e9.json",
+      "sha256": "84cfead585798743a58840b89064490efdcd6fcb188d84001765b1f0d879b18c"
+    },
+    "serp_evidence": {
+      "path": "research/serp-evidence.json",
+      "sha256": "bf85c747a6221eb2ef5417750114de9bdc44af1a22290b8f81bbca01544177f7"
+    },
+    "serp_raw_capture": {
+      "path": "research/serp-raw-blog-run-5bd0957248e2db9593f82d07fc52895840f72d2f8ef8bf138dee96313941f1e9.json",
+      "sha256": "6c3ef14f86ae46c0eac892c591fb843b0c0659a9216a5a98fc06928b2d3546f1"
+    },
+    "stage_evidence[0]": {
+      "path": "research/stage-scrub-evidence.json",
+      "sha256": "5d90b8e648e31062e9d141b46751154416775c8d78a0397e56bf2e2abe1b8194"
+    },
+    "stage_evidence[1]": {
+      "path": "research/stage-context-binding-evidence.json",
+      "sha256": "93606c2214ed40b318ab9d148d099000585db2fa1ffd2fb423c99a4c4bd9cab9"
+    },
+    "stage_receipts[0]": {
+      "path": "research/stage-draft.json",
+      "sha256": "23778174e8ee443bea75b5407cf18258a28f6dce5d1178961e65edc5e21e7676"
+    },
+    "stage_receipts[1]": {
+      "path": "research/stage-scrub.json",
+      "sha256": "88d4108840eb65de475372640d81e3b2eba1c76da3f9bfabd9dba54a5a152dde"
+    },
+    "stage_receipts[2]": {
+      "path": "research/stage-context-binding.json",
+      "sha256": "bda4d0f722902b8f7bef8379be1095c9d7a209905e985d9cddb4ea5233976f62"
+    },
+    "validation_sidecar": {
+      "path": "research/validation-scheduling-guide-2026-08-11.md",
+      "sha256": "065a68768b2d6aec36f95bab346e131296cfb7ffaa166a33ad5db57dfb8af9fe"
+    }
+  },
+  "input_seal": {
+    "status": "verified"
+  },
+  "passed": true,
+  "phase": "preflight",
+  "priority_fixes": [],
+  "proof_sidecar": "C:\\Users\\patrick.grueschow\\AppData\\Local\\Temp\\archived-bom-0d0p2_kz\\research\\validation-scheduling-guide-2026-08-11.md",
+  "run_id": "blog-run-5bd0957248e2db9593f82d07fc52895840f72d2f8ef8bf138dee96313941f1e9",
+  "schema": "simpro-publish-readiness-result/v1",
+  "score": 95,
+  "score_threshold": 85,
+  "scorecard": {
+    "aeo_geo": {
+      "passed": true,
+      "score": 95,
+      "threshold": 90
+    },
+    "content_quality": {
+      "passed": true,
+      "score": 95,
+      "threshold": 85
+    },
+    "passed": true,
+    "seo_quality": {
+      "critical_issue_count": 0,
+      "critical_issues": [],
+      "passed": true,
+      "score": 95,
+      "threshold": 90
+    }
+  },
+  "started_at": "2026-08-11T14:06:00Z",
+  "tool": {
+    "name": "publish_readiness",
+    "version": "1.0.0"
+  },
+  "verification_scope": "source_artifact"
+}

@@ -7,7 +7,7 @@ import pytest
 
 from data_sources.modules import (
     blog_assembly_contract,
-    blog_assembly_bom_guard,
+    blog_bom_validation,
     editorial_plan_guard,
     publish_readiness,
 )
@@ -37,7 +37,7 @@ def test_bom_rejects_post_publish_measurement_receipt_artifact(
         }
     }
 
-    findings = blog_assembly_bom_guard.check_bom(
+    findings = blog_bom_validation.check_bom(
         bom,
         article_path=article,
         validation_sidecar_path=sidecar,
@@ -71,7 +71,7 @@ def test_bom_rejects_measurement_receipt_smuggled_as_optimizer_output(
         }
     }
 
-    findings = blog_assembly_bom_guard.check_bom(
+    findings = blog_bom_validation.check_bom(
         bom,
         article_path=article,
         validation_sidecar_path=sidecar,
@@ -114,7 +114,7 @@ def test_bom_rejects_post_publish_markdown_smuggled_as_optimizer_output(
         }
     }
 
-    findings = blog_assembly_bom_guard.check_bom(
+    findings = blog_bom_validation.check_bom(
         bom,
         article_path=article,
         validation_sidecar_path=sidecar,

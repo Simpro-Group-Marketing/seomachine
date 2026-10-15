@@ -6,7 +6,7 @@ from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from data_sources.modules.customer_proof_evidence import verify_selector_evidence_roles
+from data_sources.modules.customer_proof.evidence import verify_selector_evidence_roles
 from data_sources.modules.nonvault_customer_proof_selector import (
     _main,
     select_nonvault_customer_proofs,

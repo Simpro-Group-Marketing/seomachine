@@ -10,14 +10,7 @@ from typing import Mapping, Sequence
 TERMINAL_FACADE_PATHS = frozenset(
     {
         "data_sources/modules/aeo_geo_rater.py",
-        "data_sources/modules/blog_assembly_bom.py",
-        "data_sources/modules/blog_assembly_bom_guard.py",
-        "data_sources/modules/blog_assembly_bom_preflight_session.py",
-        "data_sources/modules/blog_assembly_bom_reviews.py",
-        "data_sources/modules/blog_assembly_bom_session.py",
-        "data_sources/modules/blog_assembly_bom_snapshot.py",
         "data_sources/modules/content_scorer.py",
-        "data_sources/modules/customer_proof_evidence.py",
         "data_sources/modules/customer_proof_selector.py",
         "data_sources/modules/editorial_plan_guard.py",
         "data_sources/modules/nonvault_customer_proof_selector.py",

@@ -17,7 +17,6 @@ Route the fix to `/write`, `/rewrite`, or `/optimize`. Recommend moving workflow
 Use Python only for measurement and workflow assistance. The available analysis modules in `data_sources/modules/` are:
 
 - `search_intent_analyzer.py`: intent classification from verified search evidence
-- `keyword_analyzer.py`: placement, distribution, semantic coverage, and stuffing risk
 - `content_length_comparator.py`: observed length and verified SERP context
 - `readability_scorer.py`: readability and sentence-pattern measurements
 - `seo_quality_rater.py`: deterministic on-page SEO scoring

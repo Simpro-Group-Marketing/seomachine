@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 from datetime import date
@@ -11,18 +12,16 @@ from pathlib import Path
 import pytest
 
 from data_sources.modules import blog_assembly_contract
-from data_sources.modules.blog_assembly_bom import write_blog_assembly_bom
 from data_sources.modules.blog_assembly_contract import canonical_json_sha256
 from data_sources.modules.post_publish_measurement_receipt import (
     build_receipt,
     check_receipt,
 )
-from tests.test_blog_assembly_bom import (
-    _build as _build_blog_bom,
-    _finalize_fixture_bom,
-    _fixture as _blog_fixture,
-    _preflight as _build_preflight,
-)
+
+# An archived final simpro-blog-assembly-bom/v3 and every file it binds, recorded once with the
+# retired assembly builder (2026-10-15) and attested with this key. Byte-exact (.gitattributes).
+ARCHIVED_BOM_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "archived_assembly_bom"
+ARCHIVED_BOM_ATTESTATION_KEY = "archived-assembly-bom-fixture-test-key-0001"
 
 
 def _write(path: Path, content: str) -> Path:
@@ -148,20 +147,10 @@ def artifacts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Path
         "current_utc_date",
         lambda: date(2026, 8, 11),
     )
-    blog_paths = _blog_fixture(tmp_path)
-    provisional = _build_blog_bom(tmp_path, blog_paths)
-    provisional_path = tmp_path / "research" / "provisional-bom.json"
-    write_blog_assembly_bom(provisional_path, provisional)
-    preflight_path = _build_preflight(tmp_path, provisional_path, provisional)
-    final = _finalize_fixture_bom(
-        bom_path=provisional_path,
-        preflight_readiness_path=preflight_path,
-        workspace_root=tmp_path,
-    )
+    monkeypatch.setenv("SEOMACHINE_ARTIFACT_ATTESTATION_KEY", ARCHIVED_BOM_ATTESTATION_KEY)
+    shutil.copytree(ARCHIVED_BOM_FIXTURE, tmp_path, dirs_exist_ok=True)
     bom = tmp_path / "research" / "final-bom.json"
-    write_blog_assembly_bom(bom, final)
-
-    article = blog_paths["article"]
+    article = tmp_path / "drafts" / "scheduling-guide-2026-08-11.md"
     raw_data = _write(tmp_path / "research" / "raw-gsc.json", '{"rows": []}\n')
     report = _write(
         tmp_path / "research" / "performance.md",

@@ -2,3 +2,4 @@ vendor/blader-humanizer/SKILL.md text eol=lf
 vendor/blader-humanizer/LICENSE text eol=lf
 vendor/blader-humanizer/UPSTREAM.json text eol=lf
 config/humanizer-policy.json text eol=lf
+tests/fixtures/archived_assembly_bom/** -text

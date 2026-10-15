@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from data_sources.modules.blog_assembly_bom import _author_policy, _schema_policy
+from data_sources.modules.blog_assembly.policy import _schema_policy
 from data_sources.modules.blog_identity_guard import check_article
 from data_sources.modules.publishable_markdown import read_publishable_markdown
 
@@ -78,11 +78,6 @@ def test_blog_identity_rejects_organizational_or_role_bylines(author: str):
 )
 def test_blog_identity_preserves_person_like_named_authors(author: str):
     assert check_article(_article_text(author=author)) == []
-
-
-def test_bom_author_policy_cannot_promote_team_byline_to_person(tmp_path: Path):
-    with pytest.raises(ValueError, match="named person"):
-        _author_policy(_article(tmp_path, author="Simpro Editorial Team"))
 
 
 @pytest.mark.parametrize(

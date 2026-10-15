@@ -1,0 +1,24 @@
+{
+  "collector": {
+    "name": "answersocrates_playwright_collector",
+    "version": "1.0.0"
+  },
+  "completed_at": "2026-08-11T14:01:00Z",
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "254675fe4db34ca2",
+    "purpose": "simpro-answersocrates-playwright-capture/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "a2093ded9206674d14a7b5b57b5e72662b9504e02e924d1507b7f03e4a2393d3"
+  },
+  "page_url": "https://answersocrates.com/paa-extractor",
+  "query": "field service scheduling guide",
+  "raw_response": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "{\"page_url\": \"https://answersocrates.com/paa-extractor\", \"page_title\": \"People Also Ask Extractor\", \"body_text\": \"People Also Ask\", \"blocker_observations\": [], \"sections\": [{\"heading\": \"People Also Ask\", \"items\": [\"How should field service teams schedule work?\"]}]}"
+  },
+  "run_id": "blog-run-5bd0957248e2db9593f82d07fc52895840f72d2f8ef8bf138dee96313941f1e9",
+  "schema": "simpro-answersocrates-playwright-capture/v1",
+  "started_at": "2026-08-11T14:00:00Z"
+}

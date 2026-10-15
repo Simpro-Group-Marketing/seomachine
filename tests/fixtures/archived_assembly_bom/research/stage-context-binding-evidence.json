@@ -1,0 +1,10 @@
+{
+  "evidence_hashes": {
+    "context_binding": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "not_applicable_reason": "b2eddf2cee1332e1b4ca58853e0d81fd35440262ee6e7bcf8b993ef0e6f099bc"
+  },
+  "payload": {
+    "fixture": true
+  },
+  "schema": "simpro-blog-stage-evidence/v1"
+}

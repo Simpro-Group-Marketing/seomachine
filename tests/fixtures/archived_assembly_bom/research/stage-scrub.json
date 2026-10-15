@@ -1,0 +1,32 @@
+{
+  "completed_at": "2026-08-11T14:03:00Z",
+  "evidence_hashes": {
+    "scrub_statistics": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "execution_attestation": {
+    "algorithm": "hmac-sha256",
+    "key_id": "254675fe4db34ca2",
+    "purpose": "simpro-blog-stage-receipt/v1",
+    "schema": "simpro-execution-attestation/v1",
+    "signature": "85ce3a6017e4d2f909ccac3f1566a38f1c5306c35b03d57d903b42701be9efe2"
+  },
+  "input_artifact_hashes": {
+    "article": "d97849a079b0281b8ca0ddec5960a3f4f45b7a648be244adf10eebcb5c51ee21"
+  },
+  "mutation": false,
+  "output_artifact_hashes": {
+    "article": "d97849a079b0281b8ca0ddec5960a3f4f45b7a648be244adf10eebcb5c51ee21",
+    "stage_evidence": "5d90b8e648e31062e9d141b46751154416775c8d78a0397e56bf2e2abe1b8194"
+  },
+  "previous_receipt_hash": "f53fdd495874d3efffe00e2c760169b0ff30876b9c17fdc37b519094425052d9",
+  "receipt_hash": "58ab62fdf59333d03a7c95470f4eea22943105eb474930e7742e41902ea8c330",
+  "run_id": "blog-run-5bd0957248e2db9593f82d07fc52895840f72d2f8ef8bf138dee96313941f1e9",
+  "schema": "simpro-blog-stage-receipt/v1",
+  "stage": "scrub",
+  "started_at": "2026-08-11T14:02:00Z",
+  "status": "completed",
+  "tool": {
+    "name": "content_scrubber",
+    "version": "1.0.0"
+  }
+}
