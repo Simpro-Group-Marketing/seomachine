@@ -9,8 +9,10 @@ from data_sources.modules.production.coverage_base import items, missing
 from data_sources.modules.production.coverage_view import ArticleView
 from data_sources.modules.production.numbers import extract_numbers
 from data_sources.modules.production.truth_index import canonical
-from data_sources.modules.production.truth_quotes import normalize_passage
+from data_sources.modules.production.truth_quotes import _DOUBLE, _TO_DOUBLE, normalize_passage
 from data_sources.modules.production.truth_text import Finding
+
+QUOTE_PROOF_MIN_WORDS = 8
 
 
 def _quote_texts(item: Mapping[str, Any]) -> list[str]:
@@ -22,9 +24,25 @@ def _quote_texts(item: Mapping[str, Any]) -> list[str]:
     return [text for text in approved or [str(item.get("text") or "")] if text.strip()]
 
 
+def _quoted_passages(view: ArticleView) -> list[str]:
+    """Double-quoted passages in the public copy, long enough to stand as a customer quote."""
+    text = " ".join(view.public).translate(_TO_DOUBLE)
+    passages = (normalize_passage(match) for match in _DOUBLE.findall(text))
+    return [passage for passage in passages if len(passage.split()) >= QUOTE_PROOF_MIN_WORDS]
+
+
 def _quote_present(view: ArticleView, item: Mapping[str, Any]) -> bool:
+    """The approved quote appears verbatim, or a quoted passage sits verbatim inside it.
+
+    Vault exact-quote claims can carry a label prefix before the customer's words, so a
+    quoted passage of at least ``QUOTE_PROOF_MIN_WORDS`` words found inside the approved
+    text also counts.
+    """
     prose = view.prose()
-    return any(normalize_passage(text) in prose for text in _quote_texts(item))
+    texts = [normalize_passage(text) for text in _quote_texts(item)]
+    if any(text in prose for text in texts):
+        return True
+    return any(passage in text for passage in _quoted_passages(view) for text in texts)
 
 
 def _metric_present(view: ArticleView, item: Mapping[str, Any], url: str) -> bool:
