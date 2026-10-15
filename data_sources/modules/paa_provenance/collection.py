@@ -27,6 +27,7 @@ from ..blog_assembly_contract import (
     resolve_artifact,
 )
 from ..artifact_runtime.subprocesses import run_bounded_text_process
+from ..capture_client import fields_with_client_ok
 from ..execution_attestation import attest_mapping, verify_mapping_attestation
 from ..faq_structure import detect_faq_structure
 from ..guard_common import Finding, should_fail, summarize_findings
@@ -140,7 +141,7 @@ def _validate_build_expectations(
 
 
 def _capture_contract(capture: Mapping[str, Any]) -> tuple[Mapping[str, str], str]:
-    if set(capture) != ANSWERSOCRATES_RAW_CAPTURE_FIELDS:
+    if not fields_with_client_ok(capture, ANSWERSOCRATES_RAW_CAPTURE_FIELDS):
         raise ValueError("AnswerSocrates raw capture shape is invalid")
     capture_contract = ANSWERSOCRATES_CAPTURE_CONTRACTS.get(capture.get("schema"))
     if capture_contract is None:

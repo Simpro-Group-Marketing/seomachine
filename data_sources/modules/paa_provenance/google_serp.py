@@ -3,9 +3,10 @@
 AnswerSocrates stays the first PAA source. When it shows a login, captcha, quota, or unavailability
 state, the run may record the Google results page's "People also ask" questions instead. The capture
 must carry that AnswerSocrates blocker (state, verbatim text, page URL, time), observed on the article
-date before the Google capture. Provenance caveat: the attestation proves this workspace wrote the
-record and that it is unchanged, not that Google or AnswerSocrates served it; both observations are
-self-declared, like the other Chrome captures.
+date before the Google capture, and the client that read both pages (``capture_client``). Provenance
+caveat: the attestation proves this workspace wrote the record and that it is unchanged, not that
+Google or AnswerSocrates served it; the observations and the client are self-declared, like the
+other browser captures.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ..capture_client import UNRECORDED, client_error
 from ..editorial_plan.contracts import _rfc3339_utc
 from ..execution_attestation import verify_mapping_attestation
 from .contracts import ANSWERSOCRATES_BLOCKER_STATES, ANSWERSOCRATES_PAGE_URLS
@@ -33,6 +35,11 @@ def _load(path: Path, content: str | None) -> Any:
         return json.loads(content if content is not None else path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, ValueError):
         return None
+
+
+def capture_client(payload: Mapping[str, Any]) -> str:
+    """The client that recorded the capture, or ``unrecorded`` for one made before the field existed."""
+    return str(payload.get("client") or UNRECORDED)
 
 
 def is_google_serp_capture(path: Path) -> bool:
@@ -73,6 +80,8 @@ def _capture_error(path: Path, payload: Any, expected: Mapping[str, str | None])
         return f"not a {GOOGLE_SERP_PAA_SCHEMA} capture"
     if payload.get("collector") != GOOGLE_SERP_PAA_COLLECTOR:
         return "collector is not the Google SERP Chrome recorder"
+    if "client" in payload and client_error(payload["client"]):  # absent on captures made before the field existed
+        return client_error(payload["client"])
     if not verify_mapping_attestation(payload, purpose=GOOGLE_SERP_PAA_SCHEMA,
                                       workspace_root=_artifact_workspace_root(path)):
         return "execution attestation does not verify (edited or not written by the recorder)"
@@ -109,6 +118,7 @@ __all__ = [
     "GOOGLE_SERP_PAA_SOURCE_KIND",
     "RELEASE_CHECK",
     "blocker_error",
+    "capture_client",
     "google_serp_questions",
     "is_google_serp_capture",
 ]

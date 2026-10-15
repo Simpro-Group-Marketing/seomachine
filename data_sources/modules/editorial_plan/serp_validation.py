@@ -12,6 +12,7 @@ import re
 from .contracts import Finding
 from .contracts import SERP_APPROVED_COLLECTORS
 from .contracts import SERP_EVIDENCE_ATTESTATION_PURPOSE
+from ..capture_client import fields_with_client_ok
 from .contracts import SERP_EVIDENCE_FIELDS
 from .contracts import SERP_EVIDENCE_SCHEMA
 from .contracts import SERP_OBSERVATION_FIELDS
@@ -96,6 +97,7 @@ def _check_serp_raw_binding(
         capture.get('run_id') != payload.get('run_id'),
         capture.get('collected_at') != payload.get('collected_at'),
         capture.get('collector') != payload.get('collector'),
+        capture.get('client') != payload.get('client'),
     )):
         return [_finding(
             'serp_raw_capture_metadata_mismatch',
@@ -214,7 +216,7 @@ def _shape_findings(
     dependencies: EditorialPlanDependencies,
 ) -> list[Finding]:
     findings: list[Finding] = []
-    if set(payload) != SERP_EVIDENCE_FIELDS:
+    if not fields_with_client_ok(payload, SERP_EVIDENCE_FIELDS):
         findings.append(_finding(
             'serp_evidence_shape_invalid',
             'SERP evidence must use the exact observation and collection-receipt fields.',

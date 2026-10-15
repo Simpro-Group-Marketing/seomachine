@@ -4,11 +4,11 @@ Usage:
   python -m data_sources.modules.production.google_paa --query Q --run-id R --google-country au
       --page-url U --collected-at ISO --questions-file F --answersocrates-state STATE
       --answersocrates-text-file T --answersocrates-url A --answersocrates-observed-at ISO
-      --output O [--workspace-root DIR]
+      --client {claude_code,codex} --output O [--workspace-root DIR]
 
 The questions file is a JSON list of the "People also ask" question texts read from the live Google
-results page in the user's main Chrome window, in page order (an empty list when Google shows no PAA
-box). The text file holds the AnswerSocrates blocker text saved unedited from its live tab. The
+results page in the user's main Chrome window with the running client's live-browser tools, in page
+order (an empty list when Google shows no PAA box). The text file holds the AnswerSocrates blocker text saved unedited from its live tab. The
 capture goes to the layout's PAA artifact path; see ``paa_provenance/google_serp.py`` for the
 contract and the provenance caveat. Exit codes: 0 recorded, 2 error (one line on stderr).
 """
@@ -25,6 +25,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.capture_client import CLIENTS, declared_client
 from data_sources.modules.editorial_plan.contracts import SERP_APPROVED_GOOGLE_COUNTRIES, _rfc3339_utc
 from data_sources.modules.execution_attestation import attest_mapping
 from data_sources.modules.paa_provenance.contracts import ANSWERSOCRATES_BLOCKER_STATES
@@ -89,6 +90,7 @@ def build_capture(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema": GOOGLE_SERP_PAA_SCHEMA,
         "collector": dict(GOOGLE_SERP_PAA_COLLECTOR),
+        "client": declared_client(args.client),
         "query": query,
         "google_country": args.google_country,
         "page_url": _google_search_url(args.page_url),
@@ -109,6 +111,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--answersocrates-state", required=True, choices=sorted(ANSWERSOCRATES_BLOCKER_STATES))
     parser.add_argument("--questions-file", required=True, type=Path)
     parser.add_argument("--answersocrates-text-file", required=True, type=Path)
+    parser.add_argument("--client", required=True, choices=sorted(CLIENTS))
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workspace-root", type=Path, default=None)
     return parser

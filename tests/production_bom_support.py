@@ -16,6 +16,7 @@ from data_sources.modules.customer_proof.nonconnector_persistence import write_n
 from data_sources.modules.production.bom_build import is_nonconnector
 from data_sources.modules.production.layout import Layout, load_or_create_run_id
 from data_sources.modules.vault_claim_receipts import ApprovedClaim, ValidatedClaimSet
+from tests.research_provenance_fixtures import build_answersocrates_fixture
 
 FROZEN = Path(__file__).resolve().parent / "fixtures" / "production_bom"
 TODAY = "2026-10-13"
@@ -236,9 +237,12 @@ def write_nonvault_evidence(layout: Layout, spec: dict[str, Any]) -> None:
         write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides=selected, **kwargs)
 
 
-def paa_artifact(run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]:
-    return {"eligible_questions": [PAA_QUESTION, "Other?"], "collection_date": collection_date,
-            "run_receipt": {"run_id": run_id}}
+def paa_artifact(root: Path, run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]:
+    """A recorded AnswerSocrates artifact (attested receipt, bound raw capture) for the fixture SERP query."""
+    return build_answersocrates_fixture(
+        root, query="field service software", collection_date=collection_date,
+        questions=[PAA_QUESTION, "Other?"], run_id=run_id,
+    )
 
 
 def keyword_decision(market: str) -> dict[str, Any]:
@@ -265,7 +269,7 @@ def make_workspace(root: Path, *, spec: dict[str, Any] | None = None,
                                 "suggested": "must"}],
         "uncovered_questions": ["Is it worth it?"], "unreachable": []})
     if paa:
-        write_json(layout.paa_artifact, paa_artifact(load_or_create_run_id(layout)))
+        write_json(layout.paa_artifact, paa_artifact(root, load_or_create_run_id(layout)))
     if context:
         write_json(layout.context_pack, {"pack": True})
         write_json(layout.context_receipt, {"receipt": True})

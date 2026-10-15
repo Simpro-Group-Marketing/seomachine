@@ -23,7 +23,7 @@ def write_capture(root: Path, *, url: str = FACT_URL, text: str = CAPTURE_TEXT, 
     text_file.parent.mkdir(parents=True, exist_ok=True)
     text_file.write_text(text, encoding="utf-8", newline="\n")
     receipt = root / CAPTURE_DIR / f"{name}.json"
-    record_capture(url=url, title="Example report", text_file=text_file, output=receipt, workspace_root=root)
+    record_capture(url=url, title="Example report", text_file=text_file, output=receipt, workspace_root=root, client="claude_code")
     return receipt.relative_to(root).as_posix()
 
 

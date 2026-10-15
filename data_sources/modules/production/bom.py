@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from data_sources.modules.content_scoring.aeo_metadata_schema import CANONICAL_SCHEMA_ENTITIES
+from data_sources.modules.capture_client import CLIENTS, UNRECORDED
 
 BOM_SCHEMA = "simpro-production-bom/v1"
 SPEC_SCHEMA = "simpro-production-bom-spec/v1"
@@ -214,7 +215,7 @@ def _is_utc_stamp(value: Any) -> bool:
 
 
 def _capture_binding_errors(index: int, fact: Mapping[str, Any]) -> list[str]:
-    """A Chrome-verified fact carries exactly its capture's path, receipt hash, and UTC capture time."""
+    """A Chrome-verified fact carries its capture's path, receipt hash, UTC capture time, and client."""
     via = fact.get("verified_via")
     where = f"facts[{index}]"
     if via is not None and via != CHROME_CAPTURE:
@@ -225,7 +226,9 @@ def _capture_binding_errors(index: int, fact: Mapping[str, Any]) -> list[str]:
     if not isinstance(capture, Mapping):
         return [f"{where} verified_via {CHROME_CAPTURE} requires a capture binding"]
     keys = {"path", "sha256", "captured_at"}
-    errors = [f"{where} capture has unknown key: {key}" for key in sorted(set(capture) - keys)]
+    errors = [f"{where} capture has unknown key: {key}" for key in sorted(set(capture) - keys - {"client"})]
+    if "client" in capture and capture["client"] not in CLIENTS | {UNRECORDED}:  # absent on older BOMs
+        errors.append(f"{where} capture client must be one of {sorted(CLIENTS | {UNRECORDED})}")
     errors += [f"{where} capture is missing {key}" for key in sorted(keys - set(capture))]
     if "path" in capture and not _is_text(capture["path"]):
         errors.append(f"{where} capture path must be non-empty text")

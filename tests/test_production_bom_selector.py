@@ -118,14 +118,14 @@ def test_bom_records_paa_collection_date_and_run_id(tmp_path):
 
 def test_paa_artifact_from_another_run_refuses(tmp_path):
     layout = make_workspace(tmp_path)
-    write_json(layout.paa_artifact, paa_artifact("another-run"))
+    write_json(layout.paa_artifact, paa_artifact(layout.root, "another-run"))
     _refused(layout, "PAA artifact run id another-run does not match the production run id")
 
 
 def test_paa_artifact_without_run_id_refuses(tmp_path):
     layout = make_workspace(tmp_path)
     write_json(layout.paa_artifact, {"eligible_questions": ["What is field service software?"]})
-    _refused(layout, "run_receipt.run_id")
+    _refused(layout, "not a recorded AnswerSocrates artifact")
 
 
 def test_paa_artifact_before_any_production_run_refuses(tmp_path):
@@ -136,7 +136,7 @@ def test_paa_artifact_before_any_production_run_refuses(tmp_path):
 
 def test_paa_artifact_dated_before_the_article_refuses(tmp_path):
     layout = make_workspace(tmp_path)
-    write_json(layout.paa_artifact, paa_artifact(stored_run_id(layout), collection_date="2026-07-01"))
+    write_json(layout.paa_artifact, paa_artifact(layout.root, stored_run_id(layout), collection_date="2026-07-01"))
     _refused(layout, "collection_date 2026-07-01 does not match the article date 2026-10-13")
 
 

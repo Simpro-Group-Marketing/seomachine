@@ -229,10 +229,12 @@ def _paa_source_findings(root: Path, bom: Mapping[str, Any]) -> list[Finding]:
     path = root / str(binding.get("path")) if isinstance(binding, Mapping) else None
     if path is None or not google_serp.is_google_serp_capture(path):
         return []
-    blocker = json.loads(path.read_text(encoding="utf-8")).get("answersocrates_blocker") or {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    blocker = payload.get("answersocrates_blocker") or {}
     message = (
-        f"PAA came from the Google SERP fallback ({binding.get('path')}): AnswerSocrates showed "
-        f"{blocker.get('state')} at {blocker.get('observed_at')}"
+        f"PAA came from the Google SERP fallback ({binding.get('path')}), recorded by "
+        f"{google_serp.capture_client(payload)}: AnswerSocrates showed {blocker.get('state')} at "
+        f"{blocker.get('observed_at')}"
     )
     return [Finding(google_serp.RELEASE_CHECK, "warn", message, None)]
 

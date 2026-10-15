@@ -19,7 +19,7 @@ def _record(root, *, url=URL, title=TITLE, text=TEXT):
     text_file.parent.mkdir(parents=True, exist_ok=True)
     text_file.write_text(text, encoding="utf-8", newline="\n")
     output = root / "research" / "source-captures" / "demo-2026-10-14" / "example.org-1.json"
-    record_capture(url=url, title=title, text_file=text_file, output=output, workspace_root=root)
+    record_capture(url=url, title=title, text_file=text_file, output=output, workspace_root=root, client="claude_code")
     return text_file, output
 
 
@@ -42,6 +42,7 @@ def test_record_and_load_round_trip(tmp_path):
     receipt = json.loads(output.read_text(encoding="utf-8"))
     assert receipt["schema"] == SCHEMA
     assert receipt["surface"] == "chrome_main_window"
+    assert receipt["client"] == "claude_code" and capture.client == "claude_code"
     assert receipt["text_path"] == "research/source-captures/demo-2026-10-14/example.org-1.txt"
 
 
@@ -70,6 +71,30 @@ def test_wrong_schema_refuses(tmp_path):
     _edit_receipt(output, lambda payload: payload.update(schema="other/v1"))
     with pytest.raises(ValueError, match="schema"):
         load_capture(output, tmp_path)
+
+
+def test_a_capture_recorded_before_the_client_field_reads_as_unrecorded(tmp_path):
+    _text_file, output = _record(tmp_path)
+    _edit_receipt(output, lambda payload: payload.pop("client"))
+    assert load_capture(output, tmp_path).client == "unrecorded"
+
+
+def test_an_unknown_client_refuses(tmp_path):
+    _text_file, output = _record(tmp_path)
+    _edit_receipt(output, lambda payload: payload.update(client="cursor"))
+    with pytest.raises(ValueError, match="client"):
+        load_capture(output, tmp_path)
+
+
+def test_record_refuses_codex_inside_claude_code(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAUDECODE", "1")
+    text_file, output = _record(tmp_path)
+    with pytest.raises(ValueError, match="Claude Code"):
+        record_capture(url=URL, title=TITLE, text_file=text_file, output=output, workspace_root=tmp_path,
+                       client="codex")
+    monkeypatch.delenv("CLAUDECODE")
+    record_capture(url=URL, title=TITLE, text_file=text_file, output=output, workspace_root=tmp_path, client="codex")
+    assert load_capture(output, tmp_path).client == "codex"
 
 
 def test_extra_or_missing_key_refuses(tmp_path):
@@ -117,7 +142,7 @@ def test_record_refuses_files_outside_the_workspace(tmp_path):
     with pytest.raises(ValueError, match="outside the workspace"):
         record_capture(
             url=URL, title=TITLE, text_file=text_file,
-            output=root / "research" / "capture.json", workspace_root=root,
+            output=root / "research" / "capture.json", workspace_root=root, client="claude_code",
         )
 
 
@@ -127,7 +152,9 @@ def test_cli_records_and_reports_errors(tmp_path, capsys):
     text_file.write_text(TEXT, encoding="utf-8", newline="\n")
     output = text_file.with_suffix(".json")
     args = ["record", "--url", URL, "--title", TITLE, "--text-file", str(text_file),
-            "--output", str(output), "--workspace-root", str(tmp_path)]
+            "--output", str(output), "--workspace-root", str(tmp_path), "--client", "claude_code"]
+    assert page_capture.main(args[:-2]) == 2  # --client is required
+    capsys.readouterr()
     assert page_capture.main(args) == 0
     assert load_capture(output, tmp_path).url == URL
     bad = args[:2] + ["/relative"] + args[3:]

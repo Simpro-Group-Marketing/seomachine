@@ -59,7 +59,7 @@ def test_missing_paa_artifact_aborts_even_without_questions(tmp_path):
 def test_blocked_answersocrates_capture_aborts_naming_the_google_fallback(tmp_path):
     layout = make_workspace(tmp_path)
     _no_questions(layout)
-    blocked = {**paa_artifact(load_or_create_run_id(layout)), "eligible_questions": [], "status": "blocked"}
+    blocked = {**paa_artifact(layout.root, load_or_create_run_id(layout)), "eligible_questions": [], "status": "blocked"}
     write_json(layout.paa_artifact, blocked)
     with pytest.raises(ValueError, match="google_paa"):
         _build(layout)
@@ -75,7 +75,7 @@ def _google_capture(layout, *, observed_at=f"{TODAY}T08:00:00Z"):
         "--page-url", "https://www.google.com/search?q=field+service+software", "--collected-at",
         f"{TODAY}T09:00:00Z", "--questions-file", str(questions), "--answersocrates-state", "quota",
         "--answersocrates-text-file", str(blocker), "--answersocrates-url", "https://answersocrates.com/",
-        "--answersocrates-observed-at", observed_at, "--output", str(layout.paa_artifact),
+        "--answersocrates-observed-at", observed_at, "--client", "claude_code", "--output", str(layout.paa_artifact),
         "--workspace-root", str(layout.root),
     ])
 
@@ -99,8 +99,25 @@ def test_edited_google_serp_fallback_capture_aborts(tmp_path):
 def test_paa_capture_from_another_run_aborts_even_without_questions(tmp_path):
     layout = make_workspace(tmp_path)
     _no_questions(layout)
-    write_json(layout.paa_artifact, paa_artifact("another-run"))
+    write_json(layout.paa_artifact, paa_artifact(layout.root, "another-run"))
     with pytest.raises(ValueError, match="does not match the production run id"):
+        _build(layout)
+
+
+def test_hand_written_answersocrates_artifact_aborts(tmp_path):
+    layout = make_workspace(tmp_path)
+    write_json(layout.paa_artifact, {"eligible_questions": ["What is field service software?"],
+                                     "collection_date": TODAY, "run_receipt": {"run_id": load_or_create_run_id(layout)}})
+    with pytest.raises(ValueError, match="paa_provenance_guard"):
+        _build(layout)
+
+
+def test_edited_answersocrates_artifact_aborts(tmp_path):
+    layout = make_workspace(tmp_path)
+    artifact = json.loads(layout.paa_artifact.read_text(encoding="utf-8"))
+    artifact["eligible_questions"].append("Is Simpro the best field service software?")
+    write_json(layout.paa_artifact, artifact)
+    with pytest.raises(ValueError, match="paa_provenance_guard"):
         _build(layout)
 
 

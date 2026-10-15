@@ -2,14 +2,16 @@
 
 Usage:
   python -m data_sources.modules.production.browser_capture paa --query Q --run-id R --page-url U
-      --page-title T --text-file F --started-at ISO --completed-at ISO --output O [--workspace-root DIR]
+      --page-title T --text-file F --started-at ISO --completed-at ISO --client {claude_code,codex}
+      --output O [--workspace-root DIR]
   python -m data_sources.modules.production.browser_capture serp --query Q --run-id R --google-country au
-      --results-file F --collected-at ISO --output O [--evidence-output E] [--workspace-root DIR]
+      --results-file F --collected-at ISO --client {claude_code,codex} --output O [--evidence-output E]
+      [--workspace-root DIR]
 
 Fallback for when the Playwright CLI session or DataForSEO is unavailable. ``paa`` writes a
 ``simpro-answersocrates-chrome-connector-capture/v1`` capture from AnswerSocrates page text saved
-verbatim from the user's main Chrome window; ``paa_provenance_guard.py record --raw-capture-input``
-then records it. The ``People Also Ask`` section is derived mechanically: the one line that reads
+verbatim from the user's main Chrome window by the running client's live-browser tools;
+``paa_provenance_guard.py record --raw-capture-input`` then records it. The ``People Also Ask`` section is derived mechanically: the one line that reads
 exactly "People Also Ask" (or "People Also Asked"), then every following non-blank line that ends in
 "?" until the first line that does not. Blocker observations are DOM-scoped and plain text carries
 no scope, so they stay empty; a page with no such questions is refused, not recorded as blocked.
@@ -18,7 +20,8 @@ results page DOM, and with ``--evidence-output`` also builds the ``simpro-serp-e
 
 Provenance caveat: the execution attestation proves this workspace wrote the record and that it is
 unchanged since then. It does not prove that Chrome served it. The collector name is self-declared,
-and no automated check can tell a faithful capture from typed text (as with ``page_capture``).
+and no automated check can tell a faithful capture from typed text (as with ``page_capture``). Each
+capture records the client that made it (``capture_client``); that value is self-declared too.
 Times are the real capture times, RFC 3339 UTC with a trailing Z.
 Exit codes: 0 recorded, 2 error (one line on stderr).
 """
@@ -36,6 +39,7 @@ from typing import Any
 from urllib.parse import urlencode, urlparse
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json
+from data_sources.modules.capture_client import CLIENTS, declared_client
 from data_sources.modules.editorial_plan.contracts import (
     SERP_APPROVED_GOOGLE_COUNTRIES,
     SERP_RAW_CAPTURE_ATTESTATION_PURPOSE,
@@ -127,7 +131,8 @@ def paa_sections(text: str) -> list[dict[str, Any]]:
 
 
 def build_paa_capture(
-    *, query: str, run_id: str, page_url: str, page_title: str, text: str, started_at: str, completed_at: str
+    *, query: str, run_id: str, page_url: str, page_title: str, text: str, started_at: str, completed_at: str,
+    client: str,
 ) -> dict[str, Any]:
     """Return the unsigned Chrome-connector AnswerSocrates capture, validated as the recorder will."""
     _require_query(query)
@@ -153,6 +158,7 @@ def build_paa_capture(
     return {
         "schema": PAA_SCHEMA,
         "collector": dict(ANSWERSOCRATES_CHROME_CONNECTOR_TOOL),
+        "client": declared_client(client),
         "query": query,
         "run_id": run_id,
         "started_at": started_at,
@@ -202,7 +208,7 @@ def parse_serp_results(value: object) -> dict[str, Any]:
 
 
 def build_serp_capture(
-    *, query: str, run_id: str, google_country: str, results: object, collected_at: str
+    *, query: str, run_id: str, google_country: str, results: object, collected_at: str, client: str
 ) -> dict[str, Any]:
     """Return the unsigned Chrome-connector raw SERP capture, validated as the evidence build will."""
     _require_query(query)
@@ -215,6 +221,7 @@ def build_serp_capture(
     return {
         "schema": SERP_RAW_CAPTURE_SCHEMA,
         "collector": dict(SERP_COLLECTOR),
+        "client": declared_client(client),
         "query": query,
         "collected_at": collected_at,
         "run_id": run_id,
@@ -229,6 +236,7 @@ def record_paa(args: argparse.Namespace, root: Path) -> list[Path]:
     capture = build_paa_capture(
         query=args.query, run_id=args.run_id, page_url=args.page_url, page_title=args.page_title,
         text=_read_text(text_path, "text file"), started_at=args.started_at, completed_at=args.completed_at,
+        client=args.client,
     )
     atomic_write_json(output, attest_mapping(capture, purpose=PAA_SCHEMA, workspace_root=root))
     return [output]
@@ -244,7 +252,7 @@ def record_serp(args: argparse.Namespace, root: Path) -> list[Path]:
         raise ValueError(f"results file is not valid JSON: {error}") from error
     capture = build_serp_capture(
         query=args.query, run_id=args.run_id, google_country=args.google_country,
-        results=results, collected_at=args.collected_at,
+        results=results, collected_at=args.collected_at, client=args.client,
     )
     signed = attest_mapping(capture, purpose=SERP_RAW_CAPTURE_ATTESTATION_PURPOSE, workspace_root=root)
     atomic_write_json(output, signed)
@@ -263,6 +271,7 @@ def _paa_parser() -> argparse.ArgumentParser:
         parser.add_argument(flag, required=True)
     parser.add_argument("--text-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--client", required=True, choices=sorted(CLIENTS))
     parser.add_argument("--workspace-root", type=Path, default=None)
     return parser
 
@@ -275,6 +284,7 @@ def _serp_parser() -> argparse.ArgumentParser:
     parser.add_argument("--results-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--evidence-output", type=Path, default=None)
+    parser.add_argument("--client", required=True, choices=sorted(CLIENTS))
     parser.add_argument("--workspace-root", type=Path, default=None)
     return parser
 

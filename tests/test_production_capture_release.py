@@ -39,7 +39,7 @@ def test_blocked_fact_with_a_valid_capture_releases_with_a_warning(tmp_path, mon
     assert run(layout, transport=BLOCKED) == 0
     quote_rows = _rows(layout, "fact_quote")
     assert [row["severity"] for row in quote_rows] == ["warn"]
-    for part in ("f1", FACT_URL, captured_at, CAPTURE_RECEIPT):
+    for part in ("f1", FACT_URL, captured_at, CAPTURE_RECEIPT, "claude_code"):
         assert part in quote_rows[0]["message"]
     assert [row["severity"] for row in _rows(layout, "link_resolution")] == ["warn"]
     assert _rows(layout, "fact_carried_forward") == []

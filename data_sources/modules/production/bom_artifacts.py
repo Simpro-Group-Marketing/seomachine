@@ -12,6 +12,7 @@ from typing import Any
 
 from data_sources.modules.blog_assembly_contract import canonical_artifact
 from data_sources.modules.commercial_pillar_index import SEMRUSH_DATABASE_BY_MARKET
+from data_sources.modules.paa_provenance.artifact import _parse_question_artifact
 from data_sources.modules.paa_provenance.google_serp import GOOGLE_SERP_PAA_SCHEMA, google_serp_questions
 from data_sources.modules.production.bom import SpecFileError
 from data_sources.modules.production.layout import Layout, stored_run_id
@@ -134,12 +135,23 @@ def _paa_source_error(artifact: Mapping[str, Any], layout: Layout) -> str:
             "with python -m data_sources.modules.production.google_paa, including that blocker, then rebuild"
         )
     if artifact.get("schema") != GOOGLE_SERP_PAA_SCHEMA:
-        return ""
+        return _answersocrates_error(artifact, layout)
     _questions, _blocker, error = google_serp_questions(
         layout.paa_artifact, None, expected_query=None, expected_collection_date=layout.date,
         expected_run_id=stored_run_id(layout),
     )
     return f"Google SERP PAA fallback {name} is invalid: {error}" if error else ""
+
+
+def _answersocrates_error(artifact: Mapping[str, Any], layout: Layout) -> str:
+    """Parse an AnswerSocrates artifact as the release scorer does: attested receipt, raw capture re-derived."""
+    parsed = _parse_question_artifact(json.dumps(artifact), workspace_root=layout.root)
+    if parsed is not None and parsed.run_receipt_valid:
+        return ""
+    return (
+        f"PAA artifact {layout.paa_artifact.name} is not a recorded AnswerSocrates artifact (hand-written, edited, "
+        "or its raw capture changed); re-record it with python data_sources/modules/paa_provenance_guard.py record"
+    )
 
 
 def _paa_identity(artifact: Mapping[str, Any], layout: Layout) -> tuple[str, str, list[str]]:

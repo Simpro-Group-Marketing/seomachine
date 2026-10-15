@@ -55,7 +55,7 @@ The record's `scores.gates` holds one independent pass/fail gate per score:
 ## Exit codes
 
 - `0`: passed. The latest record has `passed: true`.
-- `1`: blocked. The BOM rebuild was refused, a truth or coverage finding blocks, or a score gate failed. A release-time 403 or 429 on a proof or pillar URL (Capterra often refuses automated clients) blocks as `link_resolution`; resolve it by loading the page through the Chrome connector and adding that exact URL to `context/url-verification-allowlist.json` (an entry with `verified_via: chrome_connector`, the page title, and an on-page snippet), which the URL validator reads, then release again. Never allowlist a 404 or 410. A fact page that blocks at release is handled by its Chrome capture (see `/research`), not by the allowlist.
+- `1`: blocked. The BOM rebuild was refused, a truth or coverage finding blocks, or a score gate failed. A release-time 403 or 429 on a proof or pillar URL (Capterra often refuses automated clients) blocks as `link_resolution`; resolve it by loading the page in the user's main Chrome window through the running client's live-browser tools and adding that exact URL to `context/url-verification-allowlist.json` (an entry with `verified_via: chrome_connector`, `client: claude_code` or `client: codex`, the page title, and an on-page snippet), which the URL validator reads, then release again. Never allowlist a 404 or 410. A fact page that blocks at release is handled by its Chrome capture (see `/research`), not by the allowlist.
 - `2`: operational or argument error: missing BOM or spec, bad article path, selector refresh failure, stale evidence at scoring, the article edited during the run, or an unexpected error.
 
 ## Release record

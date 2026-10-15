@@ -38,7 +38,7 @@ def _args(tmp_path: Path, questions=QUESTIONS, **changes) -> list[str]:
         "--answersocrates-state": "quota", "--answersocrates-text-file": str(blocker_file),
         "--answersocrates-url": ANSWERSOCRATES, "--answersocrates-observed-at": OBSERVED,
         "--output": str(research / "paa-evidence-x-2026-10-15.json"), "--workspace-root": str(tmp_path),
-        **changes,
+        "--client": "claude_code", **changes,
     }
     return [item for pair in args.items() for item in pair]
 
@@ -83,6 +83,7 @@ def test_recorder_writes_an_attested_capture_with_the_blocker(capture):
         "state": "quota", "observed_text": BLOCKER_TEXT, "page_url": ANSWERSOCRATES, "observed_at": OBSERVED,
     }
     assert "temporary_test_path" not in payload and "execution_attestation" in payload
+    assert payload["client"] == "claude_code"
 
 
 def test_recorder_accepts_a_results_page_with_no_paa_box(tmp_path):
@@ -100,6 +101,11 @@ def test_recorder_accepts_a_results_page_with_no_paa_box(tmp_path):
 def test_recorder_refuses_bad_inputs(tmp_path, change):
     assert google_paa.main(_args(tmp_path, **change)) == 2
     assert not (tmp_path / "research" / "paa-evidence-x-2026-10-15.json").exists()
+
+
+def test_recorder_refuses_codex_inside_claude_code(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAUDECODE", "1")
+    assert google_paa.main(_args(tmp_path, **{"--client": "codex"})) == 2
 
 
 def test_recorder_refuses_an_unknown_blocker_state(tmp_path):
@@ -149,6 +155,26 @@ def test_scorer_refuses_a_tampered_capture(capture):
     assert _rules(_check(ARTICLE, capture)) == ["paa_google_serp_capture_invalid"]
 
 
+def _resign(path: Path, change) -> None:
+    from data_sources.modules.execution_attestation import attest_mapping
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload.pop("execution_attestation")
+    change(payload)
+    signed = attest_mapping(payload, purpose=google_serp.GOOGLE_SERP_PAA_SCHEMA, workspace_root=path.parents[1])
+    path.write_text(json.dumps(signed), encoding="utf-8")
+
+
+def test_a_capture_recorded_before_the_client_field_still_validates(capture):
+    _resign(capture, lambda payload: payload.pop("client"))
+    assert _check(ARTICLE, capture) == []
+
+
+def test_a_capture_with_an_unknown_client_is_refused(capture):
+    _resign(capture, lambda payload: payload.update(client="cursor"))
+    assert _rules(_check(ARTICLE, capture)) == ["paa_google_serp_capture_invalid"]
+
+
 def test_validator_refuses_a_capture_without_a_blocker(capture):
     _edit(capture, lambda payload: payload.pop("answersocrates_blocker"))
     _questions, _blocker, error = google_serp.google_serp_questions(
@@ -182,7 +208,7 @@ def test_release_record_names_the_fallback_and_its_blocker(capture, tmp_path):
     bom = {"paa": {"artifact": {"path": relative, "sha256": "x"}, "questions": []}}
     findings = release._paa_source_findings(tmp_path, bom)
     assert [(f.check, f.severity) for f in findings] == [(google_serp.RELEASE_CHECK, "warn")]
-    assert "quota" in findings[0].message
+    assert "quota" in findings[0].message and "claude_code" in findings[0].message
     assert release._paa_source_findings(tmp_path, {"paa": {"artifact": None, "questions": []}}) == []
 
 

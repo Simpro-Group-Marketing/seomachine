@@ -102,7 +102,8 @@ def test_blocked_fact_with_a_capture_builds_with_the_capture_recorded(tmp_path):
     fact = bom["facts"][0]
     capture = load_capture(CAPTURE_RECEIPT, tmp_path)
     assert fact["verified_via"] == "chrome_capture"
-    assert fact["capture"] == {"path": CAPTURE_RECEIPT, "sha256": capture.receipt_sha256, "captured_at": capture.captured_at}
+    assert fact["capture"] == {"path": CAPTURE_RECEIPT, "sha256": capture.receipt_sha256,
+                               "captured_at": capture.captured_at, "client": "claude_code"}
     assert fact["quote"] == FACT_QUOTE
     assert validate_bom(bom) == []
 
@@ -158,6 +159,16 @@ def test_two_facts_on_one_url_with_different_captures_refuse(tmp_path):
     write_json(layout.bom_spec, spec)
     with pytest.raises(ValueError, match="different captures"):
         bom_build.build_bom(layout, transport=BLOCKED)
+
+
+def test_validate_bom_checks_the_capture_client(tmp_path):
+    bom = build_blocked(capture_workspace(tmp_path))
+    bom["facts"][0]["capture"]["client"] = "unrecorded"
+    assert validate_bom(bom) == []
+    del bom["facts"][0]["capture"]["client"]  # a BOM built before the client field existed
+    assert validate_bom(bom) == []
+    bom["facts"][0]["capture"]["client"] = "cursor"
+    assert any("client" in error for error in validate_bom(bom))
 
 
 def test_validate_bom_requires_the_capture_binding_for_chrome_verified_facts(tmp_path):

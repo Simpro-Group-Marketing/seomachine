@@ -68,6 +68,7 @@ def build_serp_evidence(
         'query': capture['query'],
         'collected_at': capture['collected_at'],
         'collector': capture['collector'],
+        **({'client': capture['client']} if 'client' in capture else {}),
         'run_id': capture['run_id'],
         'results': results,
         'observations': {

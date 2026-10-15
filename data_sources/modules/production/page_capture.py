@@ -1,12 +1,14 @@
 """Page-text captures taken in the user's main Chrome window for fact pages that block bots.
 
 Usage: python -m data_sources.modules.production.page_capture record --url URL --title TITLE
-       --text-file FILE --output RECEIPT [--workspace-root DIR]
+       --text-file FILE --output RECEIPT --client {claude_code,codex} [--workspace-root DIR]
 
-A receipt (``simpro-chrome-page-capture/v1``) binds saved page text to its URL, capture time, and
+The page is read with the running client's live-browser tools (see ``capture_client``). A receipt
+(``simpro-chrome-page-capture/v1``) binds saved page text to its URL, capture time, client, and
 SHA-256, and ``load_capture`` refuses any edit made after capture. The receipt proves the text is
-unchanged since it was captured, not where it came from: ``surface`` is self-declared, and no
-automated check can tell a faithful Chrome capture from typed text. The text and the receipt must
+unchanged since it was captured, not where it came from: ``surface`` and ``client`` are
+self-declared, and no automated check can tell a faithful Chrome capture from typed text. A receipt
+recorded before the client field existed loads with client ``unrecorded``. The text and the receipt must
 both live under ``research/source-captures/``. A capture may stand in only for a fact page whose live
 fetch was blocked (``facts.verify_quotes`` decides), and never for a gone or reachable page.
 Exit codes: 0 recorded, 2 error (one line on stderr).
@@ -26,10 +28,12 @@ from typing import Any
 from urllib.parse import urlparse
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json, resolve_artifact
+from data_sources.modules.capture_client import CLIENTS, UNRECORDED, client_error, declared_client
 
 SCHEMA = "simpro-chrome-page-capture/v1"
 SURFACE = "chrome_main_window"
 _KEYS = frozenset({"schema", "url", "captured_at", "surface", "page_title", "text_path", "text_sha256"})
+_OPTIONAL_KEYS = frozenset({"client"})  # absent on receipts recorded before the client field existed
 _STAMP = "%Y-%m-%dT%H:%M:%SZ"
 CAPTURE_DIR = "research/source-captures"
 _CLOCK_SKEW = datetime.timedelta(minutes=5)
@@ -49,6 +53,7 @@ class PageCapture:
     text_sha256: str
     path: str  # workspace-relative posix path of the receipt
     receipt_sha256: str
+    client: str = UNRECORDED
 
     def age(self) -> datetime.timedelta:
         """Time since capture, by the module clock."""
@@ -93,10 +98,11 @@ def _read_text(path: Path, label: str) -> tuple[bytes, str]:
 
 
 def record_capture(
-    *, url: str, title: str, text_file: str | Path, output: str | Path, workspace_root: str | Path
+    *, url: str, title: str, text_file: str | Path, output: str | Path, workspace_root: str | Path, client: str
 ) -> Path:
     """Hash the saved page text and write its receipt atomically; returns the receipt path."""
     root = Path(workspace_root).resolve()
+    client = declared_client(client)
     _require_http_url(url)
     if not isinstance(title, str) or not title.strip():
         raise ValueError("capture title must be non-empty text")
@@ -112,6 +118,7 @@ def record_capture(
         "url": url,
         "captured_at": utc_now().strftime(_STAMP),
         "surface": SURFACE,
+        "client": client,
         "page_title": title.strip(),
         "text_path": relative_text,
         "text_sha256": hashlib.sha256(raw).hexdigest(),
@@ -122,7 +129,9 @@ def record_capture(
 
 def _receipt_errors(payload: Mapping[str, Any]) -> list[str]:
     errors = [f"missing {key}" for key in sorted(_KEYS - set(payload))]
-    errors += [f"unexpected key {key}" for key in sorted(set(payload) - _KEYS)]
+    errors += [f"unexpected key {key}" for key in sorted(set(payload) - _KEYS - _OPTIONAL_KEYS)]
+    if "client" in payload and client_error(payload["client"]):
+        errors.append(client_error(payload["client"]))
     if payload.get("schema") != SCHEMA:
         errors.append(f"schema must be {SCHEMA}, found: {payload.get('schema')!r}")
     if payload.get("surface") != SURFACE:
@@ -182,7 +191,7 @@ def load_capture(path: str | Path, workspace_root: str | Path) -> PageCapture:
     return PageCapture(
         url=payload["url"], captured_at=payload["captured_at"], page_title=payload["page_title"],
         text=text, text_sha256=payload["text_sha256"], path=label,
-        receipt_sha256=hashlib.sha256(receipt_raw).hexdigest(),
+        receipt_sha256=hashlib.sha256(receipt_raw).hexdigest(), client=payload.get("client", UNRECORDED),
     )
 
 
@@ -193,6 +202,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--title", required=True)
     parser.add_argument("--text-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--client", required=True, choices=sorted(CLIENTS))
     parser.add_argument("--workspace-root", type=Path, default=None)
     return parser
 
@@ -205,7 +215,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     root = (args.workspace_root or Path.cwd()).resolve()
     try:
         receipt = record_capture(
-            url=args.url, title=args.title, text_file=args.text_file, output=args.output, workspace_root=root
+            url=args.url, title=args.title, text_file=args.text_file, output=args.output, workspace_root=root,
+            client=args.client,
         )
     except (ValueError, OSError) as error:
         print(f"page_capture: {' '.join(str(error).split())}", file=sys.stderr)

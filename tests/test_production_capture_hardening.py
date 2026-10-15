@@ -50,17 +50,18 @@ def _clock(monkeypatch, moved: datetime.timedelta) -> None:
 def test_capture_files_must_live_under_research_source_captures(tmp_path):
     text_file, output = _write(tmp_path, "research/other")
     with pytest.raises(ValueError, match=r"research/source-captures"):
-        record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path)
+        record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path, client="claude_code")
     text_file, _ = _write(tmp_path, CAPTURE_DIR)
     with pytest.raises(ValueError, match=r"research/source-captures"):
         record_capture(
-            url=URL, title="T", text_file=text_file, output=tmp_path / "research" / "r.json", workspace_root=tmp_path
+            url=URL, title="T", text_file=text_file, output=tmp_path / "research" / "r.json", workspace_root=tmp_path,
+            client="claude_code",
         )
 
 
 def test_load_refuses_a_receipt_or_text_outside_source_captures(tmp_path):
     text_file, output = _write(tmp_path, CAPTURE_DIR)
-    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path)
+    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path, client="claude_code")
     moved = tmp_path / "research" / "moved.json"
     moved.write_bytes(output.read_bytes())
     with pytest.raises(ValueError, match=r"research/source-captures"):
@@ -79,13 +80,13 @@ def test_record_refuses_a_non_canonical_text_path(tmp_path):
     text_file.write_text(CAPTURE_TEXT, encoding="utf-8", newline="\n")
     output = tmp_path / CAPTURE_DIR / "page.json"
     with pytest.raises(ValueError, match="canonical"):
-        record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path)
+        record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path, client="claude_code")
     assert not output.exists()
 
 
 def test_future_dated_capture_is_refused_but_five_minutes_of_skew_is_allowed(tmp_path, monkeypatch):
     text_file, output = _write(tmp_path, CAPTURE_DIR)
-    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path)
+    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path, client="claude_code")
     _clock(monkeypatch, datetime.timedelta(minutes=-3))
     assert load_capture(output, tmp_path).url == URL
     _clock(monkeypatch, datetime.timedelta(minutes=-10))
@@ -95,7 +96,7 @@ def test_future_dated_capture_is_refused_but_five_minutes_of_skew_is_allowed(tmp
 
 def test_load_refuses_empty_captured_text(tmp_path):
     text_file, output = _write(tmp_path, CAPTURE_DIR)
-    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path)
+    record_capture(url=URL, title="T", text_file=text_file, output=output, workspace_root=tmp_path, client="claude_code")
     text_file.write_text(" \n", encoding="utf-8", newline="\n")
     receipt = json.loads(output.read_text(encoding="utf-8"))
     receipt["text_sha256"] = hashlib.sha256(text_file.read_bytes()).hexdigest()

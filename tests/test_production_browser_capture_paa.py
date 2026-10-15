@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from data_sources.modules.execution_attestation import attest_mapping
 from data_sources.modules.paa_provenance.cli import _record_main
 from data_sources.modules.production import browser_capture
 
@@ -76,6 +77,7 @@ def _argv(root: Path, **overrides: str) -> list[str]:
         "--completed-at": completed,
         "--output": "research/answersocrates-chrome-raw.json",
         "--workspace-root": str(root),
+        "--client": "claude_code",
     }
     values.update(overrides)
     argv = ["paa"]
@@ -120,6 +122,7 @@ def test_capture_keeps_the_page_text_verbatim_and_derives_sections(tmp_path):
     capture = json.loads((root / "research" / "answersocrates-chrome-raw.json").read_text(encoding="utf-8"))
     assert capture["schema"] == "simpro-answersocrates-chrome-connector-capture/v1"
     assert capture["collector"] == {"name": "answersocrates_chrome_connector", "version": "1.0.0"}
+    assert capture["client"] == "claude_code"
     assert capture["execution_attestation"]["purpose"] == capture["schema"]
     assert capture["raw_response"]["stderr"] == ""
     assert capture["raw_response"]["returncode"] == 0
@@ -153,6 +156,43 @@ def test_tampered_capture_fails_attestation(tmp_path, capsys):
 
     with pytest.raises(ValueError, match="attestation is invalid"):
         _record(root)
+
+
+def _resigned(root: Path, change) -> None:
+    """Edit the recorded capture and sign it again, as a capture made under another contract would be."""
+    path = root / "research" / "answersocrates-chrome-raw.json"
+    capture = json.loads(path.read_text(encoding="utf-8"))
+    capture.pop("execution_attestation")
+    change(capture)
+    path.write_text(json.dumps(attest_mapping(capture, purpose=capture["schema"], workspace_root=root)), encoding="utf-8")
+
+
+def test_a_capture_recorded_before_the_client_field_still_records(tmp_path, capsys):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.pop("client"))
+    capsys.readouterr()
+    assert _record(root) == 0
+
+
+def test_a_capture_with_an_unknown_client_is_refused(tmp_path, capsys):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.update(client="cursor"))
+    with pytest.raises(ValueError, match="shape"):
+        _record(root)
+
+
+def test_the_client_flag_is_required(tmp_path, capsys):
+    root = _workspace(tmp_path)
+    argv = _argv(root)
+    assert browser_capture.main(argv[:-2]) == 2
+    assert not (root / "research" / "answersocrates-chrome-raw.json").exists()
+
+
+def test_codex_is_refused_inside_claude_code(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("CLAUDECODE", "1")
+    _refused(_workspace(tmp_path), capsys, **{"--client": "codex"})
 
 
 def _refused(root: Path, capsys, **overrides: str) -> str:

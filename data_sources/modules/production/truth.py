@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from data_sources.modules.ai_copy_lint.core import lint_content
+from data_sources.modules.capture_client import UNRECORDED
 from data_sources.modules.faq_structure import detect_faq_structure
 from data_sources.modules.production.facts import verify_quotes
 from data_sources.modules.production.page_capture import PageCapture, load_capture
@@ -75,7 +76,8 @@ def _fact_finding(fact: Mapping[str, Any], check: Any) -> Finding | None:
         return Finding(
             "fact_quote", "warn",
             f"fact {fact['id']} source {fact['url']} blocked the live check; its quote was verified from "
-            f"the Chrome capture taken at {fact['capture']['captured_at']} ({fact['capture']['path']})", None,
+            f"the Chrome capture taken at {fact['capture']['captured_at']} by "
+            f"{fact['capture'].get('client', UNRECORDED)} ({fact['capture']['path']})", None,
         )
     if check.status == "unreachable":
         verified = fact.get("verified_at")

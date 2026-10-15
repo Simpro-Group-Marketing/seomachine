@@ -9,7 +9,10 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
+from data_sources.modules.editorial_plan.contracts import SERP_RAW_CAPTURE_ATTESTATION_PURPOSE
 from data_sources.modules.editorial_plan.serp_capture import build_serp_evidence
+from data_sources.modules.editorial_plan.serp_validation import check_serp_evidence_payload
+from data_sources.modules.execution_attestation import attest_mapping
 from data_sources.modules.editorial_plan.serp_raw import load_normalized_serp_raw_capture
 from data_sources.modules.production import browser_capture
 
@@ -57,6 +60,7 @@ def _argv(root: Path, **overrides: str) -> list[str]:
         "--collected-at": _now_stamp(),
         "--output": "research/serp-raw-chrome.json",
         "--workspace-root": str(root),
+        "--client": "claude_code",
     }
     values.update(overrides)
     argv = ["serp"]
@@ -82,10 +86,59 @@ def test_recorded_capture_passes_raw_validation_and_builds_evidence(tmp_path, ca
     )
     assert evidence["status"] == "verified"
     assert evidence["collector"] == {"name": "research_serp_analysis:chrome_connector", "version": "1.0.0"}
+    assert evidence["client"] == "claude_code"
+    assert json.loads(_raw(root).read_text(encoding="utf-8"))["client"] == "claude_code"
     assert evidence["run_id"] == RUN_ID
     assert [(row["position"], row["url"], row["title"]) for row in evidence["results"]] == [
         (row["position"], row["url"], row["title"]) for row in ROWS[:10]
     ]
+
+
+def _resigned(root: Path, change) -> None:
+    """Edit the raw capture and sign it again, as a capture made under another contract would be."""
+    capture = json.loads(_raw(root).read_text(encoding="utf-8"))
+    capture.pop("execution_attestation")
+    change(capture)
+    signed = attest_mapping(capture, purpose=SERP_RAW_CAPTURE_ATTESTATION_PURPOSE, workspace_root=root)
+    _raw(root).write_text(json.dumps(signed), encoding="utf-8")
+
+
+def _evidence(root: Path) -> dict:
+    return build_serp_evidence(
+        raw_capture_path=_raw(root), workspace_root=root, must_have_sections=[], competitor_gaps=[]
+    )
+
+
+def test_a_capture_recorded_before_the_client_field_still_builds_evidence(tmp_path):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.pop("client"))
+    assert "client" not in _evidence(root)
+
+
+def test_a_capture_with_an_unknown_client_is_refused(tmp_path):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.update(client="cursor"))
+    with pytest.raises(ValueError, match="shape"):
+        load_normalized_serp_raw_capture(_raw(root), workspace_root=root)
+
+
+def test_evidence_that_disagrees_with_its_capture_on_the_client_is_refused(tmp_path):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    evidence = _evidence(root)
+    evidence["client"] = "codex"
+    rules = {row["rule_id"] for row in check_serp_evidence_payload(
+        evidence, expected_query=QUERY, assembly_date=None, expected_run_id=RUN_ID, workspace_root=root,
+    )}
+    assert "serp_raw_capture_metadata_mismatch" in rules
+
+
+def test_the_client_flag_is_required(tmp_path):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)[:-2]) == 2
+    assert not _raw(root).exists()
 
 
 def test_request_binds_query_country_language_and_no_personalization(tmp_path):

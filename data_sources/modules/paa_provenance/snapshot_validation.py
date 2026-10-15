@@ -7,6 +7,8 @@ import io
 from datetime import datetime, timezone
 from typing import Any, Callable, Mapping
 
+from ..capture_client import fields_with_client_ok
+
 
 def valid_raw_capture_binding(
     binding: object,
@@ -49,7 +51,7 @@ def valid_raw_capture_binding(
         return False
     collector, purpose = contract
     if (
-        set(capture) != raw_capture_fields
+        not fields_with_client_ok(capture, raw_capture_fields)
         or capture.get("collector") != collector
         or capture.get("query") != expected_query
         or capture.get("run_id") != expected_run_id

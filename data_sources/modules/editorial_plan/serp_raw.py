@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from ..capture_client import fields_with_client_ok
 from .contracts import SERP_APPROVED_COLLECTORS
 from .contracts import SERP_APPROVED_DATAFORSEO_LOCATION_CODES
 from .contracts import SERP_APPROVED_GOOGLE_COUNTRIES
@@ -98,7 +99,7 @@ def _validated_capture_payload(
     snapshot: Any,
 ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
     capture = snapshot.payload
-    if set(capture) != SERP_RAW_CAPTURE_FIELDS:
+    if not fields_with_client_ok(capture, SERP_RAW_CAPTURE_FIELDS):
         raise ValueError("SERP raw capture shape is invalid")
     if capture.get("schema") != SERP_RAW_CAPTURE_SCHEMA:
         raise ValueError("SERP raw capture schema is invalid")

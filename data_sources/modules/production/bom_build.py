@@ -201,7 +201,8 @@ def _verified_row(
         capture = captures[fact["url"]]
         row["verified_at"] = capture.captured_at
         row["verified_via"] = CHROME_CAPTURE
-        row["capture"] = {"path": capture.path, "sha256": capture.receipt_sha256, "captured_at": capture.captured_at}
+        row["capture"] = {"path": capture.path, "sha256": capture.receipt_sha256, "captured_at": capture.captured_at,
+                          "client": capture.client}
     return row
 
 
