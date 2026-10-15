@@ -91,16 +91,16 @@ def is_nonconnector(spec: Mapping[str, Any]) -> bool:
     return brand in NON_CONNECTOR_BRANDS and SIMPRO_ARTICLE_RE.search(content) is None
 
 
-def _required_artifacts(layout: Layout, spec: Mapping[str, Any], nonconnector: bool) -> dict[str, Path]:
+def _required_artifacts(layout: Layout, nonconnector: bool) -> dict[str, Path]:
     required = {
         "keyword_decision": layout.keyword_decision,
         "keyword_shortlist": layout.keyword_shortlist,
         "serp_evidence": layout.serp_evidence,
         "serp_coverage": layout.serp_coverage,
         "customer_proof_evidence": evidence_path(layout, nonconnector),
+        # The scorer needs the AnswerSocrates capture even when no FAQ question is selected.
+        "paa_artifact": layout.paa_artifact,
     }
-    if spec["paa_questions"]:
-        required["paa_artifact"] = layout.paa_artifact
     if not nonconnector:
         required["context_pack"] = layout.context_pack
         required["context_receipt"] = layout.context_receipt
@@ -114,7 +114,7 @@ def _preflight_errors(layout: Layout, spec: Mapping[str, Any], nonconnector: boo
         errors.append("nonconnector spec requires a non-empty not_applicable_context_reason")
     if not nonconnector and "not_applicable_context_reason" in spec:
         errors.append("connector spec must not carry not_applicable_context_reason")
-    for path in _required_artifacts(layout, spec, nonconnector).values():
+    for path in _required_artifacts(layout, nonconnector).values():
         if not path.is_file():
             errors.append(f"required artifact is missing: {relative(layout, path)}")
     return errors

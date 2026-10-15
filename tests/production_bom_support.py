@@ -37,6 +37,10 @@ STORY_ID = "clockshark-story-row"
 CONNECTOR_EVIDENCE_SCHEMA = "simpro-customer-proof-selector-evidence/v2"
 NONVAULT_EVIDENCE_SCHEMA = "simpro-nonvault-customer-proof-selector-evidence/v1"
 SLATE_ROLES = ("metric", "quote", "theme", "experience_story")
+STORY_NO_FIT = (
+    "no eligible candidate exists because the approved context has no customer story for this article objective"
+)
+STORY_REJECTION = "not used because this story does not match the article objective or any planned section"
 
 
 def write_json(path: Path, payload: Any) -> None:
@@ -200,9 +204,10 @@ def selector_evidence(spec: dict[str, Any], *, nonconnector: bool) -> dict[str, 
     roles = []
     for role in SLATE_ROLES:
         ids = [item["claim_id"] for item in spec["proof"] if item.get("kind") == role]
+        rejected = {"none": STORY_NO_FIT} if role == "experience_story" and not ids else {}
         roles.append({"role": role, "candidate_ids": ids, "claim_ids": [] if nonconnector else ids,
                       "selected_id": ids[0] if ids else "none", "selected_candidate": None,
-                      "rejected_overrides": {}})
+                      "rejected_overrides": rejected})
     return {"schema": NONVAULT_EVIDENCE_SCHEMA if nonconnector else CONNECTOR_EVIDENCE_SCHEMA,
             "selection_outcome": "customer_proof_candidates_available",
             "inputs": {"article_slug": "field-service-software", "rejected_overrides": {}},
@@ -222,7 +227,13 @@ def write_nonvault_evidence(layout: Layout, spec: dict[str, Any]) -> None:
     try:
         write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides=selected, **kwargs)
     except NonVaultProofDataError:
+        selected = {}
         write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides={}, **kwargs)
+    roles = json.loads(layout.nonvault_customer_proof_evidence.read_text(encoding="utf-8"))["roles"]
+    story = next(row for row in roles if row["role"] == "experience_story")
+    if story["selected_id"] == "none" and story["candidate_ids"]:  # a real run documents the story it passed over
+        kwargs["rejected_overrides"] = {"experience_story": dict.fromkeys(story["candidate_ids"], STORY_REJECTION)}
+        write_nonvault_selector_evidence(layout.nonvault_customer_proof_evidence, selected_overrides=selected, **kwargs)
 
 
 def paa_artifact(run_id: str, *, collection_date: str = TODAY) -> dict[str, Any]:

@@ -161,13 +161,6 @@ def test_paa_match_ignores_case_and_whitespace(tmp_path):
     assert _build(layout)["paa"]["questions"][0]["question"] == PAA_QUESTION
 
 
-def test_no_paa_questions_needs_no_paa_artifact(tmp_path):
-    layout = make_workspace(tmp_path, paa=False)
-    _mutate(layout, lambda s: s.update(paa_questions=[]))
-    bom = _build(layout)
-    assert bom["paa"] == {"artifact": None, "questions": []}
-
-
 def test_rebuild_reuses_the_stored_run_id(tmp_path):
     layout = make_workspace(tmp_path)
     assert _build(layout)["identity"]["run_id"] == _build(layout)["identity"]["run_id"]
@@ -209,9 +202,7 @@ def test_duplicate_fact_ids_abort(tmp_path):
 
 def test_aborted_build_does_not_mint_run_state(tmp_path):
     layout = make_workspace(tmp_path, paa=False)
-    _mutate(layout, lambda s: s.update(paa_questions=[]))
-    transport = FakeTransport({FACT_URL: response(FACT_URL, 200, "<p>none</p>")})
-    _refused(layout, "f1", transport=transport)
+    _refused(layout, "paa-evidence")
     assert not layout.run_state.exists()
 
 

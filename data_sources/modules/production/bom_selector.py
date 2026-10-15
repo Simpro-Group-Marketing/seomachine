@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from data_sources.modules.content_scoring.aeo_no_fit import _has_verified_selector_rejections
 from data_sources.modules.customer_proof.connector_evidence import CONNECTOR_EVIDENCE_SCHEMA
 from data_sources.modules.customer_proof.nonconnector_contracts import SCHEMA as NONVAULT_EVIDENCE_SCHEMA
 from data_sources.modules.customer_proof.nonconnector_evidence import verify_nonconnector_selector_evidence
@@ -45,6 +46,25 @@ def _role_record(row: Mapping[str, Any], inputs: Mapping[str, Any]) -> dict[str,
     }
 
 
+STORY_NO_FIT_REMEDY = (
+    're-run the customer proof selector with --reject "experience_story=none:no eligible candidate exists because '
+    '<why no approved story fits this article objective>", then rebuild'
+)
+
+
+def _story_errors(roles: Sequence[Mapping[str, Any]]) -> list[str]:
+    """An unselected experience story needs the documented no-fit the release scorer requires."""
+    story = next((row for row in roles if row["role"] == "experience_story"), None)
+    if story is None or story["selected_id"].casefold() != "none":
+        return []
+    rejected = {str(key).casefold(): str(value) for key, value in (story["rejected_overrides"] or {}).items()}
+    candidates = [str(candidate).casefold() for candidate in story["candidate_ids"]]
+    documented = bool(rejected or story["no_fit_reason"])
+    if documented and _has_verified_selector_rejections(candidates, rejected, story["no_fit_reason"]):
+        return []
+    return [f"customer-proof experience_story has no selection and no substantive documented no-fit; {STORY_NO_FIT_REMEDY}"]
+
+
 def _unselected_errors(proof: Sequence[Mapping[str, Any]], roles: Sequence[Mapping[str, Any]]) -> list[str]:
     selected = {row["selected_id"] for row in roles if row["selected_id"].casefold() != "none"}
     return [
@@ -77,9 +97,13 @@ def bind_selector_evidence(
     if errors:
         raise ValueError("\n".join(errors))
     inputs = payload.get("inputs") if isinstance(payload.get("inputs"), Mapping) else {}
+    records = [_role_record(row, inputs) for row in roles]
+    errors = _story_errors(records)
+    if errors:
+        raise ValueError("\n".join(errors))
     return {
         "evidence": binding,
         "schema": expected,
         "selection_outcome": str(payload.get("selection_outcome") or ""),
-        "roles": [_role_record(row, inputs) for row in roles],
+        "roles": records,
     }

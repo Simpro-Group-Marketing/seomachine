@@ -101,10 +101,8 @@ def keyword_and_serp(layout: Layout, market: str) -> tuple[dict[str, Any], dict[
 
 
 def resolve_paa(spec: Mapping[str, Any], layout: Layout) -> dict[str, Any]:
-    """Admit only PAA questions found in the bound artifact, copying the artifact's own wording."""
+    """Bind the PAA capture, even a blocked one, and admit only questions found in it, in its own wording."""
     questions = spec["paa_questions"]
-    if not questions:
-        return {"artifact": None, "questions": []}
     artifact, binding = read_bound(layout, layout.paa_artifact, "PAA artifact", ("eligible_questions",))
     eligible = artifact["eligible_questions"]
     if not isinstance(eligible, list) or not all(isinstance(q, str) for q in eligible):

@@ -23,6 +23,8 @@ from data_sources.modules.production.usage_ledger import record_publish_use
 from tests.production_bom_support import (
     ARTICLE,
     NONVAULT_ID,
+    STORY_ID,
+    STORY_REJECTION,
     TODAY,
     connector_spec,
     good_transport,
@@ -80,7 +82,8 @@ def _nonvault_workspace(root, *, limit: int = 1) -> Layout:
         layout.nonvault_customer_proof_evidence, topic="Crew Time Tracking Guide", brand="ClockShark",
         title="Crew Time Tracking Guide", objective="Help owners choose software", article_slug=SLUG,
         roles=["metric", "quote", "theme", "experience_story"], require_eeat_story=True, limit=limit,
-        reference_date=date.fromisoformat(TODAY), selected_overrides={"theme": NONVAULT_ID}, rejected_overrides={},
+        reference_date=date.fromisoformat(TODAY), selected_overrides={"theme": NONVAULT_ID},
+        rejected_overrides={"experience_story": {STORY_ID: STORY_REJECTION}},
         index_path=root / "config" / "nonvault-customer-proof-index.json",
         ledger_path=root / "config" / "customer-proof-usage-ledger.json",
     )
