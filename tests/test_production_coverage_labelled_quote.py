@@ -30,6 +30,19 @@ def test_a_short_fragment_of_the_approved_text_does_not_count():
     assert len(blocks(cov(text, _bom()), "coverage_proof")) == 1
 
 
+def test_quoting_the_vault_label_does_not_count():
+    label = "G2 public filtered 4-5-star review metric or word metric candidate"
+    text = plain() + f'One user said "{label}" ([G2 review]({URL})).\n'
+    assert len(blocks(cov(text, _bom()), "coverage_proof")) == 1
+    text = plain() + f'One user said "{LABELLED}" ([G2 review]({URL})).\n'
+    assert len(blocks(cov(text, _bom()), "coverage_proof")) == 1
+
+
+def test_a_single_quoted_passage_counts_like_a_double_quoted_one():
+    text = plain() + f"One user put it this way: '{QUOTE}' ([G2 review]({URL})).\n"
+    assert blocks(cov(text, _bom()), "coverage_proof") == []
+
+
 def test_an_unquoted_paraphrase_does_not_count_for_a_quote_item():
     text = plain() + f"Users like having one system for quoting and invoicing ([G2 review]({URL})).\n"
     assert len(blocks(cov(text, _bom()), "coverage_proof")) == 1

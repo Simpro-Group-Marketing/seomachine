@@ -35,6 +35,7 @@ from ..proof_sidecar import compose_with_sidecar, load_sidecar_content
 from .dependencies import PaaDependencies
 
 from .contracts import (
+    CLIENT_DECLARED_CAPTURE_SCHEMAS,
     ANSWERSOCRATES_ARTIFACT_SCHEMA,
     ANSWERSOCRATES_BROWSER_OUTPUT_FIELDS,
     ANSWERSOCRATES_CAPTURE_CONTRACTS,
@@ -141,7 +142,10 @@ def _validate_build_expectations(
 
 
 def _capture_contract(capture: Mapping[str, Any]) -> tuple[Mapping[str, str], str]:
-    if not fields_with_client_ok(capture, ANSWERSOCRATES_RAW_CAPTURE_FIELDS):
+    declared = capture.get("schema") in CLIENT_DECLARED_CAPTURE_SCHEMAS
+    if not fields_with_client_ok(
+        capture, ANSWERSOCRATES_RAW_CAPTURE_FIELDS, recorded_at=capture.get("completed_at") if declared else None
+    ):
         raise ValueError("AnswerSocrates raw capture shape is invalid")
     capture_contract = ANSWERSOCRATES_CAPTURE_CONTRACTS.get(capture.get("schema"))
     if capture_contract is None:

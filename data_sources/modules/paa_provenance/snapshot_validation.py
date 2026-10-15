@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Mapping
 
 from ..capture_client import fields_with_client_ok
+from .contracts import CLIENT_DECLARED_CAPTURE_SCHEMAS
 
 
 def valid_raw_capture_binding(
@@ -51,7 +52,10 @@ def valid_raw_capture_binding(
         return False
     collector, purpose = contract
     if (
-        not fields_with_client_ok(capture, raw_capture_fields)
+        not fields_with_client_ok(
+            capture, raw_capture_fields,
+            recorded_at=capture.get("completed_at") if capture.get("schema") in CLIENT_DECLARED_CAPTURE_SCHEMAS else None,
+        )
         or capture.get("collector") != collector
         or capture.get("query") != expected_query
         or capture.get("run_id") != expected_run_id

@@ -34,7 +34,7 @@ def test_read_error_is_not_cached(tmp_path, monkeypatch):
     monkeypatch.setattr(allow, "URL_VERIFICATION_ALLOWLIST_PATH", missing)
     monkeypatch.setattr(allow, "_CHROME_VERIFIED_CACHE", None)
     assert allow.chrome_verified_urls() == frozenset()
-    missing.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector"}]}' % ALLOWED, encoding="utf-8")
+    missing.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector","verified_at":"2026-09-18T20:41:00Z"}]}' % ALLOWED, encoding="utf-8")
     assert ALLOWED in allow.chrome_verified_urls()
 
 
@@ -46,7 +46,7 @@ def test_non_dict_payload_is_treated_as_unreadable_and_not_cached(tmp_path, monk
     monkeypatch.setattr(allow, "_CHROME_VERIFIED_CACHE", None)
     assert allow.chrome_verified_urls() == frozenset()
     assert allow._CHROME_VERIFIED_CACHE is None
-    path.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector"}]}' % ALLOWED, encoding="utf-8")
+    path.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector","verified_at":"2026-09-18T20:41:00Z"}]}' % ALLOWED, encoding="utf-8")
     assert ALLOWED in allow.chrome_verified_urls()
 
 
@@ -58,7 +58,7 @@ def test_malformed_json_is_not_cached(tmp_path, monkeypatch):
     monkeypatch.setattr(allow, "_CHROME_VERIFIED_CACHE", None)
     assert allow.chrome_verified_urls() == frozenset()
     assert allow._CHROME_VERIFIED_CACHE is None
-    path.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector"}]}' % ALLOWED, encoding="utf-8")
+    path.write_text('{"entries":[{"url":"%s","verified_via":"chrome_connector","verified_at":"2026-09-18T20:41:00Z"}]}' % ALLOWED, encoding="utf-8")
     assert ALLOWED in allow.chrome_verified_urls()
 
 
@@ -72,10 +72,13 @@ def _allowlist(tmp_path, monkeypatch, entries):
 
 
 def test_an_entry_names_the_client_that_verified_it(tmp_path, monkeypatch):
-    entry = {"url": ALLOWED, "verified_via": "chrome_connector"}
+    entry = {"url": ALLOWED, "verified_via": "chrome_connector", "verified_at": "2026-10-16T00:00:00Z"}
     assert ALLOWED in _allowlist(tmp_path, monkeypatch, [{**entry, "client": "codex"}])
-    assert ALLOWED in _allowlist(tmp_path, monkeypatch, [entry])  # recorded before the client field existed
+    assert ALLOWED not in _allowlist(tmp_path, monkeypatch, [entry])  # after the field shipped: client required
     assert ALLOWED not in _allowlist(tmp_path, monkeypatch, [{**entry, "client": "cursor"}])
+    legacy = {**entry, "verified_at": "2026-09-18T20:41:00Z"}  # verified before the client field existed
+    assert ALLOWED in _allowlist(tmp_path, monkeypatch, [legacy])
+    assert ALLOWED not in _allowlist(tmp_path, monkeypatch, [{"url": ALLOWED, "verified_via": "chrome_connector"}])
 
 
 def test_every_repo_allowlist_client_is_known():
@@ -84,3 +87,6 @@ def test_every_repo_allowlist_client_is_known():
     entries = json.loads(URL_VERIFICATION_ALLOWLIST_PATH.read_text(encoding="utf-8"))["entries"]
     assert all(entry.get("client", "claude_code") in CLIENTS for entry in entries)
     assert any(entry.get("client") == "claude_code" for entry in entries)
+    from data_sources.modules import url_verification_allowlist as allow
+    allow._CHROME_VERIFIED_CACHE = None
+    assert len(allow.chrome_verified_urls()) == len(entries)  # every repo entry still qualifies

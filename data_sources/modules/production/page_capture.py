@@ -8,7 +8,7 @@ The page is read with the running client's live-browser tools (see ``capture_cli
 SHA-256, and ``load_capture`` refuses any edit made after capture. The receipt proves the text is
 unchanged since it was captured, not where it came from: ``surface`` and ``client`` are
 self-declared, and no automated check can tell a faithful Chrome capture from typed text. A receipt
-recorded before the client field existed loads with client ``unrecorded``. The text and the receipt must
+recorded before the client field shipped loads with client ``unrecorded``; a later one must name it. The text and the receipt must
 both live under ``research/source-captures/``. A capture may stand in only for a fact page whose live
 fetch was blocked (``facts.verify_quotes`` decides), and never for a gone or reachable page.
 Exit codes: 0 recorded, 2 error (one line on stderr).
@@ -28,7 +28,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from data_sources.modules.blog_assembly_contract import atomic_write_json, resolve_artifact
-from data_sources.modules.capture_client import CLIENTS, UNRECORDED, client_error, declared_client
+from data_sources.modules.capture_client import CLIENTS, UNRECORDED, client_error, client_required, declared_client
 
 SCHEMA = "simpro-chrome-page-capture/v1"
 SURFACE = "chrome_main_window"
@@ -132,6 +132,8 @@ def _receipt_errors(payload: Mapping[str, Any]) -> list[str]:
     errors += [f"unexpected key {key}" for key in sorted(set(payload) - _KEYS - _OPTIONAL_KEYS)]
     if "client" in payload and client_error(payload["client"]):
         errors.append(client_error(payload["client"]))
+    if "client" not in payload and client_required(payload.get("captured_at")):
+        errors.append("missing client (a receipt made after the client field shipped must name claude_code or codex)")
     if payload.get("schema") != SCHEMA:
         errors.append(f"schema must be {SCHEMA}, found: {payload.get('schema')!r}")
     if payload.get("surface") != SURFACE:

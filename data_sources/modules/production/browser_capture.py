@@ -143,6 +143,8 @@ def build_paa_capture(
         raise ValueError("page title must be non-empty text")
     if not text.strip():
         raise ValueError("page text is empty")
+    if " ".join(query.split()).casefold() not in " ".join(text.split()).casefold():
+        raise ValueError("page text does not show the searched query; save the results page for this exact query")
     started = _require_time(started_at, "started-at")
     if _require_time(completed_at, "completed-at") <= started:
         raise ValueError("completed-at must be later than started-at")
@@ -258,9 +260,13 @@ def record_serp(args: argparse.Namespace, root: Path) -> list[Path]:
     atomic_write_json(output, signed)
     if evidence_output is None:
         return [output]
-    evidence = build_serp_evidence(
-        raw_capture_path=output, workspace_root=root, must_have_sections=[], competitor_gaps=[]
-    )
+    try:
+        evidence = build_serp_evidence(
+            raw_capture_path=output, workspace_root=root, must_have_sections=[], competitor_gaps=[]
+        )
+    except ValueError:
+        output.unlink(missing_ok=True)  # never leave a signed raw capture whose evidence was refused
+        raise
     atomic_write_json(evidence_output, evidence)
     return [output, evidence_output]
 

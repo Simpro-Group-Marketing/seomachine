@@ -55,7 +55,10 @@ STORY_NO_FIT_REMEDY = (
 def _story_errors(roles: Sequence[Mapping[str, Any]]) -> list[str]:
     """An unselected experience story needs the documented no-fit the release scorer requires."""
     story = next((row for row in roles if row["role"] == "experience_story"), None)
-    if story is None or story["selected_id"].casefold() != "none":
+    if story is None:
+        return ["customer-proof selector evidence has no experience_story role; rerun the selector with "
+                "--roles metric,quote,theme,experience_story --require-eeat-story"]
+    if story["selected_id"].casefold() != "none":
         return []
     rejected = {str(key).casefold(): str(value) for key, value in (story["rejected_overrides"] or {}).items()}
     candidates = [str(candidate).casefold() for candidate in story["candidate_ids"]]

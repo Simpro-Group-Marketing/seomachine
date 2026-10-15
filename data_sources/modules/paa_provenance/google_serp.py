@@ -16,7 +16,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from ..capture_client import UNRECORDED, client_error
+from ..capture_client import UNRECORDED, client_error, client_required
 from ..editorial_plan.contracts import _rfc3339_utc
 from ..execution_attestation import verify_mapping_attestation
 from .contracts import ANSWERSOCRATES_BLOCKER_STATES, ANSWERSOCRATES_PAGE_URLS
@@ -42,10 +42,17 @@ def capture_client(payload: Mapping[str, Any]) -> str:
     return str(payload.get("client") or UNRECORDED)
 
 
+def google_serp_capture_payload(path: Path) -> Mapping[str, Any] | None:
+    """The capture at ``path`` when the Google SERP PAA recorder wrote it, else None."""
+    payload = _load(path, None)
+    if isinstance(payload, Mapping) and payload.get("schema") == GOOGLE_SERP_PAA_SCHEMA:
+        return payload
+    return None
+
+
 def is_google_serp_capture(path: Path) -> bool:
     """True when ``path`` holds a capture written by the Google SERP PAA recorder."""
-    payload = _load(path, None)
-    return isinstance(payload, Mapping) and payload.get("schema") == GOOGLE_SERP_PAA_SCHEMA
+    return google_serp_capture_payload(path) is not None
 
 
 def blocker_error(blocker: Any, *, collection_date: str, collected_at: str) -> str:
@@ -80,8 +87,10 @@ def _capture_error(path: Path, payload: Any, expected: Mapping[str, str | None])
         return f"not a {GOOGLE_SERP_PAA_SCHEMA} capture"
     if payload.get("collector") != GOOGLE_SERP_PAA_COLLECTOR:
         return "collector is not the Google SERP Chrome recorder"
-    if "client" in payload and client_error(payload["client"]):  # absent on captures made before the field existed
+    if "client" in payload and client_error(payload["client"]):
         return client_error(payload["client"])
+    if "client" not in payload and client_required(payload.get("collected_at")):  # absent only on older captures
+        return "client is missing (a capture made after the client field shipped must name claude_code or codex)"
     if not verify_mapping_attestation(payload, purpose=GOOGLE_SERP_PAA_SCHEMA,
                                       workspace_root=_artifact_workspace_root(path)):
         return "execution attestation does not verify (edited or not written by the recorder)"
@@ -119,6 +128,7 @@ __all__ = [
     "RELEASE_CHECK",
     "blocker_error",
     "capture_client",
+    "google_serp_capture_payload",
     "google_serp_questions",
     "is_google_serp_capture",
 ]

@@ -152,16 +152,16 @@ def _missing_artifact_finding(
             "paa_new_answersocrates_required",
             1,
             None,
-            "A new blog requires a structured AnswerSocrates artifact even when no FAQ is selected.",
-            "Collect and bind the AnswerSocrates artifact, recording an empty selected-question decision when FAQ is not applicable.",
+            "A new blog requires a structured AnswerSocrates artifact (or its Google SERP fallback) even when no FAQ is selected.",
+            "Collect and bind the AnswerSocrates artifact or the Google SERP PAA fallback, recording an empty selected-question decision when FAQ is not applicable.",
         )
     if workflow_mode == "rewrite":
         return _finding(
             "paa_rewrite_answersocrates_required",
             1,
             None,
-            "A rewrite without bound pre-picked brief PAA requires a structured AnswerSocrates artifact.",
-            "Bind the dedicated brief PAA artifact when it exists; otherwise collect and bind AnswerSocrates.",
+            "A rewrite without bound pre-picked brief PAA requires a structured AnswerSocrates artifact (or its Google SERP fallback).",
+            "Bind the dedicated brief PAA artifact when it exists; otherwise collect and bind AnswerSocrates or the Google SERP PAA fallback.",
         )
     return None
 
@@ -177,7 +177,7 @@ def _source_kind_finding(
             provenance.line,
             None,
             f"Supplemental PAA source cannot qualify as primary provenance: {source_kind}",
-            "Use AnswerSocrates, dedicated brief PAA, or a blocker-backed user CSV.",
+            "Use AnswerSocrates, its Google SERP fallback, dedicated brief PAA, or a blocker-backed user CSV.",
             match=source_kind,
         )
     if source_kind not in PRIMARY_SOURCE_KINDS:
@@ -186,7 +186,7 @@ def _source_kind_finding(
             provenance.line,
             None,
             f"PAA/FAQ source is not allowed: {provenance.source}",
-            "Use the exact source kind answersocrates, brief_paa, or user_csv.",
+            "Use the exact source kind answersocrates, google_serp_paa, brief_paa, or user_csv.",
             match=provenance.source,
         )
     if workflow_mode not in WORKFLOW_MODES:

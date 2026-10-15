@@ -86,8 +86,8 @@ def _argv(root: Path, **overrides: str) -> list[str]:
     return argv
 
 
-def _record(root: Path) -> int:
-    _, _, collection_date = _times()
+def _record(root: Path, collection_date: str | None = None) -> int:
+    collection_date = collection_date or _times()[2]
     return _record_main(
         [
             "--query", QUERY,
@@ -170,9 +170,18 @@ def _resigned(root: Path, change) -> None:
 def test_a_capture_recorded_before_the_client_field_still_records(tmp_path, capsys):
     root = _workspace(tmp_path)
     assert browser_capture.main(_argv(root)) == 0
-    _resigned(root, lambda capture: capture.pop("client"))
+    _resigned(root, lambda capture: (capture.pop("client"), capture.update(
+        started_at="2026-10-14T13:59:00Z", completed_at="2026-10-14T14:00:00Z")))
     capsys.readouterr()
-    assert _record(root) == 0
+    assert _record(root, collection_date="2026-10-14") == 0
+
+
+def test_a_capture_made_after_the_field_shipped_must_name_its_client(tmp_path, capsys):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.pop("client"))
+    with pytest.raises(ValueError, match="shape"):
+        _record(root)
 
 
 def test_a_capture_with_an_unknown_client_is_refused(tmp_path, capsys):
@@ -213,7 +222,7 @@ def test_refuses_text_without_a_people_also_ask_heading_line(tmp_path, capsys):
 
 
 def test_refuses_a_heading_with_no_questions_under_it(tmp_path, capsys):
-    text = "People Also Ask\nVisible question suggestions\nHow To Quote A Job\n"
+    text = f"{QUERY}\nPeople Also Ask\nVisible question suggestions\nHow To Quote A Job\n"
     assert "question" in _refused(_workspace(tmp_path, text), capsys)
 
 
@@ -260,6 +269,11 @@ def test_refuses_output_outside_the_workspace(tmp_path, capsys):
 def test_refuses_invalid_capture_times(tmp_path, capsys, started, completed):
     error = _refused(_workspace(tmp_path), capsys, **{"--started-at": started, "--completed-at": completed})
     assert "time" in error or "completed" in error or "future" in error
+
+
+def test_refuses_page_text_that_does_not_show_the_query(tmp_path, capsys):
+    error = _refused(_workspace(tmp_path), capsys, **{"--query": "field service software"})
+    assert "query" in error
 
 
 def test_refuses_an_untrimmed_query(tmp_path, capsys):

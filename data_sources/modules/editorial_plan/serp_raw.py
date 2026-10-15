@@ -99,7 +99,7 @@ def _validated_capture_payload(
     snapshot: Any,
 ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
     capture = snapshot.payload
-    if not fields_with_client_ok(capture, SERP_RAW_CAPTURE_FIELDS):
+    if not fields_with_client_ok(capture, SERP_RAW_CAPTURE_FIELDS, recorded_at=capture.get("collected_at")):
         raise ValueError("SERP raw capture shape is invalid")
     if capture.get("schema") != SERP_RAW_CAPTURE_SCHEMA:
         raise ValueError("SERP raw capture schema is invalid")

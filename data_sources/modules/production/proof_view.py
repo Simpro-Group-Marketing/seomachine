@@ -48,7 +48,9 @@ def _paa_block(bom: Mapping[str, Any], root: Path | None) -> str:
         return ""
     selected = [f"  - {_cell(item['question'])}" for item in paa.get("questions") or []]
     path = _path(binding, root)
-    source = GOOGLE_SERP_PAA_SOURCE_KIND if is_google_serp_capture(Path(path)) else PAA_SOURCE_KIND
+    # Detect from the real location: the printed path may be relative when the root has whitespace.
+    actual = root / str(binding["path"]) if root is not None else Path(str(binding["path"]))
+    source = GOOGLE_SERP_PAA_SOURCE_KIND if is_google_serp_capture(actual) else PAA_SOURCE_KIND
     lines = ["## PAA/FAQ Provenance", f"- Source: {source}", f"- Artifact: {path}"]
     return "\n".join([*lines, "- Selected questions:", *selected])
 

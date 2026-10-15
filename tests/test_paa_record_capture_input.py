@@ -53,6 +53,7 @@ def _write_capture(workspace_root: Path) -> tuple[Path, str]:
     capture = {
         "schema": CHROME_CAPTURE_SCHEMA,
         "collector": {"name": "answersocrates_chrome_connector", "version": "1.0.0"},
+        "client": "claude_code",
         "query": QUERY,
         "run_id": RUN_ID,
         "started_at": started.strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -3,7 +3,7 @@
   "purpose": "Hosts that refuse automated validators but serve the page normally to a real browser. Each entry records a Chrome connector observation so a bot-block does not masquerade as an unresolved source.",
   "rules": [
     "An entry is only valid when the page was actually loaded in the user's main Chrome window by the running client's live-browser tools and its title and an on-page snippet were read back.",
-    "Record that client as \"client\": \"claude_code\" or \"codex\". Entries made before the field existed carry none; an entry naming an unknown client is ignored.",
+    "Record that client as \"client\": \"claude_code\" or \"codex\". An entry verified before the field shipped (2026-10-15T18:38:35Z) may carry none; a later entry without one, or any entry naming an unknown client, is ignored.",
     "An entry exempts the URL from manual-review blocking. It does not exempt the claim from Source Map, evidence, or freshness requirements.",
     "Re-verify an entry whenever the cited claim changes or the source is materially revised."
   ],

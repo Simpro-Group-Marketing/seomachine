@@ -7,8 +7,9 @@ citations off primary authorities. Entries are only added after the page is
 loaded in the user's main Chrome window by the running client's live-browser
 tools and its title and an on-page snippet are read back, so an entry asserts
 the stronger fact that a human-equivalent browser saw the page serving. An
-entry names that client (``claude_code`` or ``codex``); entries made before the
-field existed carry none, and an entry naming an unknown client is ignored.
+entry names that client (``claude_code`` or ``codex``); an entry verified before
+the field shipped may carry none, and a later entry without one, or any entry
+naming an unknown client, is ignored.
 """
 
 from __future__ import annotations
@@ -18,15 +19,22 @@ from pathlib import Path
 from typing import Optional
 
 try:
-    from .capture_client import client_error
+    from .capture_client import client_error, client_required
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from capture_client import client_error
+    from capture_client import client_error, client_required
 
 URL_VERIFICATION_ALLOWLIST_PATH = (
     Path(__file__).resolve().parents[2] / "context" / "url-verification-allowlist.json"
 )
 
 _CHROME_VERIFIED_CACHE: Optional[frozenset[str]] = None
+
+
+def _client_ok(entry: dict) -> bool:
+    """A known client, or none on an entry verified before the client field shipped."""
+    if "client" in entry:
+        return not client_error(entry["client"])
+    return not client_required(entry.get("verified_at"))
 
 
 def chrome_verified_urls() -> frozenset[str]:
@@ -47,7 +55,7 @@ def chrome_verified_urls() -> frozenset[str]:
                 isinstance(entry, dict)
                 and entry.get("verified_via") == "chrome_connector"
                 and isinstance(entry.get("url"), str)
-                and ("client" not in entry or not client_error(entry["client"]))
+                and _client_ok(entry)
             ):
                 urls.add(entry["url"].strip())
     except (OSError, ValueError):

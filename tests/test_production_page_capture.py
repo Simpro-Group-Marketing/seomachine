@@ -75,8 +75,15 @@ def test_wrong_schema_refuses(tmp_path):
 
 def test_a_capture_recorded_before_the_client_field_reads_as_unrecorded(tmp_path):
     _text_file, output = _record(tmp_path)
-    _edit_receipt(output, lambda payload: payload.pop("client"))
+    _edit_receipt(output, lambda payload: (payload.pop("client"), payload.update(captured_at="2026-10-14T08:00:00Z")))
     assert load_capture(output, tmp_path).client == "unrecorded"
+
+
+def test_a_capture_made_after_the_field_shipped_must_name_its_client(tmp_path):
+    _text_file, output = _record(tmp_path)
+    _edit_receipt(output, lambda payload: payload.pop("client"))
+    with pytest.raises(ValueError, match="client"):
+        load_capture(output, tmp_path)
 
 
 def test_an_unknown_client_refuses(tmp_path):

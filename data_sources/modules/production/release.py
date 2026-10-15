@@ -226,10 +226,9 @@ def _carried_findings(bom: Mapping[str, Any]) -> list[Finding]:
 def _paa_source_findings(root: Path, bom: Mapping[str, Any]) -> list[Finding]:
     """One warning naming the Google SERP PAA fallback and its AnswerSocrates blocker, so the record shows it."""
     binding = (bom.get("paa") or {}).get("artifact")
-    path = root / str(binding.get("path")) if isinstance(binding, Mapping) else None
-    if path is None or not google_serp.is_google_serp_capture(path):
+    payload = google_serp.google_serp_capture_payload(root / str(binding["path"])) if isinstance(binding, Mapping) else None
+    if payload is None:
         return []
-    payload = json.loads(path.read_text(encoding="utf-8"))
     blocker = payload.get("answersocrates_blocker") or {}
     message = (
         f"PAA came from the Google SERP fallback ({binding.get('path')}), recorded by "

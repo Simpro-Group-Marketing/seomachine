@@ -112,8 +112,16 @@ def _evidence(root: Path) -> dict:
 def test_a_capture_recorded_before_the_client_field_still_builds_evidence(tmp_path):
     root = _workspace(tmp_path)
     assert browser_capture.main(_argv(root)) == 0
-    _resigned(root, lambda capture: capture.pop("client"))
+    _resigned(root, lambda capture: (capture.pop("client"), capture.update(collected_at="2026-10-14T14:00:00Z")))
     assert "client" not in _evidence(root)
+
+
+def test_a_capture_made_after_the_field_shipped_must_name_its_client(tmp_path):
+    root = _workspace(tmp_path)
+    assert browser_capture.main(_argv(root)) == 0
+    _resigned(root, lambda capture: capture.pop("client"))
+    with pytest.raises(ValueError, match="shape"):
+        load_normalized_serp_raw_capture(_raw(root), workspace_root=root)
 
 
 def test_a_capture_with_an_unknown_client_is_refused(tmp_path):
@@ -133,6 +141,18 @@ def test_evidence_that_disagrees_with_its_capture_on_the_client_is_refused(tmp_p
         evidence, expected_query=QUERY, assembly_date=None, expected_run_id=RUN_ID, workspace_root=root,
     )}
     assert "serp_raw_capture_metadata_mismatch" in rules
+
+
+def test_a_failed_evidence_build_leaves_no_raw_capture_behind(tmp_path, monkeypatch, capsys):
+    root = _workspace(tmp_path)
+
+    def _boom(**_kwargs):
+        raise ValueError("evidence refused")
+
+    monkeypatch.setattr(browser_capture, "build_serp_evidence", _boom)
+    assert browser_capture.main(_argv(root, **{"--evidence-output": "research/serp-evidence.json"})) == 2
+    assert not _raw(root).exists() and not (root / "research" / "serp-evidence.json").exists()
+    assert "evidence refused" in capsys.readouterr().err
 
 
 def test_the_client_flag_is_required(tmp_path):

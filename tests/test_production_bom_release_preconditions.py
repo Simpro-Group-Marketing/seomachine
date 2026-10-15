@@ -128,6 +128,15 @@ def test_unselected_story_without_documented_no_fit_aborts(tmp_path):
         _build(layout)
 
 
+def test_evidence_without_an_experience_story_role_aborts(tmp_path):
+    layout = make_workspace(tmp_path)
+    evidence = json.loads(layout.customer_proof_evidence.read_text(encoding="utf-8"))
+    evidence["roles"] = [row for row in evidence["roles"] if row["role"] != "experience_story"]
+    write_json(layout.customer_proof_evidence, evidence)
+    with pytest.raises(ValueError, match="experience_story"):
+        _build(layout)
+
+
 def test_unselected_story_with_a_thin_reason_aborts(tmp_path):
     layout = make_workspace(tmp_path)
     _story_role(layout, rejected_overrides={"none": "n/a"})

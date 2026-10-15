@@ -82,7 +82,7 @@ def test_recorder_writes_an_attested_capture_with_the_blocker(capture):
     assert payload["answersocrates_blocker"] == {
         "state": "quota", "observed_text": BLOCKER_TEXT, "page_url": ANSWERSOCRATES, "observed_at": OBSERVED,
     }
-    assert "temporary_test_path" not in payload and "execution_attestation" in payload
+    assert "execution_attestation" in payload
     assert payload["client"] == "claude_code"
 
 
@@ -129,9 +129,23 @@ def test_proof_view_labels_the_google_source(capture):
     assert "- Source: google_serp_paa" in render_proof_view(_bom(capture), root=None)
 
 
-def test_scorer_accepts_a_valid_capture_with_no_faq(capture, monkeypatch):
-    monkeypatch.delenv("SEOMACHINE_TEMP_GOOGLE_SERP_PAA", raising=False)
+def test_proof_view_detects_the_google_source_under_a_whitespace_root(tmp_path):
+    root = tmp_path / "work space"
+    root.mkdir()
+    assert google_paa.main(_args(root)) == 0
+    bom = {"paa": {"artifact": {"path": "research/paa-evidence-x-2026-10-15.json", "sha256": "x"}, "questions": []},
+           "identity": {"brand": "Simpro"}}
+    view = render_proof_view(bom, root=root)  # the printed path stays relative; detection must not
+    assert "- Source: google_serp_paa" in view and "- Artifact: research/paa-evidence-x-2026-10-15.json" in view
+
+
+def test_scorer_accepts_a_valid_capture_with_no_faq(capture):
     assert _check(ARTICLE, capture) == []
+
+
+@pytest.mark.parametrize("missing", ["expected_query", "expected_collection_date", "expected_run_id"])
+def test_scorer_requires_every_expectation_like_the_answersocrates_path(capture, missing):
+    assert _rules(_check(ARTICLE, capture, **{missing: None})) == ["paa_google_serp_expectation_missing"]
 
 
 def test_scorer_accepts_an_faq_question_from_the_capture(capture):
@@ -166,8 +180,19 @@ def _resign(path: Path, change) -> None:
 
 
 def test_a_capture_recorded_before_the_client_field_still_validates(capture):
-    _resign(capture, lambda payload: payload.pop("client"))
-    assert _check(ARTICLE, capture) == []
+    def _backdate(payload):
+        payload.pop("client")
+        payload.update(collected_at="2026-10-14T15:00:00Z", collection_date="2026-10-14")
+        payload["answersocrates_blocker"]["observed_at"] = "2026-10-14T14:47:30Z"
+
+    _resign(capture, _backdate)
+    assert _check(ARTICLE, capture, expected_collection_date="2026-10-14") == []
+
+
+def test_a_capture_made_after_the_field_shipped_must_name_its_client(capture):
+    # The fixture's capture time (15:00Z) predates the cutoff (18:38Z); move it past the cutoff, same day.
+    _resign(capture, lambda payload: (payload.pop("client"), payload.update(collected_at="2026-10-15T19:00:00Z")))
+    assert _rules(_check(ARTICLE, capture)) == ["paa_google_serp_capture_invalid"]
 
 
 def test_a_capture_with_an_unknown_client_is_refused(capture):

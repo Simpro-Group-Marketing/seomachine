@@ -216,7 +216,7 @@ def _shape_findings(
     dependencies: EditorialPlanDependencies,
 ) -> list[Finding]:
     findings: list[Finding] = []
-    if not fields_with_client_ok(payload, SERP_EVIDENCE_FIELDS):
+    if not fields_with_client_ok(payload, SERP_EVIDENCE_FIELDS, recorded_at=payload.get('collected_at')):
         findings.append(_finding(
             'serp_evidence_shape_invalid',
             'SERP evidence must use the exact observation and collection-receipt fields.',

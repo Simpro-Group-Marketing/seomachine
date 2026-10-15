@@ -259,6 +259,15 @@ def _google_questions(
     expected_run_id: str | None,
 ) -> tuple[tuple[str, ...], tuple[str, ...], Finding | None]:
     """The Google SERP fallback capture; see ``google_serp``."""
+    if not all(str(value or "").strip() for value in (expected_query, expected_collection_date, expected_run_id)):
+        return (), (), _finding(
+            "paa_google_serp_expectation_missing",
+            resolved.provenance.line,
+            None,
+            "Google SERP PAA validation requires expected query, collection date, and canonical run ID.",
+            "Pass expected_query, expected_collection_date, and expected_run_id from the bound BOM.",
+            match=resolved.provenance.artifact,
+        )
     questions, _blocker, error = google_serp_questions(
         path,
         content,
