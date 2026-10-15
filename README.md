@@ -33,7 +33,7 @@ The mandatory scrub, release, optimize, and final release loop, plus every gate,
 - [Claude Code](https://claude.com/claude-code) installed
 - Anthropic API account
 - Python 3.11 or newer
-- Access to the internal `simpro-context-connector` v2.2.0 release
+- Access to the internal `simpro-context-connector` v2.3.0 release
 
 ### Installation
 
