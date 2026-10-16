@@ -259,7 +259,11 @@ def _run_publish_readiness(
             "Artifact Identity",
             rule_id=_artifact_kind_rule_id(message),
             message=message,
-            suggestion="Declare one supported artifact_type in frontmatter.",
+            suggestion=(
+                "Release blogs with /publish-readiness."
+                if message == RETIRED_BLOG_READINESS
+                else "Declare one supported artifact_type in frontmatter."
+            ),
         )
         return _sealed_blocked_result(
             _blocked_for_gate(

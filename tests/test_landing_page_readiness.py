@@ -9,6 +9,8 @@ import pytest
 from data_sources.modules import context_binding_guard
 from data_sources.modules.readiness.adapters import _score_content
 from data_sources.modules.readiness.api import RETIRED_ASSEMBLY_BOM, run_publish_readiness
+from data_sources.modules.readiness.dependencies import ReadinessDependencies
+from data_sources.modules.vault_claim_receipts import ValidatedClaimSet
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
 COMMON = "data_sources.modules.readiness.common"
@@ -27,6 +29,40 @@ LANDING_GATES = [
     ("eeat_strength", "eeat_strength_guard.check_content"),
     ("early_artifact", "early_artifact_guard.check_content"),
     ("answer_withholding", "answer_withholding_guard.check_content"),
+]
+CONNECTOR_GATES = [
+    ("vault_brand_language", "vault_brand_language_guard.check_content"),
+    ("named_feature_status", "named_feature_status_guard.check_content"),
+    ("fred_authority", "fred_authority_guard.check_content"),
+]
+NONCONNECTOR_INVENTORY = [
+    "artifact_identity",
+    "context_binding",
+    "public_artifact",
+    "ai_copy_linter",
+    "url_validator",
+    "public_research_links",
+    "context_boundary",
+    "metric_proof_pack",
+    "numeric_claim_source",
+    "faq_answer_quality",
+    "faq_proof",
+    "competitive_shortlist",
+    "hindsight_boundary",
+    "source_support",
+    "source_quality",
+    "customer_proof_diversity",
+    "review_story_identity",
+    "eeat_strength",
+    "early_artifact",
+    "answer_withholding",
+    "landing_page_scorer",
+]
+RESULT_KEYS = [
+    "aeo_geo", "artifact_kind", "assembly_bom", "completed_at", "context_pack", "context_receipt",
+    "context_request", "file", "gate_inventory", "gates", "input_hashes", "input_seal", "passed",
+    "phase", "priority_fixes", "proof_sidecar", "run_id", "schema", "score", "score_threshold",
+    "scorecard", "started_at", "tool", "verification_scope",
 ]
 
 
@@ -55,7 +91,7 @@ def page(tmp_path):
     return path
 
 
-def run_landing(path, *, overrides=None, **kwargs):
+def run_landing(path, *, overrides=None, connector_required=False, mutate_during_score=False, **kwargs):
     """Run readiness with every article gate and the landing scorer stubbed; return result, gate call order, mocks."""
     overrides = overrides or {}
     order = []
@@ -71,29 +107,36 @@ def run_landing(path, *, overrides=None, **kwargs):
     def validate_context(*args, **call_kwargs):
         order.append("context_binding")
         return context_binding_guard.ContextValidationResult(
-            required=False,
+            required=connector_required,
             findings=tuple(overrides.get("context_binding", [])),
         )
 
     def validate_urls(*args, **call_kwargs):
         order.append("url_validator")
+        if "url_validator" in overrides:
+            return overrides["url_validator"]
         return UrlValidationSummary(
             [UrlValidationResult(url="https://example.com", status="resolved", status_code=200, reason="HTTP 200")]
         )
 
+    def score_page(*args, **call_kwargs):
+        if mutate_during_score:
+            path.write_text(path.read_text(encoding="utf-8") + "\nChanged during scoring.\n", encoding="utf-8")
+        return {
+            "overall_score": 82.0,
+            "publishing_ready": True,
+            "critical_issues": [],
+            "warnings": [],
+            "suggestions": [],
+        }
+
     scorer = Mock()
-    scorer.score.return_value = {
-        "overall_score": 82.0,
-        "publishing_ready": True,
-        "critical_issues": [],
-        "warnings": [],
-        "suggestions": [],
-    }
+    scorer.score.side_effect = score_page
     with ExitStack() as stack:
         mocks["context_binding"] = stack.enter_context(
             patch(f"{COMMON}.context_binding_guard.validate_context_payloads", side_effect=validate_context)
         )
-        for name, target in LANDING_GATES:
+        for name, target in LANDING_GATES + (CONNECTOR_GATES if connector_required else []):
             mocks[name] = stack.enter_context(patch(f"{COMMON}.{target}", side_effect=gate(name)))
         # Landing pages carry no current strategy, so source quality runs the legacy guard.
         mocks["source_quality"] = stack.enter_context(
@@ -123,6 +166,60 @@ def test_landing_page_runs_its_gates_and_passes(page):
     assert "url_validator" in order
     assert result["gates"][-1]["name"] == "landing_page_scorer"
     mocks["scorer"].assert_called_once_with("ppc", "demo")
+
+
+def test_landing_page_result_shape_and_gate_inventory_are_stable(page):
+    result, _, _ = run_landing(page)
+
+    assert sorted(result) == RESULT_KEYS
+    assert result["gate_inventory"] == NONCONNECTOR_INVENTORY
+    assert [gate["name"] for gate in result["gates"]] == NONCONNECTOR_INVENTORY
+    assert result["input_seal"] == {"status": "verified"}
+    assert result["assembly_bom"] is None
+    assert result["score"] == 82.0
+    assert result["score_threshold"] == 75
+
+
+def test_simpro_landing_page_runs_the_connector_gates_before_scoring(page):
+    page.write_text(page.read_text(encoding="utf-8").replace("brand: AroFlo", "brand: Simpro"), encoding="utf-8")
+    connector = Mock()
+    loads = []
+
+    def load_claims(*args, **kwargs):
+        loads.append(kwargs.get("client"))
+        return ValidatedClaimSet(receipt_revision="rev-1")
+
+    result, order, _ = run_landing(
+        page,
+        connector_required=True,
+        dependencies=ReadinessDependencies(
+            connector_factory=lambda **_kwargs: connector,
+            claim_set_loader=load_claims,
+        ),
+    )
+
+    names = [gate["name"] for gate in result["gates"]]
+    assert result["passed"] is True
+    assert names[-4:] == ["vault_brand_language", "named_feature_status", "fred_authority", "landing_page_scorer"]
+    assert {"vault_brand_language", "named_feature_status", "fred_authority"} <= set(order)
+    assert loads == [connector]
+
+
+def test_unresolved_url_fails_a_landing_page(page):
+    unresolved = UrlValidationSummary(
+        [UrlValidationResult(url="https://example.com/missing", status="unresolved", status_code=404, reason="HTTP 404")]
+    )
+
+    result, _, _ = run_landing(page, overrides={"url_validator": unresolved})
+
+    assert result["passed"] is False
+    assert next(row for row in result["gates"] if row["name"] == "url_validator")["errors"] == 1
+
+
+def test_changing_the_page_during_readiness_fails_the_input_seal(page):
+    result, _, _ = run_landing(page, mutate_during_score=True)
+
+    assert result["input_seal"] == {"status": "failed"}
 
 
 @pytest.mark.parametrize(
@@ -171,6 +268,7 @@ def test_a_blog_article_is_refused_at_artifact_identity(page):
     assert identity["name"] == "artifact_identity"
     assert identity["findings"][0]["rule_id"] == "artifact_kind_unsupported"
     assert "production.release" in identity["findings"][0]["message"]
+    assert identity["findings"][0]["suggestion"] == "Release blogs with /publish-readiness."
     assert order == []
 
 

@@ -12,12 +12,12 @@ from .common import (
     SEO_PUBLISHING_THRESHOLD,
     SEO_TARGET_SCORE,
     UrlValidationSummary,
+    is_json_number as _is_number,
     read_publishable_markdown,
     should_fail,
     summarize_findings,
 )
 from .artifact_views import thaw_value
-from .common import is_json_number as _is_number
 from .runtime_policy import _bom_runtime_policy
 
 

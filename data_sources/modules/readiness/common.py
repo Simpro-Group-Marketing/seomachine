@@ -1,6 +1,6 @@
-"""Publish readiness implementation behind the stable compatibility facade.
+"""Shared imports and gate tables for landing-page publish readiness.
 
-Runs the existing blog proof and quality gates in one deterministic order so
+The runner executes these proof and quality gates in one deterministic order so
 agents do not have to copy the full command stack by hand.
 """
 # ruff: noqa: F401
@@ -48,7 +48,6 @@ try:
     from ..blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
-        expected_blog_gate_inventory,
         is_json_number,
         load_json_object_snapshot,
         resolve_artifact,
@@ -112,7 +111,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
-        expected_blog_gate_inventory,
         is_json_number,
         load_json_object_snapshot,
         resolve_artifact,

@@ -19,8 +19,6 @@ _FIXED_WORKSPACE_INPUTS = (
     ("customer_proof_usage_ledger", "config/customer-proof-usage-ledger.json"),
     ("url_verification_allowlist", "context/url-verification-allowlist.json"),
 )
-# Readiness inputs bound from fixed workspace paths. They are never assembly
-# BOM artifacts, so BOM-side inventory checks must tolerate them as extras.
 
 
 @dataclass(frozen=True, slots=True)
