@@ -21,17 +21,14 @@ from .aeo_metadata_schema import _check_metadata_quality
 from .aeo_metadata_schema import _check_schema
 from .aeo_metadata_schema import _extract_structured_frontmatter
 from .aeo_metadata_schema import _not_applicable_check
-from .aeo_metadata_schema import _validated_non_connector_bom
 from .aeo_text import _extract_frontmatter
 from .aeo_text import _strip_frontmatter
 from collections.abc import Mapping
 from collections.abc import Sequence
 from data_sources.modules.faq_structure import detect_faq_structure
-from data_sources.modules.readiness_gate_context import trusted_readiness_findings
 from pathlib import Path
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Optional
 
 PASS_THRESHOLD = 90
@@ -40,28 +37,12 @@ NON_VISIBLE_HTML_BLOCK_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
-def _prevalidated_findings(
-    readiness_gate_context: object,
-    gate_name: str,
-    *,
-    article_content: str,
-    proof_sidecar_content: Optional[str],
-) -> Optional[List[Dict[str, Any]]]:
-    """Read findings only from a sealed capability issued by readiness."""
-    return trusted_readiness_findings(
-        readiness_gate_context,
-        gate_name,
-        article_content=article_content,
-        proof_sidecar_content=proof_sidecar_content,
-    )
-
 def rate_aeo_geo(
     content: str,
     metadata: Optional[Dict[str, Any]] = None,
     source_path: Optional[str] = None,
     proof_sidecar_content: Optional[str] = None,
     proof_sidecar_path: Optional[str] = None,
-    finalized_bom: Optional[Mapping[str, Any]] = None,
     assembly_date: Optional[str] = None,
     paa_workflow_mode: Optional[str] = None,
     paa_content_brief: Optional[str] = None,
@@ -73,7 +54,6 @@ def rate_aeo_geo(
     prevalidated_gate_findings: Optional[
         Mapping[str, Sequence[Mapping[str, Any]]]
     ] = None,
-    readiness_gate_context: object = None,
 ) -> Dict[str, Any]:
     """
     Rate content against AEO/GEO publishing requirements.
@@ -103,38 +83,15 @@ def rate_aeo_geo(
     faq_structure = detect_faq_structure(body)
     visible_faq = faq_structure.visible
 
-    faq_answer_findings = _prevalidated_findings(
-        readiness_gate_context,
-        "faq_answer_quality",
-        article_content=content,
-        proof_sidecar_content=proof_sidecar_content,
-    )
-    faq_proof_findings = _prevalidated_findings(
-        readiness_gate_context,
-        "faq_proof",
-        article_content=content,
-        proof_sidecar_content=proof_sidecar_content,
-    )
-    paa_findings = _prevalidated_findings(
-        readiness_gate_context,
-        "paa_provenance",
-        article_content=content,
-        proof_sidecar_content=proof_sidecar_content,
-    )
-
     checks = {
         "direct_answer": _check_direct_answer(body, merged_metadata),
         "capsule_coverage": _check_capsule_coverage(body),
         "faq_questions": _check_faq_questions(body),
         "faq_answer_length": _check_faq_answer_lengths(body),
-        "faq_answer_quality": _check_faq_answer_quality(
-            content,
-            prevalidated_findings=faq_answer_findings,
-        ),
+        "faq_answer_quality": _check_faq_answer_quality(content),
         "external_sources": _check_external_source_diagnostic(content),
         "metadata": _check_metadata_quality(
             merged_metadata,
-            finalized_bom=finalized_bom,
             assembly_date=assembly_date,
         ),
         "eeat_proof": _check_eeat_proof(
@@ -144,28 +101,14 @@ def rate_aeo_geo(
             proof_sidecar_content,
             proof_sidecar_path,
         ),
-        "faq_proof": _check_faq_proof(
-            content,
-            proof_sidecar_content,
-            prevalidated_findings=faq_proof_findings,
-        ),
+        "faq_proof": _check_faq_proof(content, proof_sidecar_content),
         "faq_structure": _check_faq_structure(body),
     }
-    if _validated_non_connector_bom(finalized_bom):
-        checks["eeat_proof"] = _not_applicable_check(
-            checks["eeat_proof"],
-            "Selector-backed Simpro E-E-A-T proof is not applicable to a guard-validated nonconnector article.",
-        )
-    checks['author_voice'] = _check_author_voice(
-        body,
-        merged_metadata,
-        finalized_bom=finalized_bom,
-    )
+    checks['author_voice'] = _check_author_voice(body, merged_metadata)
     checks['schema'] = _check_schema(
         content,
         merged_metadata,
         visible_faq=visible_faq,
-        finalized_bom=finalized_bom,
     )
     checks['faq_policy'] = _check_faq_policy(
         faq_policy_status,
@@ -210,7 +153,6 @@ def rate_aeo_geo(
             or str(merged_metadata.get('paa_artifact') or '').strip()
             or None
         ),
-        prevalidated_findings=paa_findings,
     )
     if not visible_faq:
         for check_name in (
@@ -306,6 +248,5 @@ def rate_aeo_geo(
 
 
 __all__ = [
-    "_prevalidated_findings",
     "rate_aeo_geo",
 ]

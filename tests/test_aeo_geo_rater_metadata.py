@@ -5,7 +5,6 @@ from tests.aeo_geo_rater_support import (
     COMPLIANT_ARTICLE,
     FAQ_PROOF_BLOCK,
     PAA_PROVENANCE_BLOCK,
-    finalized_no_author_bom,
 )
 
 class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
@@ -22,7 +21,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertFalse(result['checks']['author_voice']['passed'])
@@ -44,7 +42,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertTrue(result['checks']['author_voice']['passed'])
@@ -61,7 +58,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertTrue(result['checks']['author_voice']['passed'])
@@ -75,7 +71,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertTrue(result['checks']['author_voice']['passed'])
@@ -94,7 +89,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertTrue(result['checks']['author_voice']['passed'])
@@ -112,7 +106,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertTrue(result['checks']['author_voice']['passed'])
@@ -130,7 +123,6 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
 
         result = self.rate(
             content,
-            finalized_bom=finalized_no_author_bom(),
         )
 
         self.assertFalse(result['checks']['author_voice']['passed'])

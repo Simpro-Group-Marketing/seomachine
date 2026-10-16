@@ -10,15 +10,12 @@ from data_sources.modules.content_scoring.aeo_faq_paa import _check_faq_question
 from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
 from tests.aeo_geo_rater_support import (
-    ASSEMBLY_DATE,
     AUTHOR_VERIFICATION_BLOCK,
     AeoGeoRaterTestCase,
     COMPLIANT_ARTICLE,
     FAQ_PROOF_BLOCK,
     PAA_PROVENANCE_BLOCK,
-    PAA_QUERY,
     PRODUCTION_IMAGE_MARKER,
-    finalized_non_connector_bom,
     write_paa_fixture,
 )
 
@@ -120,29 +117,6 @@ class AeoGeoRaterContentTests(AeoGeoRaterTestCase):
         self.assertFalse(
             result["checks"]["eeat_proof"]["details"]["has_expertise"]
         )
-
-    def test_non_connector_bom_makes_selector_backed_eeat_not_applicable(self):
-        for schema in (
-            "simpro-blog-assembly-bom/v1",
-            "simpro-blog-assembly-bom/v4",
-        ):
-            with self.subTest(schema=schema):
-                result = rate_aeo_geo(
-                    COMPLIANT_ARTICLE,
-                    {"primary_keyword": "hvac scheduling software"},
-                    source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-                    proof_sidecar_content=PAA_PROVENANCE_BLOCK + FAQ_PROOF_BLOCK,
-                    finalized_bom=finalized_non_connector_bom(schema=schema),
-                    assembly_date=ASSEMBLY_DATE,
-                    paa_workflow_mode="new",
-                    paa_expected_query=PAA_QUERY,
-                    paa_expected_collection_date=ASSEMBLY_DATE,
-                )
-
-                check = result["checks"]["eeat_proof"]
-                self.assertTrue(check["passed"])
-                self.assertFalse(check["applicable"])
-                self.assertEqual(check["status"], "not_applicable")
 
     def test_direct_answer_skips_standalone_image_placeholder(self):
         content = COMPLIANT_ARTICLE.replace(

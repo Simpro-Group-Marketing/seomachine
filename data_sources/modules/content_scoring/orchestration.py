@@ -21,7 +21,6 @@ class ScoringOrchestrationMixin:
         source_path: Optional[str] = None,
         proof_sidecar: Optional[str] = None,
         proof_content: Optional[str] = None,
-        finalized_bom: Optional[Mapping[str, Any]] = None,
         assembly_date: Optional[str] = None,
         paa_workflow_mode: Optional[str] = None,
         paa_content_brief: Optional[str] = None,
@@ -33,7 +32,6 @@ class ScoringOrchestrationMixin:
         prevalidated_gate_findings: Optional[
             Mapping[str, Sequence[Mapping[str, Any]]]
         ] = None,
-        readiness_gate_context: object = None,
     ) -> Dict[str, Any]:
         """
         Score content across all dimensions
@@ -47,8 +45,6 @@ class ScoringOrchestrationMixin:
                 high-risk claims and block the quality gate on failures
             source_path: Optional draft path used to resolve relative PAA/FAQ
                 provenance artifact paths
-            finalized_bom: Guard-validated finalized assembly BOM used for
-                author-policy decisions.
             assembly_date: Canonical assembly date that freshness metadata must
                 match.
             paa_workflow_mode: Bound PAA workflow mode.
@@ -59,8 +55,6 @@ class ScoringOrchestrationMixin:
             paa_artifact: Bound PAA artifact path.
             prevalidated_gate_findings: Deprecated compatibility input. Raw
                 mappings are never trusted and standalone guards still run.
-            readiness_gate_context: Opaque input-bound context issued only by
-                publish readiness for same-run finding reuse.
 
         Returns:
             Dict with composite_score, passed, dimensions, and priority_fixes
@@ -111,7 +105,6 @@ class ScoringOrchestrationMixin:
             source_path=source_path,
             proof_sidecar=proof_sidecar,
             proof_content=proof_content,
-            finalized_bom=finalized_bom,
             assembly_date=assembly_date,
             paa_workflow_mode=paa_workflow_mode,
             paa_content_brief=paa_content_brief,
@@ -121,7 +114,6 @@ class ScoringOrchestrationMixin:
             paa_expected_run_id=paa_expected_run_id,
             paa_artifact=paa_artifact,
             prevalidated_gate_findings=prevalidated_gate_findings,
-            readiness_gate_context=readiness_gate_context,
         )
 
         # Determine if passed

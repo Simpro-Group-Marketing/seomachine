@@ -22,7 +22,6 @@ class QualityGatesMixin:
         source_path: Optional[str],
         proof_sidecar: Optional[str],
         proof_content: Optional[str] = None,
-        finalized_bom: Optional[Mapping[str, Any]] = None,
         assembly_date: Optional[str] = None,
         paa_workflow_mode: Optional[str] = None,
         paa_content_brief: Optional[str] = None,
@@ -34,7 +33,6 @@ class QualityGatesMixin:
         prevalidated_gate_findings: Optional[
             Mapping[str, Sequence[Mapping[str, Any]]]
         ] = None,
-        readiness_gate_context: object = None,
     ) -> Dict[str, Any]:
         """Run proof-aware quality gates and keep scorer orchestration local."""
         if proof_content is None:
@@ -57,7 +55,6 @@ class QualityGatesMixin:
             "source_path": source_path,
             "proof_sidecar_content": proof_sidecar_content,
             "proof_sidecar_path": proof_sidecar_path,
-            "finalized_bom": finalized_bom,
             "assembly_date": assembly_date,
             "paa_workflow_mode": paa_workflow_mode,
             "paa_content_brief": paa_content_brief,
@@ -67,8 +64,6 @@ class QualityGatesMixin:
             "paa_expected_run_id": paa_expected_run_id,
             "paa_artifact": paa_artifact,
         }
-        if readiness_gate_context is not None:
-            aeo_kwargs["readiness_gate_context"] = readiness_gate_context
         aeo_geo = self.dependencies.rate_aeo_geo(content, metadata, **aeo_kwargs)
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})

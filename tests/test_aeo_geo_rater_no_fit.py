@@ -13,7 +13,7 @@ from data_sources.modules.content_scoring.aeo_faq_paa import _check_faq_question
 from data_sources.modules.content_scoring.aeo_no_fit import _has_documented_no_fit_experience_boundary
 from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
 from tests.vault_context_fixture import load_validated_claim_set_for_unit_test
-from tests.aeo_geo_rater_support import AeoGeoRaterTestCase, finalized_no_author_bom
+from tests.aeo_geo_rater_support import AeoGeoRaterTestCase
 
 
 class AeoGeoRaterNoFitTests(AeoGeoRaterTestCase):
@@ -30,7 +30,6 @@ class AeoGeoRaterNoFitTests(AeoGeoRaterTestCase):
                     'faq_policy_status': 'not_applicable',
                     'assembly_date': '2026-05-22',
                 },
-                finalized_bom=finalized_no_author_bom(),
                 paa_workflow_mode='new',
                 paa_expected_query='field service scheduling',
                 paa_expected_collection_date='2026-05-22',

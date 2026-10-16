@@ -685,22 +685,11 @@ Use operating data to compare the same workflow before and after the pilot.
             str(sidecar.resolve()),
         )
 
-    def test_quality_gate_forwards_bound_bom_and_strict_paa_inputs_to_aeo_rater(self):
+    def test_quality_gate_forwards_strict_paa_inputs_to_aeo_rater(self):
         rate = Mock(return_value={"passed": True, "checks": {}})
         scorer = scorer_with_dependencies(
             rate_aeo_geo=rate,
         )
-        finalized_bom = {
-            "schema": "simpro-blog-assembly-bom/v1",
-            "lifecycle_state": "final",
-            "author_policy": {
-                "status": "not_provided",
-                "name": "",
-                "frontmatter_author_required": False,
-                "schema_person_required": False,
-                "named_author_voice_allowed": False,
-            },
-        }
 
         scorer._run_quality_gates(
             "# Article\n",
@@ -709,7 +698,6 @@ Use operating data to compare the same workflow before and after the pilot.
             validate_source_support=False,
             source_path="drafts/article.md",
             proof_sidecar=None,
-            finalized_bom=finalized_bom,
             assembly_date="2026-05-22",
             paa_workflow_mode="refresh",
             paa_content_brief="research/content-brief-article.md",
@@ -726,7 +714,6 @@ Use operating data to compare the same workflow before and after the pilot.
             source_path="drafts/article.md",
             proof_sidecar_content="",
             proof_sidecar_path=None,
-            finalized_bom=finalized_bom,
             assembly_date="2026-05-22",
             paa_workflow_mode="refresh",
             paa_content_brief="research/content-brief-article.md",

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from ..blog_assembly.common import ARCHIVED_BOM_SCHEMAS, NON_CONNECTOR_REASON
 from .aeo_text import _normalize_key
-from collections.abc import Mapping
 from data_sources.modules import blog_assembly_contract
 from data_sources.modules.frontmatter import FrontmatterError
 from data_sources.modules.frontmatter import split_frontmatter
@@ -40,12 +38,10 @@ def _extract_structured_frontmatter(content: str) -> Dict[str, Any]:
 def _check_metadata_quality(
     metadata: Dict[str, Any],
     *,
-    finalized_bom: Optional[Mapping[str, Any]],
     assembly_date: Optional[str],
 ) -> Dict[str, Any]:
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
     has_author = bool(str(normalized.get('author') or '').strip())
-    author_policy_status = _validated_bom_author_policy(finalized_bom)
     raw_updated = str(
         normalized.get('last_updated')
         or normalized.get('updated')
@@ -94,7 +90,7 @@ def _check_metadata_quality(
             'last_updated': raw_updated,
             'assembly_date': bound_assembly_date,
             'freshness_status': freshness_status,
-            'author_policy_status': author_policy_status,
+            'author_policy_status': '',
         },
     }
 
@@ -107,58 +103,12 @@ def _parse_canonical_iso_date(value: str) -> Optional[date]:
         return None
     return parsed if parsed.isoformat() == value else None
 
-def _validated_bom_author_policy(
-    finalized_bom: Optional[Mapping[str, Any]],
-) -> str:
-    """Return the exact author state from a guard-validated strict BOM.
-
-    Publish readiness calls this only after the BOM guard succeeds. Both
-    provisional and final lifecycle states are accepted because preflight must
-    score an optional-author article before the BOM can be finalized.
-    """
-    if not isinstance(finalized_bom, Mapping):
-        return ''
-    if finalized_bom.get('schema') not in ARCHIVED_BOM_SCHEMAS:
-        return ''
-    if finalized_bom.get('lifecycle_state') not in {'provisional', 'final'}:
-        return ''
-    policy = finalized_bom.get('author_policy')
-    if not isinstance(policy, Mapping):
-        return ''
-    required_keys = {
-        'status',
-        'name',
-        'frontmatter_author_required',
-        'schema_person_required',
-        'named_author_voice_allowed',
-    }
-    if set(policy) != required_keys:
-        return ''
-    status = policy.get('status')
-    if status not in {'named_author', 'no_author', 'not_provided'}:
-        return ''
-    named_author = status == 'named_author'
-    name = str(policy.get('name') or '').strip()
-    if named_author != bool(name):
-        return ''
-    for key in (
-        'frontmatter_author_required',
-        'schema_person_required',
-        'named_author_voice_allowed',
-    ):
-        if policy.get(key) is not named_author:
-            return ''
-    return str(status)
-
 def _check_author_voice(
     body: str,
     metadata: Dict[str, Any],
-    *,
-    finalized_bom: Optional[Mapping[str, Any]],
 ) -> Dict[str, Any]:
     normalized = {_normalize_key(str(key)): value for key, value in metadata.items()}
     has_author = bool(str(normalized.get('author') or '').strip())
-    policy_status = _validated_bom_author_policy(finalized_bom)
     searchable = re.sub(r'```.*?```', ' ', body, flags=re.DOTALL)
     visible_lines: List[str] = []
     for line in searchable.splitlines():
@@ -193,7 +143,7 @@ def _check_author_voice(
         'severity': 'high',
         'details': {
             'has_author': has_author,
-            'author_policy_status': policy_status,
+            'author_policy_status': '',
             'first_person_terms': first_person_terms,
         },
     }
@@ -203,7 +153,6 @@ def _check_schema(
     metadata: Dict[str, Any],
     *,
     visible_faq: bool,
-    finalized_bom: Optional[Mapping[str, Any]],
 ) -> Dict[str, Any]:
     supplied = _schema_entities(metadata.get("schema_notes"))
     entities = set(supplied)
@@ -261,7 +210,7 @@ def _check_schema(
             'unknown_entities': unknown,
             'has_supported_video_embed': has_supported_video_embed,
             'video_embed_errors': list(video_inspection.errors),
-            'author_policy_status': _validated_bom_author_policy(finalized_bom),
+            'author_policy_status': '',
         },
     }
     if item_list.active:
@@ -325,30 +274,13 @@ def _not_applicable_check(check: Dict[str, Any], reason: str) -> Dict[str, Any]:
     )
     return result
 
-def _validated_non_connector_bom(finalized_bom: Optional[Mapping[str, Any]]) -> bool:
-    if not isinstance(finalized_bom, Mapping):
-        return False
-    if finalized_bom.get("schema") not in ARCHIVED_BOM_SCHEMAS:
-        return False
-    if finalized_bom.get("lifecycle_state") not in {"provisional", "final"}:
-        return False
-    binding = finalized_bom.get("connector_binding")
-    return bool(
-        isinstance(binding, Mapping)
-        and binding.get("status") == "not_applicable"
-        and binding.get("reason") == NON_CONNECTOR_REASON
-    )
-
-
 __all__ = [
     "_extract_structured_frontmatter",
     "_check_metadata_quality",
     "_parse_canonical_iso_date",
-    "_validated_bom_author_policy",
     "_check_author_voice",
     "_check_schema",
     "_has_supported_video_embed",
     "_check_faq_policy",
     "_not_applicable_check",
-    "_validated_non_connector_bom",
 ]

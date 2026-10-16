@@ -12,7 +12,6 @@ from tests.aeo_geo_rater_support import (
     PAA_ARTIFACT,
     PAA_PROVENANCE_BLOCK,
     PAA_QUERY,
-    finalized_no_author_bom,
     write_paa_fixture,
 )
 
@@ -227,7 +226,7 @@ class AeoGeoRaterQualityTests(AeoGeoRaterTestCase):
             'valid',
         )
 
-    def test_missing_author_does_not_require_finalized_bom_for_aeo_metadata(self):
+    def test_missing_author_passes_aeo_metadata(self):
         content = COMPLIANT_ARTICLE.replace('Author: Jordan Lee\n', '').replace(
             '  - Person as author\n',
             '',
@@ -237,18 +236,9 @@ class AeoGeoRaterQualityTests(AeoGeoRaterTestCase):
             content,
             metadata={'author_policy_status': 'not_provided'},
         )
-        finalized = self.rate(
-            content,
-            finalized_bom=finalized_no_author_bom(),
-        )
 
         self.assertTrue(unbound['checks']['metadata']['passed'])
         self.assertEqual(
             unbound['checks']['metadata']['details']['author_policy_status'],
             '',
-        )
-        self.assertTrue(finalized['checks']['metadata']['passed'])
-        self.assertEqual(
-            finalized['checks']['metadata']['details']['author_policy_status'],
-            'not_provided',
         )

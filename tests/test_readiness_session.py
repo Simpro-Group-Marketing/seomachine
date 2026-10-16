@@ -8,7 +8,6 @@ import pytest
 from data_sources.modules.readiness.inputs import ReadinessInputs
 from data_sources.modules.readiness.session import ValidationSession
 from data_sources.modules.readiness.telemetry import ReadinessTelemetry
-from data_sources.modules import readiness_gate_context
 
 def test_session_creates_connector_and_claim_set_once(tmp_path: Path):
     article = tmp_path / "article.md"
@@ -120,38 +119,3 @@ def test_session_creates_and_closes_one_public_transport(tmp_path: Path):
     assert counters["cache_hits"] == 2
     assert counters["cache_misses"] == 1
 
-
-def test_trusted_findings_do_not_rehash_files_during_lookup(
-    tmp_path: Path,
-    monkeypatch,
-):
-    article = tmp_path / "article.md"
-    article.write_text("# Article\n", encoding="utf-8")
-    inputs = ReadinessInputs.capture({"article": article}, workspace_root=tmp_path)
-    context = readiness_gate_context._issue_readiness_gate_context(
-        {"gate": [{"rule_id": "cached"}]},
-        article_content="# Article\n",
-        proof_sidecar_content=None,
-        input_hashes=inputs.hash_inventory(),
-        workspace_root=tmp_path,
-    )
-
-    monkeypatch.setattr(
-        Path,
-        "open",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("lookup reopened an input")
-        ),
-    )
-    assert readiness_gate_context.trusted_readiness_findings(
-        context,
-        "gate",
-        article_content="# Article\n",
-        proof_sidecar_content=None,
-    ) == [{"rule_id": "cached"}]
-    assert readiness_gate_context.trusted_readiness_findings(
-        context,
-        "gate",
-        article_content="# Changed\n",
-        proof_sidecar_content=None,
-    ) is None

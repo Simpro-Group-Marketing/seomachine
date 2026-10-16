@@ -37,7 +37,6 @@ def test_aeo_schema_accepts_a_count_bound_item_list() -> None:
         "",
         _metadata(),
         visible_faq=False,
-        finalized_bom=None,
     )
 
     assert result["passed"] is True
@@ -90,7 +89,6 @@ def test_aeo_schema_rejects_inconsistent_item_list_metadata(
         "",
         _metadata(note=note, entries=entries),
         visible_faq=False,
-        finalized_bom=None,
     )
 
     assert result["passed"] is False
@@ -108,7 +106,6 @@ def test_aeo_schema_rejects_duplicate_item_list_notes() -> None:
         "",
         metadata,
         visible_faq=False,
-        finalized_bom=None,
     )
 
     assert result["passed"] is False

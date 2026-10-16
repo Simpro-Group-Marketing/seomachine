@@ -9,7 +9,6 @@ def test_aeo_schema_accepts_immutable_item_list_entries() -> None:
         "",
         _metadata(entries=tuple(ITEM_LIST_ENTRIES)),
         visible_faq=False,
-        finalized_bom=None,
     )
 
     assert result["passed"] is True

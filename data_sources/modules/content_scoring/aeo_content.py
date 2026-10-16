@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from .aeo_metadata_schema import _check_metadata_quality
 from .aeo_text import _contains_ordered_target
 from .aeo_text import _extract_h2_sections
 from .aeo_text import _first_body_paragraph
@@ -11,11 +10,9 @@ from .aeo_text import _is_capsule
 from .aeo_text import _plain_text
 from .aeo_text import _sentences
 from .aeo_text import _word_count
-from collections.abc import Mapping
 from data_sources.modules.faq_structure import is_faq_h2
 from typing import Any
 from typing import Dict
-from typing import Optional
 import re
 
 def _check_external_source_diagnostic(content: str) -> Dict[str, Any]:
@@ -141,18 +138,6 @@ def _check_capsule_coverage(body: str) -> Dict[str, Any]:
 def _check_external_sources(content: str) -> Dict[str, Any]:
     return _check_external_source_diagnostic(content)
 
-def _check_metadata(
-    metadata: Dict[str, Any],
-    *,
-    finalized_bom: Optional[Mapping[str, Any]] = None,
-    assembly_date: Optional[str] = None,
-) -> Dict[str, Any]:
-    return _check_metadata_quality(
-        metadata,
-        finalized_bom=finalized_bom,
-        assembly_date=assembly_date,
-    )
-
 def _check_section_clarity(body: str) -> Dict[str, Any]:
     sections = _extract_h2_sections(body)
     unclear_sections = []
@@ -181,6 +166,5 @@ __all__ = [
     "_check_direct_answer",
     "_check_capsule_coverage",
     "_check_external_sources",
-    "_check_metadata",
     "_check_section_clarity",
 ]

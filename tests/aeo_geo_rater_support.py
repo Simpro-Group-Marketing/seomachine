@@ -91,30 +91,6 @@ def write_paa_fixture(test_case: unittest.TestCase, content: str) -> str:
     return str(article_path)
 
 
-def finalized_no_author_bom():
-    return {
-        'schema': 'simpro-blog-assembly-bom/v1',
-        'lifecycle_state': 'final',
-        'author_policy': {
-            'status': 'not_provided',
-            'name': '',
-            'frontmatter_author_required': False,
-            'schema_person_required': False,
-            'named_author_voice_allowed': False,
-        },
-    }
-
-
-def finalized_non_connector_bom(schema='simpro-blog-assembly-bom/v1'):
-    bom = finalized_no_author_bom()
-    bom['schema'] = schema
-    bom['connector_binding'] = {
-        'status': 'not_applicable',
-        'reason': 'Final article contains no Simpro brand, URL, or connector-sensitive language.',
-    }
-    return bom
-
-
 def write_bound_experience_story_evidence(
     test_case: unittest.TestCase,
     root: Path,
