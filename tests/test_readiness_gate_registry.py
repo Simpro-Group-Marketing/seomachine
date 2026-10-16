@@ -1,8 +1,10 @@
+import ast
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from data_sources.modules.readiness import common as readiness_common
 from data_sources.modules.readiness.common import ARTICLE_GATES
 from data_sources.modules.readiness.gate_registry import (
     ARTICLE_GATE_INVENTORY,
@@ -54,12 +56,26 @@ def test_connector_gates_extend_the_inventory_only_when_context_is_required() ->
         (["context_boundary"], CONTENT_GATE_NAMES),
         ([name for name, _ in reversed(ARTICLE_GATE_INVENTORY)], CONTENT_GATE_NAMES),
         ([name for name, _ in ARTICLE_GATE_INVENTORY], CONTENT_GATE_NAMES | {"blog_strategy"}),
+        ([name for name, _ in ARTICLE_GATE_INVENTORY], CONTENT_GATE_NAMES - {"faq_proof"}),
     ],
-    ids=["missing-gate", "reordered", "orphan-adapter"],
+    ids=["missing-gate", "reordered", "orphan-adapter", "missing-adapter"],
 )
-def test_gate_registry_drift_fails_at_import_time(articles, adapters) -> None:
+def test_gate_registry_invariant_rejects_drift(articles, adapters) -> None:
     with pytest.raises(RuntimeError, match="readiness gate registry drift"):
         assert_landing_gate_invariant(articles, adapters)
+
+
+def test_readiness_common_asserts_the_invariant_at_import() -> None:
+    tree = ast.parse(Path(readiness_common.__file__).read_text(encoding="utf-8"))
+    module_level_calls = [
+        node.value.func.id
+        for node in tree.body
+        if isinstance(node, ast.Expr)
+        and isinstance(node.value, ast.Call)
+        and isinstance(node.value.func, ast.Name)
+    ]
+
+    assert "assert_landing_gate_invariant" in module_level_calls
 
 
 def _metric_inputs(tmp_path: Path, transport: object | None) -> ContentGateInputs:

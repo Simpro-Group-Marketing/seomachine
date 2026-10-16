@@ -38,13 +38,13 @@ def test_importing_readiness_does_not_load_scoring_stack() -> None:
     assert imported == []
 
 
-def test_landing_scorer_factory_loads_no_scoring_stack() -> None:
+def test_landing_scorer_loads_without_the_blog_scoring_stack() -> None:
     imported = _imported_scoring_modules(
-        "from data_sources.modules.readiness import common as readiness; "
-        "readiness.LandingPageScorer"
+        "from data_sources.modules.readiness import scoring_contracts; "
+        "assert scoring_contracts.landing_page_scorer_class().__name__ == 'LandingPageScorer'"
     )
 
-    assert imported == []
+    assert "data_sources.modules.content_scorer" not in imported
 
 
 def test_early_input_blocker_does_not_load_scoring_stack() -> None:

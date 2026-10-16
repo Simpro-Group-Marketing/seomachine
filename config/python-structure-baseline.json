@@ -288,7 +288,7 @@
     "tests/test_metric_proof_pack_guard.py": 124,
     "tests/test_named_feature_status_guard.py": 487,
     "tests/test_named_feature_topology.py": 296,
-    "tests/test_native_blog_workflow_boundaries.py": 1,
+    "tests/test_native_blog_workflow_boundaries.py": 147,
     "tests/test_nonvault_customer_proof_selector.py": 308,
     "tests/test_numeric_claim_source_guard.py": 290,
     "tests/test_optimizer_modules.py": 1056,

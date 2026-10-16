@@ -148,7 +148,6 @@ def _run_context_gate(
             proof_sidecar_path=paths["proof_sidecar"],
         ),
         **_captured_context_payloads(inputs),
-        editorial_plan=None,
         vault_root=vault_root,
         client=client,
     )
@@ -251,7 +250,6 @@ def _run_publish_readiness(
             "gate.artifact_identity",
             blog_identity_guard.check_article,
             article_content,
-            assembly_date=None,
         ),
     )
     gates.append(identity_gate)

@@ -41,13 +41,13 @@ def _resolve_optional_workspace_input(
     return _resolve_workspace_input(value, workspace_root=workspace_root, field=field)
 
 def _captured_proof_content(
-    inputs: ReadinessInputs | None,
+    inputs: ReadinessInputs,
     *,
     proof_sidecar_path: str | None,
 ) -> str | None:
     if proof_sidecar_path is None:
         return None
-    if inputs is not None and inputs.optional_snapshot("validation_sidecar") is not None:
+    if inputs.optional_snapshot("validation_sidecar") is not None:
         return inputs.text("validation_sidecar")
     return Path(proof_sidecar_path).read_text(encoding="utf-8")
 

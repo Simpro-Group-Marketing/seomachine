@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from contextlib import ExitStack
+from datetime import date
 from unittest.mock import Mock, patch
 
 import pytest
@@ -97,10 +98,12 @@ def run_landing(path, *, overrides=None, connector_required=False, mutate_during
     overrides = overrides or {}
     order = []
     mocks = {}
+    seen_content = {}
 
     def gate(name):
         def check(*args, **call_kwargs):
             order.append(name)
+            seen_content[name] = args[0] if args else None
             return overrides.get(name, [])
 
         return check
@@ -114,6 +117,7 @@ def run_landing(path, *, overrides=None, connector_required=False, mutate_during
 
     def validate_urls(*args, **call_kwargs):
         order.append("url_validator")
+        seen_content["url_validator"] = args[0] if args else None
         if "url_validator" in overrides:
             return overrides["url_validator"]
         return UrlValidationSummary(
@@ -150,6 +154,7 @@ def run_landing(path, *, overrides=None, connector_required=False, mutate_during
         )
         kwargs.setdefault("workspace_root", path.parents[1])
         result = run_publish_readiness(path, artifact_kind="landing_page", **kwargs)
+    mocks["seen_content"] = seen_content
     return result, order, mocks
 
 
@@ -163,6 +168,21 @@ def test_landing_page_runs_its_gates_and_passes(page):
     assert "url_validator" in order
     assert result["gates"][-1]["name"] == "landing_page_scorer"
     mocks["scorer"].assert_called_once_with("ppc", "demo")
+
+
+def test_every_content_gate_reads_the_captured_page_text(page):
+    page_text = page.read_bytes().decode("utf-8")
+
+    _, order, mocks = run_landing(page)
+
+    seen = mocks["seen_content"]
+    assert set(order) - {"context_binding"} <= set(seen)
+    assert {name: text for name, text in seen.items() if text != page_text} == {}
+    assert mocks["source_quality"].call_args.kwargs["today"] == date.today()
+    assert {
+        key: mocks["eeat_strength"].call_args.kwargs[key]
+        for key in ("editorial_plan", "customer_proof_evidence", "fred_authority_content")
+    } == {"editorial_plan": None, "customer_proof_evidence": None, "fred_authority_content": None}
 
 
 def test_landing_page_result_shape_and_gate_inventory_are_stable(page):

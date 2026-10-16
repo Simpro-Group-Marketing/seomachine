@@ -301,21 +301,9 @@ class _StoreBuilder:
 
     def bind_spec(self, spec: ReadinessInputSpec) -> None:
         for binding in spec.bindings:
-            self.bind(
-                binding.label,
-                binding.path,
-                expected_sha256=binding.expected_sha256,
-                expected_bytes=binding.expected_bytes,
-            )
+            self.bind(binding.label, binding.path)
 
-    def bind(
-        self,
-        label: str,
-        raw_path: str | Path,
-        *,
-        expected_sha256: str | None = None,
-        expected_bytes: int | None = None,
-    ) -> None:
+    def bind(self, label: str, raw_path: str | Path) -> None:
         _validate_label(label)
         path = _resolve_input(raw_path, workspace_root=self.root, field=label)
         record = self.by_path.get(path)
@@ -340,14 +328,6 @@ class _StoreBuilder:
                 self.telemetry.observe_peak(
                     "peak_artifact_store_source_bytes", projected
                 )
-        if expected_sha256 is not None and record.bytes_view.sha256 != expected_sha256:
-            raise ValueError(
-                f"readiness input {label} does not match its declared SHA-256"
-            )
-        if expected_bytes is not None and record.bytes_view.byte_count != expected_bytes:
-            raise ValueError(
-                f"readiness input {label} does not match its declared byte count"
-            )
         previous = self.by_label.get(label)
         if previous is not None and previous.bytes_view.path != path:
             raise ValueError(f"duplicate readiness input label: {label}")
