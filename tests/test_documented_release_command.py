@@ -99,3 +99,12 @@ def test_publish_readiness_shows_the_full_release_invocation():
     options = {a.option_strings[0] for a in _parser("release")._actions if a.option_strings and a.dest != "help"}
     assert any(options <= set(FLAG_RE.findall(args)) for args in calls)
     assert "data_sources.modules.blog_release" not in doc
+
+
+def test_publish_readiness_requires_a_new_release_after_any_edit():
+    doc = (COMMAND_DIR / "publish-readiness.md").read_text(encoding="utf-8")
+    assert "Any edit after a pass therefore needs a new release." in doc
+    for name in ("write.md", "rewrite.md", "optimize.md", "publish-readiness.md"):
+        content = (COMMAND_DIR / name).read_text(encoding="utf-8")
+        assert "wording-edit receipt" not in content.lower(), name
+        assert "data_sources.modules.wording_edit" not in content, name

@@ -9,37 +9,16 @@ AI-writing detection lives in ai_copy_linter.py. Keep this module focused on saf
 """
 
 import argparse
-import hashlib
 import json
-import os
 import re
-import tempfile
 import unicodedata
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
-from uuid import uuid4
 
 try:
     from .image_placeholder import is_production_image_placeholder_line
-    from .blog_assembly_stage_receipt import (
-        StageReceiptError,
-        build_stage_receipt,
-        load_stage_receipt,
-        stage_evidence_path,
-        write_stage_evidence,
-        write_stage_receipt,
-    )
 except ImportError:
     from image_placeholder import is_production_image_placeholder_line
-    from blog_assembly_stage_receipt import (
-        StageReceiptError,
-        build_stage_receipt,
-        load_stage_receipt,
-        stage_evidence_path,
-        write_stage_evidence,
-        write_stage_receipt,
-    )
 
 
 ORIGINAL_MARKDOWN_IMAGE_PLACEHOLDER_RE = re.compile(
@@ -345,37 +324,7 @@ def scrub_content(content: str, verbose: bool = False) -> str:
     return cleaned_content
 
 
-def _sha256_file(path: str | Path) -> str:
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
-
-
-def _receipt_identity(
-    run_id: Optional[str], previous_receipt: Optional[str]
-) -> Tuple[str, str]:
-    if not previous_receipt:
-        return run_id or str(uuid4()), ''
-    previous = load_stage_receipt(previous_receipt)
-    previous_run_id = str(previous['run_id'])
-    if run_id:
-        if run_id == previous_run_id:
-            pass
-        else:
-            raise StageReceiptError(
-                'stage_receipt_run_id_mismatch',
-                'run_id must match the previous receipt',
-            )
-    return run_id or previous_run_id, str(previous['receipt_hash'])
-
-
-def scrub_file(
-    file_path: str,
-    verbose: bool = False,
-    *,
-    stage_receipt_output: Optional[str] = None,
-    run_id: Optional[str] = None,
-    previous_receipt: Optional[str] = None,
-    stage: str = 'scrub',
-) -> Optional[Dict[str, Any]]:
+def scrub_file(file_path: str, verbose: bool = False) -> Dict[str, Any]:
     """
     Inspect a file and report scrub changes without mutating article Markdown.
 
@@ -383,46 +332,12 @@ def scrub_file(
         file_path: Path to file to scrub
         verbose: If True, print statistics
     """
-    if stage not in {'scrub', 'post_optimization_scrub'}:
-        raise StageReceiptError(
-            'stage_receipt_stage_invalid',
-            'content scrubber stage must be scrub or post_optimization_scrub',
-        )
     input_path = Path(file_path).resolve()
-    receipt_path = (
-        Path(stage_receipt_output).resolve()
-        if stage_receipt_output is not None
-        else None
-    )
-    previous_path = (
-        Path(previous_receipt).resolve()
-        if previous_receipt is not None
-        else None
-    )
-    _validate_scrub_paths(
-        input_path=input_path,
-        receipt_path=receipt_path,
-        previous_receipt_path=previous_path,
-    )
-    started_at = datetime.now(timezone.utc) if receipt_path is not None else None
-    resolved_run_id = ''
-    previous_hash = ''
-    if receipt_path is not None:
-        resolved_run_id, previous_hash = _receipt_identity(run_id, previous_path)
-        _preflight_output_path(receipt_path, "stage receipt")
-    # One immutable byte snapshot drives both the input hash and scrub parse.
-    input_bytes = input_path.read_bytes()
-    input_hash = (
-        hashlib.sha256(input_bytes).hexdigest()
-        if receipt_path is not None
-        else None
-    )
     try:
-        content = input_bytes.decode('utf-8', errors='strict')
+        content = input_path.read_bytes().decode('utf-8', errors='strict')
     except UnicodeDecodeError as error:
         raise ValueError(f'content input must use valid UTF-8: {error}') from error
 
-    # Scrub content while retaining the exact execution statistics for the receipt.
     scrubber = ContentScrubber()
     cleaned_content, statistics = scrubber.scrub(content)
     if verbose:
@@ -431,160 +346,23 @@ def scrub_file(
         print(f"  - Format-control chars removed: {statistics['format_control_removed']}")
         print(f"  - Em-dashes replaced: {statistics['emdashes_replaced']}")
         print(f"  - AI phrases replaced: {statistics['ai_phrases_replaced']}")
-
-    if receipt_path is None:
-        return {
-            "file": str(input_path),
-            "would_change": content != cleaned_content,
-            "statistics": dict(statistics),
-        }
-
-    if content != cleaned_content:
-        raise StageReceiptError(
-            'scrub_changes_required',
-            'scrub diagnostics found required edits; apply them through the owning command before minting a clean receipt',
-        )
-
-    output_hash = input_hash
-    statistics_hash = hashlib.sha256(
-        json.dumps(
-            statistics,
-            ensure_ascii=True,
-            separators=(',', ':'),
-            sort_keys=True,
-        ).encode('utf-8')
-    ).hexdigest()
-    _, evidence_artifact_hash = write_stage_evidence(
-        receipt_path,
-        evidence_hashes={'scrub_statistics': statistics_hash},
-        payload={'statistics': dict(statistics), 'would_change': False},
-    )
-    stage_receipt = build_stage_receipt(
-        run_id=resolved_run_id,
-        stage=stage,
-        tool_name='content_scrubber',
-        tool_version='1.0.0',
-        started_at=started_at,
-        completed_at=datetime.now(timezone.utc),
-        mutation=False,
-        input_artifact_hashes={'article': input_hash},
-        output_artifact_hashes={
-            'article': output_hash,
-            'stage_evidence': evidence_artifact_hash,
-        },
-        evidence_hashes={'scrub_statistics': statistics_hash},
-        previous_receipt_hash=previous_hash,
-    )
-    write_stage_receipt(receipt_path, stage_receipt)
-
-    if verbose:
-        print(f"Scrub diagnostics recorded to: {receipt_path}")
-    return stage_receipt
-
-
-def _path_identity(path: Path) -> str:
-    return os.path.normcase(str(path.resolve(strict=False)))
-
-
-def _validate_scrub_paths(
-    *,
-    input_path: Path,
-    receipt_path: Optional[Path],
-    previous_receipt_path: Optional[Path],
-) -> None:
-    if previous_receipt_path is not None and receipt_path is None:
-        raise StageReceiptError(
-            'stage_receipt_previous_without_output',
-            'previous_receipt requires stage_receipt_output',
-        )
-    input_identity = _path_identity(input_path)
-    previous_identity = (
-        _path_identity(previous_receipt_path)
-        if previous_receipt_path is not None
-        else None
-    )
-    if previous_identity == input_identity:
-        raise StageReceiptError(
-            'stage_receipt_path_collision',
-            'previous receipt cannot overwrite or be overwritten by article content',
-        )
-    if receipt_path is not None:
-        receipt_identity = _path_identity(receipt_path)
-        evidence_identity = _path_identity(stage_evidence_path(receipt_path))
-        if receipt_identity in {
-            input_identity,
-            previous_identity,
-        }:
-            raise StageReceiptError(
-                'stage_receipt_path_collision',
-                'stage receipt path must be distinct from article and predecessor paths',
-            )
-        if evidence_identity in {
-            input_identity,
-            previous_identity,
-            receipt_identity,
-        }:
-            raise StageReceiptError(
-                'stage_receipt_path_collision',
-                'stage evidence path must be distinct from article and receipt paths',
-            )
-
-
-def _preflight_output_path(path: Path, label: str) -> None:
-    probe: Optional[Path] = None
-    try:
-        if path.exists() and not path.is_file():
-            raise OSError(f'{label} destination is not a file')
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(
-            'w',
-            encoding='utf-8',
-            newline='\n',
-            dir=path.parent,
-            prefix=f'.{path.name}.',
-            suffix='.preflight',
-            delete=False,
-        ) as handle:
-            probe = Path(handle.name)
-            handle.write('{}\n')
-            handle.flush()
-            os.fsync(handle.fileno())
-    except OSError as error:
-        raise StageReceiptError(
-            'stage_receipt_destination_invalid',
-            f'{label} destination is not writable: {error}',
-        ) from error
-    finally:
-        if probe is not None:
-            probe.unlink(missing_ok=True)
+    return {
+        "file": str(input_path),
+        "would_change": content != cleaned_content,
+        "statistics": dict(statistics),
+    }
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(description='Scrub generated-content artifacts.')
     parser.add_argument('file_path')
     parser.add_argument('--verbose', action='store_true')
-    parser.add_argument('--stage-receipt-output')
-    parser.add_argument('--run-id')
-    parser.add_argument('--previous-receipt')
-    parser.add_argument(
-        '--stage',
-        choices=('scrub', 'post_optimization_scrub'),
-        default='scrub',
-    )
     args = parser.parse_args(argv)
     try:
-        receipt = scrub_file(
-            args.file_path,
-            verbose=args.verbose,
-            stage_receipt_output=args.stage_receipt_output,
-            run_id=args.run_id,
-            previous_receipt=args.previous_receipt,
-            stage=args.stage,
-        )
+        report = scrub_file(args.file_path, verbose=args.verbose)
     except (OSError, UnicodeError, ValueError) as error:
         parser.error(str(error))
-    if receipt:
-        print(json.dumps(receipt, indent=2, sort_keys=True))
+    print(json.dumps(report, indent=2, sort_keys=True))
     return 0
 
 

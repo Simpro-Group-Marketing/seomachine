@@ -6,11 +6,6 @@
     "data_sources/modules/blog_assembly_contract.py": {
       "artifact_inventory_snapshots": 12
     },
-    "data_sources/modules/blog_assembly_stage_receipt.py": {
-      "_validate_native_edit_state": 12,
-      "check_receipt_chain": 22,
-      "check_stage_receipt": 39
-    },
     "data_sources/modules/blog_identity_guard.py": {
       "check_article": 16
     },
@@ -33,8 +28,7 @@
       "analyze": 18
     },
     "data_sources/modules/context_binding_generator.py": {
-      "_derive_claim_map": 11,
-      "generate_and_install": 18
+      "_derive_claim_map": 11
     },
     "data_sources/modules/context_binding_guard.py": {
       "_request_article_error": 19,
@@ -204,11 +198,8 @@
   "maximum_lines": 500,
   "oversized_production_files": {
     "data_sources/modules/above_fold_analyzer.py": 512,
-    "data_sources/modules/blog_assembly_stage_receipt.py": 929,
     "data_sources/modules/commercial_pillar_index.py": 811,
-    "data_sources/modules/content_scrubber.py": 592,
-    "data_sources/modules/context_binding_generator.py": 808,
-    "data_sources/modules/context_binding_guard.py": 917,
+    "data_sources/modules/context_binding_guard.py": 909,
     "data_sources/modules/cro_checker.py": 655,
     "data_sources/modules/cta_analyzer.py": 550,
     "data_sources/modules/customer_proof_index_health.py": 514,
@@ -258,10 +249,9 @@
     "tests/test_agent_governance_docs.py": 40,
     "tests/test_ai_copy_linter.py": 663,
     "tests/test_answer_withholding_guard.py": 212,
-    "tests/test_artifact_runtime.py": 221,
+    "tests/test_artifact_runtime.py": 167,
     "tests/test_author_video_policy.py": 160,
     "tests/test_blog_assembly_contract.py": 238,
-    "tests/test_blog_assembly_stage_receipt.py": 606,
     "tests/test_blog_identity_guard.py": 90,
     "tests/test_blog_strategy_guard.py": 518,
     "tests/test_bom_snapshot_store.py": 85,
@@ -270,8 +260,8 @@
     "tests/test_competitive_shortlist_guard.py": 171,
     "tests/test_content_length_comparator.py": 272,
     "tests/test_content_scorer_aeo_geo_gate.py": 983,
-    "tests/test_content_scrubber.py": 358,
-    "tests/test_context_binding_guard.py": 2592,
+    "tests/test_content_scrubber.py": 220,
+    "tests/test_context_binding_guard.py": 1963,
     "tests/test_context_refactor_integrity.py": 167,
     "tests/test_context_trace_store.py": 284,
     "tests/test_customer_proof_index_health.py": 525,
@@ -300,7 +290,7 @@
     "tests/test_guard_common.py": 76,
     "tests/test_hindsight_boundary_guard.py": 69,
     "tests/test_humanizer_quality_corpus.py": 80,
-    "tests/test_humanizer_update_workflow.py": 66,
+    "tests/test_humanizer_update_workflow.py": 65,
     "tests/test_humanizer_upstream.py": 524,
     "tests/test_industry_cluster_link_policy.py": 208,
     "tests/test_instrumented_artifact_store.py": 306,
@@ -311,7 +301,7 @@
     "tests/test_metric_proof_pack_guard.py": 124,
     "tests/test_named_feature_status_guard.py": 487,
     "tests/test_named_feature_topology.py": 296,
-    "tests/test_native_blog_workflow_boundaries.py": 303,
+    "tests/test_native_blog_workflow_boundaries.py": 285,
     "tests/test_nonvault_customer_proof_selector.py": 308,
     "tests/test_numeric_claim_source_guard.py": 290,
     "tests/test_optimizer_modules.py": 1056,

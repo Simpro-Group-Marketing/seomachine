@@ -17,7 +17,6 @@ on:
       - 'tests/fixtures/humanizer_quality_corpus.json'
       - 'tests/test_aeo_geo_workflow_docs.py'
       - 'tests/test_ai_copy_linter.py'
-      - 'tests/test_blog_assembly_stage_receipt.py'
       - 'tests/test_content_scorer_aeo_geo_gate.py'
       - 'tests/test_humanizer_*.py'
       - 'tools/humanizer_upstream.py'
@@ -51,7 +50,6 @@ jobs:
           tests/test_humanizer_quality_corpus.py
           tests/test_ai_copy_linter.py
           tests/test_aeo_geo_workflow_docs.py
-          tests/test_blog_assembly_stage_receipt.py
           tests/test_humanizer_update_workflow.py
 
   discover:

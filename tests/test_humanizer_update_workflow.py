@@ -43,12 +43,11 @@ def test_workflow_stages_vendor_only_and_opens_draft_review_pr():
         assert detail in content
 
 
-def test_workflow_compatibility_suite_covers_editor_lint_and_receipts():
+def test_workflow_compatibility_suite_covers_editor_and_lint():
     content = _workflow()
 
     for test_file in (
         "tests/test_aeo_geo_workflow_docs.py",
-        "tests/test_blog_assembly_stage_receipt.py",
         "tests/test_ai_copy_linter.py",
         "tests/test_humanizer_quality_corpus.py",
     ):

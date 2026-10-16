@@ -10,13 +10,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 from data_sources.modules import context_binding_generator, context_binding_guard
-from data_sources.modules.blog_assembly_stage_receipt import (
-    StageReceiptError,
-    build_stage_receipt,
-    check_receipt_chain,
-    load_stage_receipt,
-    write_stage_receipt,
-)
 
 
 def sha256_text(value: str) -> str:
@@ -242,37 +235,6 @@ class ContextBindingGuardTests(unittest.TestCase):
                 }
             ]
         )
-
-    def _write_context_predecessor(
-        self,
-        *,
-        stage="scrub",
-        article_hash=None,
-        run_id="run-42",
-    ):
-        output_hash = article_hash or hashlib.sha256(
-            self.article.read_bytes()
-        ).hexdigest()
-        is_draft = stage == "draft"
-        predecessor = build_stage_receipt(
-            run_id=run_id,
-            stage=stage,
-            tool_name="blog_writer" if is_draft else "content_scrubber",
-            tool_version="1.0.0",
-            started_at="2020-08-11T12:00:00Z",
-            completed_at="2020-08-11T12:01:00Z",
-            mutation=is_draft,
-            input_artifact_hashes={
-                "article": "0" * 64 if is_draft else output_hash
-            },
-            output_artifact_hashes={"article": output_hash},
-            evidence_hashes=(
-                {} if is_draft else {"scrub_statistics": "a" * 64}
-            ),
-        )
-        path = self.root / f"{stage}-predecessor.json"
-        write_stage_receipt(path, predecessor)
-        return path
 
     def write_resource_only_context(self, article_text, legacy_sidecar):
         self.article.write_text(
@@ -693,6 +655,20 @@ class ContextBindingGuardTests(unittest.TestCase):
                 )
 
                 self.assertFalse(context_binding_guard.requires_context(content))
+
+    def test_bare_prose_simpro_hosts_require_context_and_lookalikes_do_not(self):
+        for hostname, expected in (
+            ("www.simprogroup.com/features", True),
+            ("simprogroup.com/resources", True),
+            ("evil-simprogroup.com", False),
+        ):
+            with self.subTest(hostname=hostname):
+                content = (
+                    "---\nbrand: BigChange\nartifact_type: blog\ntitle: Guide\n---\n"
+                    f"# Guide\n\nRead {hostname} for details.\n"
+                )
+
+                self.assertIs(context_binding_guard.requires_context(content), expected)
 
     def test_owned_brand_article_without_simpro_copy_is_exempt(self):
         for brand in ("AroFlo", "BigChange", "ClockShark"):
@@ -1651,15 +1627,13 @@ class ContextBindingGuardTests(unittest.TestCase):
             {finding["rule_id"] for finding in findings},
         )
 
-    def test_generator_emits_a_real_context_binding_stage_receipt(self):
+    def test_generator_installs_the_binding_and_claim_map_in_the_sidecar(self):
         pack = json.loads(self.pack.read_text(encoding="utf-8"))
         pack["sections"]["Approved Claim Evidence"][0]["assertion"] = (
             "Simpro helps teams coordinate work."
         )
         self.pack.write_text(json.dumps(pack), encoding="utf-8")
-        receipt_path = self.root / "context-binding-stage-receipt.json"
-        article_hash = hashlib.sha256(self.article.read_bytes()).hexdigest()
-        previous_path = self._write_context_predecessor(run_id="run-42")
+        article_before = self.article.read_bytes()
 
         result = context_binding_generator.generate_and_install(
             self.article,
@@ -1671,487 +1645,13 @@ class ContextBindingGuardTests(unittest.TestCase):
                 {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
             ],
             client=ValidatingClient(),
-            stage_receipt_output=receipt_path,
-            run_id="run-42",
-            previous_receipt=previous_path,
         )
 
-        stage_receipt = load_stage_receipt(receipt_path)
-        self.assertEqual(result["stage_receipt"], stage_receipt)
-        self.assertEqual(stage_receipt["stage"], "context_binding")
-        self.assertFalse(stage_receipt["mutation"])
-        self.assertEqual(
-            stage_receipt["input_artifact_hashes"],
-            {
-                "article": article_hash,
-                "context_pack": hashlib.sha256(self.pack.read_bytes()).hexdigest(),
-                "context_receipt": hashlib.sha256(self.receipt.read_bytes()).hexdigest(),
-                "context_request": hashlib.sha256(self.request.read_bytes()).hexdigest(),
-            },
-        )
-        self.assertEqual(stage_receipt["output_artifact_hashes"]["article"], article_hash)
-        self.assertEqual(
-            stage_receipt["output_artifact_hashes"]["validation_sidecar"],
-            hashlib.sha256(self.sidecar.read_bytes()).hexdigest(),
-        )
-        self.assertIn("context_binding", stage_receipt["evidence_hashes"])
-
-    def test_non_connector_generator_emits_a_real_unchanged_receipt_chain(self):
-        self.article.write_text(
-            "---\n"
-            "artifact_type: blog\n"
-            "brand: BigChange\n"
-            "title: Scheduling guide\n"
-            "objective: Explain scheduling practices.\n"
-            "audience: field service leaders\n"
-            "region: US\n"
-            "---\n"
-            "# Scheduling guide\n\nUse a consistent dispatch routine.\n",
-            encoding="utf-8",
-        )
-        original_article = self.article.read_bytes()
-        original_sidecar = b"## Editorial Notes\n\nNo connector claims are used.\n"
-        self.sidecar.write_bytes(original_sidecar)
-        article_hash = hashlib.sha256(original_article).hexdigest()
-        sidecar_hash = hashlib.sha256(original_sidecar).hexdigest()
-        draft = build_stage_receipt(
-            run_id="run-non-connector",
-            stage="draft",
-            tool_name="blog_writer",
-            tool_version="1.0.0",
-            started_at="2026-08-10T12:00:00Z",
-            completed_at="2026-08-10T12:01:00Z",
-            mutation=True,
-            input_artifact_hashes={"article": "0" * 64},
-            output_artifact_hashes={"article": article_hash},
-        )
-        scrub = build_stage_receipt(
-            run_id="run-non-connector",
-            stage="scrub",
-            tool_name="content_scrubber",
-            tool_version="1.0.0",
-            started_at="2026-08-10T12:02:00Z",
-            completed_at="2026-08-10T12:03:00Z",
-            mutation=False,
-            input_artifact_hashes={"article": article_hash},
-            output_artifact_hashes={"article": article_hash},
-            evidence_hashes={"scrub_statistics": "a" * 64},
-            previous_receipt_hash=draft["receipt_hash"],
-        )
-        previous_path = self.root / "scrub-stage-receipt.json"
-        write_stage_receipt(previous_path, scrub)
-        receipt_path = self.root / "context-binding-stage-receipt.json"
-        reason = "BigChange editorial content contains no Simpro references or claims."
-
-        result = context_binding_generator.generate_not_applicable_receipt(
-            self.article,
-            self.sidecar,
-            reason,
-            stage_receipt_output=receipt_path,
-            previous_receipt=previous_path,
-        )
-
-        stage_receipt = load_stage_receipt(receipt_path)
-        evidence_payload = {
-            "article_sha256": article_hash,
-            "reason": reason,
-            "schema": "seomachine-context-binding-not-applicable/v1",
-            "status": "not_applicable",
-            "validation_sidecar_sha256": sidecar_hash,
-        }
-        expected_evidence_hash = hashlib.sha256(
-            json.dumps(
-                evidence_payload,
-                ensure_ascii=True,
-                separators=(",", ":"),
-                sort_keys=True,
-            ).encode("utf-8")
-        ).hexdigest()
-        self.assertEqual(result["stage_receipt"], stage_receipt)
-        self.assertEqual(stage_receipt["run_id"], "run-non-connector")
-        self.assertEqual(
-            stage_receipt["previous_receipt_hash"], scrub["receipt_hash"]
-        )
-        self.assertEqual(
-            stage_receipt["input_artifact_hashes"],
-            {"article": article_hash, "validation_sidecar": sidecar_hash},
-        )
-        self.assertEqual(
-            stage_receipt["output_artifact_hashes"]["article"], article_hash
-        )
-        self.assertEqual(
-            stage_receipt["output_artifact_hashes"]["validation_sidecar"],
-            sidecar_hash,
-        )
-        evidence_path = self.root / "context-binding-stage-receipt-evidence.json"
-        self.assertEqual(
-            stage_receipt["output_artifact_hashes"]["stage_evidence"],
-            hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
-        )
-        self.assertEqual(
-            stage_receipt["evidence_hashes"],
-            {
-                "context_binding": expected_evidence_hash,
-                "not_applicable_reason": hashlib.sha256(
-                    reason.encode("utf-8")
-                ).hexdigest(),
-            },
-        )
-        self.assertFalse(stage_receipt["mutation"])
-        self.assertEqual(check_receipt_chain([draft, scrub, stage_receipt]), [])
-        self.assertEqual(self.article.read_bytes(), original_article)
-        self.assertEqual(self.sidecar.read_bytes(), original_sidecar)
-
-    def test_non_connector_generator_fails_closed_for_simpro_content(self):
-        original_article = self.article.read_bytes()
-        original_sidecar = self.sidecar.read_bytes()
-        receipt_path = self.root / "context-binding-stage-receipt.json"
-
-        with self.assertRaises(
-            context_binding_generator.ContextBindingGenerationError
-        ) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "No connector context applies.",
-                stage_receipt_output=receipt_path,
-                run_id="run-42",
-            )
-
-        self.assertEqual(raised.exception.code, "context_binding_required")
-        self.assertFalse(receipt_path.exists())
-        self.assertEqual(self.article.read_bytes(), original_article)
-        self.assertEqual(self.sidecar.read_bytes(), original_sidecar)
-
-    def test_non_connector_generator_fails_closed_for_schemeless_simpro_host(self):
-        for hostname in (
-            "www.simprogroup.com/features",
-            "simprogroup.com/resources",
-        ):
-            with self.subTest(hostname=hostname):
-                self.article.write_text(
-                    "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-                    f"# Guide\n\nRead {hostname} for details.\n",
-                    encoding="utf-8",
-                )
-                output_path = self.root / "context-stage.json"
-
-                with self.assertRaises(
-                    context_binding_generator.ContextBindingGenerationError
-                ) as raised:
-                    context_binding_generator.generate_not_applicable_receipt(
-                        self.article,
-                        self.sidecar,
-                        "The article contains no Simpro references or claims.",
-                        stage_receipt_output=output_path,
-                        previous_receipt=self._write_context_predecessor(),
-                    )
-
-                self.assertEqual(raised.exception.code, "context_binding_required")
-                self.assertFalse(output_path.exists())
-
-    def test_non_connector_generator_does_not_match_a_hostname_lookalike(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n\nRead evil-simprogroup.com for an unrelated example.\n",
-            encoding="utf-8",
-        )
-        output_path = self.root / "context-stage.json"
-
-        context_binding_generator.generate_not_applicable_receipt(
-            self.article,
-            self.sidecar,
-            "The article contains no official Simpro references or claims.",
-            stage_receipt_output=output_path,
-            previous_receipt=self._write_context_predecessor(),
-        )
-
-        self.assertTrue(output_path.is_file())
-
-    def test_non_connector_generator_requires_an_explicit_reason(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-
-        with self.assertRaises(
-            context_binding_generator.ContextBindingGenerationError
-        ) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "   ",
-                stage_receipt_output=self.root / "context-stage.json",
-                run_id="run-42",
-            )
-
-        self.assertEqual(
-            raised.exception.code,
-            "context_not_applicable_reason_missing",
-        )
-
-    def test_non_connector_generator_rejects_a_non_utf8_proof_sidecar(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        self.sidecar.write_bytes(b"\xff\xfe")
-        output_path = self.root / "context-stage.json"
-
-        with self.assertRaises(
-            context_binding_generator.ContextBindingGenerationError
-        ) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=output_path,
-                run_id="run-42",
-            )
-
-        self.assertEqual(raised.exception.code, "binding_input_invalid")
-        self.assertFalse(output_path.exists())
-
-    def test_non_connector_generator_supports_post_optimization_stage(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-
-        context_binding_generator.generate_not_applicable_receipt(
-            self.article,
-            self.sidecar,
-            "The final article contains no Simpro references or claims.",
-            stage_receipt_output=self.root / "post-context-stage.json",
-            run_id="run-42",
-            previous_receipt=self._write_context_predecessor(
-                stage="post_optimization_scrub"
-            ),
-            stage="post_optimization_context_binding",
-        )
-
-        self.assertEqual(
-            load_stage_receipt(self.root / "post-context-stage.json")["stage"],
-            "post_optimization_context_binding",
-        )
-
-    def test_non_connector_generator_rejects_receipt_input_path_collisions(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        original_article = self.article.read_bytes()
-        original_sidecar = self.sidecar.read_bytes()
-
-        with self.assertRaises(
-            context_binding_generator.ContextBindingGenerationError
-        ) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=self.sidecar,
-                run_id="run-42",
-            )
-
-        self.assertEqual(raised.exception.code, "context_artifact_path_collision")
-        self.assertEqual(self.article.read_bytes(), original_article)
-        self.assertEqual(self.sidecar.read_bytes(), original_sidecar)
-
-    def test_non_connector_generator_rejects_a_non_monotonic_predecessor(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        article_hash = hashlib.sha256(self.article.read_bytes()).hexdigest()
-        predecessor = build_stage_receipt(
-            run_id="run-42",
-            stage="scrub",
-            tool_name="content_scrubber",
-            tool_version="1.0.0",
-            started_at="2099-08-11T12:00:00Z",
-            completed_at="2099-08-11T12:01:00Z",
-            mutation=False,
-            input_artifact_hashes={"article": article_hash},
-            output_artifact_hashes={"article": article_hash},
-            evidence_hashes={"scrub_statistics": "a" * 64},
-        )
-        predecessor_path = self.root / "future-scrub.json"
-        write_stage_receipt(predecessor_path, predecessor)
-        output_path = self.root / "context-stage.json"
-
-        with self.assertRaises(StageReceiptError) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=output_path,
-                previous_receipt=predecessor_path,
-            )
-
-        self.assertEqual(
-            raised.exception.code,
-            "stage_receipt_timestamps_not_monotonic",
-        )
-        self.assertFalse(output_path.exists())
-
-    def test_non_connector_generator_requires_the_closed_stage_predecessor(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-
-        with self.assertRaises(StageReceiptError) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=self.root / "context-stage.json",
-                run_id="run-42",
-            )
-
-        self.assertEqual(
-            raised.exception.code,
-            "stage_receipt_previous_required",
-        )
-
-    def test_non_connector_generator_rejects_the_wrong_predecessor_stage(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        predecessor_path = self._write_context_predecessor(stage="draft")
-
-        with self.assertRaises(StageReceiptError) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=self.root / "context-stage.json",
-                previous_receipt=predecessor_path,
-            )
-
-        self.assertEqual(
-            raised.exception.code,
-            "stage_receipt_predecessor_stage_invalid",
-        )
-
-    def test_non_connector_generator_rejects_a_stale_predecessor_article_hash(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        predecessor_path = self._write_context_predecessor(article_hash="a" * 64)
-
-        with self.assertRaises(StageReceiptError) as raised:
-            context_binding_generator.generate_not_applicable_receipt(
-                self.article,
-                self.sidecar,
-                "The article contains no Simpro references or claims.",
-                stage_receipt_output=self.root / "context-stage.json",
-                previous_receipt=predecessor_path,
-            )
-
-        self.assertEqual(
-            raised.exception.code,
-            "stage_receipt_article_chain_broken",
-        )
-
-    def test_non_connector_cli_accepts_only_the_explicit_not_applicable_mode(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        receipt_path = self.root / "context-stage.json"
-        previous_path = self._write_context_predecessor(run_id="run-cli")
-
-        exit_code = context_binding_generator.main(
-            [
-                str(self.article),
-                "--proof-sidecar",
-                str(self.sidecar),
-                "--not-applicable-reason",
-                "This article contains no Simpro references or claims.",
-                "--stage-receipt-output",
-                str(receipt_path),
-                "--run-id",
-                "run-cli",
-                "--previous-receipt",
-                str(previous_path),
-            ]
-        )
-
-        self.assertEqual(exit_code, 0)
-        self.assertEqual(load_stage_receipt(receipt_path)["run_id"], "run-cli")
-
-    def test_non_connector_cli_rejects_mixed_connector_arguments(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-        receipt_path = self.root / "context-stage.json"
-
-        output = io.StringIO()
-        with redirect_stdout(output):
-            exit_code = context_binding_generator.main(
-                [
-                    str(self.article),
-                    "--proof-sidecar",
-                    str(self.sidecar),
-                    "--not-applicable-reason",
-                    "This article contains no Simpro references or claims.",
-                    "--context-request",
-                    str(self.request),
-                    "--stage-receipt-output",
-                    str(receipt_path),
-                ]
-            )
-
-        self.assertEqual(exit_code, 1)
-        error_payload = json.loads(output.getvalue())
-        self.assertEqual(
-            error_payload["error"]["code"],
-            "context_binding_mode_conflict",
-        )
-        self.assertIn("Choose either", error_payload["recovery_hint"])
-        self.assertFalse(receipt_path.exists())
-
-    def test_non_connector_cli_requires_a_stage_receipt_output(self):
-        self.article.write_text(
-            "---\nartifact_type: blog\nbrand: BigChange\ntitle: Guide\n---\n"
-            "# Guide\n",
-            encoding="utf-8",
-        )
-
-        output = io.StringIO()
-        with redirect_stdout(output):
-            exit_code = context_binding_generator.main(
-                [
-                    str(self.article),
-                    "--proof-sidecar",
-                    str(self.sidecar),
-                    "--not-applicable-reason",
-                    "This article contains no Simpro references or claims.",
-                ]
-            )
-
-        self.assertEqual(exit_code, 1)
-        error_payload = json.loads(output.getvalue())
-        self.assertEqual(
-            error_payload["error"]["code"],
-            "stage_receipt_output_required",
-        )
-        self.assertIn("stage receipt output", error_payload["recovery_hint"])
+        self.assertEqual(set(result), {"binding", "claim_use_map", "sidecar"})
+        self.assertEqual(self.article.read_bytes(), article_before)
+        sidecar = self.sidecar.read_text(encoding="utf-8")
+        self.assertIn("## Context Binding", sidecar)
+        self.assertIn("## Context Claim Use Map", sidecar)
 
     def test_connector_cli_rejects_a_partial_context_artifact_set(self):
         output = io.StringIO()
@@ -2173,53 +1673,6 @@ class ContextBindingGuardTests(unittest.TestCase):
             "context_artifact_set_incomplete",
         )
         self.assertIn("all three", error_payload["recovery_hint"])
-
-    def test_generator_invalid_previous_receipt_never_modifies_sidecar(self):
-        original = "## Editorial Notes\n\nPreserve exactly.\n"
-        self.sidecar.write_text(original, encoding="utf-8")
-        previous = self.root / "invalid-previous-receipt.json"
-        previous.write_text("not json", encoding="utf-8")
-
-        with self.assertRaises(StageReceiptError):
-            context_binding_generator.generate_and_install(
-                self.article,
-                self.request,
-                self.pack,
-                self.receipt,
-                self.sidecar,
-                repo_context=[
-                    {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
-                ],
-                client=ValidatingClient(),
-                stage_receipt_output=self.root / "context-stage.json",
-                previous_receipt=previous,
-            )
-
-        self.assertEqual(self.sidecar.read_text(encoding="utf-8"), original)
-
-    def test_generator_previous_receipt_cannot_collide_with_sidecar(self):
-        original = "## Editorial Notes\n\nPreserve exactly.\n"
-        self.sidecar.write_text(original, encoding="utf-8")
-
-        with self.assertRaises(
-            context_binding_generator.ContextBindingGenerationError
-        ) as raised:
-            context_binding_generator.generate_and_install(
-                self.article,
-                self.request,
-                self.pack,
-                self.receipt,
-                self.sidecar,
-                repo_context=[
-                    {"path": "context/seo-guidelines.md", "role": "seo_aeo"}
-                ],
-                client=ValidatingClient(),
-                stage_receipt_output=self.root / "context-stage.json",
-                previous_receipt=self.sidecar,
-            )
-
-        self.assertEqual(raised.exception.code, "context_artifact_path_collision")
-        self.assertEqual(self.sidecar.read_text(encoding="utf-8"), original)
 
     def test_generator_request_mismatch_never_modifies_existing_sidecar(self):
         original = "## Editorial Notes\n\nPreserve exactly.\n"
@@ -2392,88 +1845,6 @@ class ContextBindingGuardTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, "sidecar_write_failed")
         self.assertEqual(self.sidecar.read_text(encoding="utf-8"), original)
         self.assertEqual(set(self.root.iterdir()), before)
-
-    def test_generator_receipt_failure_rolls_back_sidecar(self):
-        original = "## Editorial Notes\n\nPreserve exactly.\n"
-        self.sidecar.write_text(original, encoding="utf-8")
-        pack = json.loads(self.pack.read_text(encoding="utf-8"))
-        pack["sections"]["Approved Claim Evidence"][0]["assertion"] = (
-            "Simpro helps teams coordinate work."
-        )
-        self.pack.write_text(json.dumps(pack), encoding="utf-8")
-        receipt_path = self.root / "context-stage.json"
-        previous_path = self._write_context_predecessor(run_id="run-rollback")
-
-        with patch.object(
-            context_binding_generator,
-            "write_stage_receipt",
-            side_effect=OSError("receipt write failed"),
-        ):
-            with self.assertRaisesRegex(OSError, "receipt write failed"):
-                context_binding_generator.generate_and_install(
-                    self.article,
-                    self.request,
-                    self.pack,
-                    self.receipt,
-                    self.sidecar,
-                    repo_context=[
-                        {
-                            "path": "context/seo-guidelines.md",
-                            "role": "seo_aeo",
-                        }
-                    ],
-                    client=ValidatingClient(),
-                    stage_receipt_output=receipt_path,
-                    run_id="run-rollback",
-                    previous_receipt=previous_path,
-                )
-
-        self.assertEqual(self.sidecar.read_text(encoding="utf-8"), original)
-        self.assertFalse(receipt_path.exists())
-
-    def test_generator_captures_completion_after_sidecar_output_write(self):
-        original = "## Editorial Notes\n\nPreserve exactly.\n"
-        self.sidecar.write_text(original, encoding="utf-8")
-        pack = json.loads(self.pack.read_text(encoding="utf-8"))
-        pack["sections"]["Approved Claim Evidence"][0]["assertion"] = (
-            "Simpro helps teams coordinate work."
-        )
-        self.pack.write_text(json.dumps(pack), encoding="utf-8")
-        receipt_path = self.root / "context-stage.json"
-        previous_path = self._write_context_predecessor(run_id="run-output-order")
-        real_builder = context_binding_generator.build_stage_receipt
-
-        def build_after_output(**kwargs):
-            self.assertIn(
-                "## Context Binding",
-                self.sidecar.read_text(encoding="utf-8"),
-            )
-            return real_builder(**kwargs)
-
-        with patch.object(
-            context_binding_generator,
-            "build_stage_receipt",
-            side_effect=build_after_output,
-        ):
-            context_binding_generator.generate_and_install(
-                self.article,
-                self.request,
-                self.pack,
-                self.receipt,
-                self.sidecar,
-                repo_context=[
-                    {
-                        "path": "context/seo-guidelines.md",
-                        "role": "seo_aeo",
-                    }
-                ],
-                client=ValidatingClient(),
-                stage_receipt_output=receipt_path,
-                run_id="run-output-order",
-                previous_receipt=previous_path,
-            )
-
-        self.assertTrue(receipt_path.is_file())
 
     def test_generator_replaces_from_same_directory_and_cleans_temp(self):
         pack = json.loads(self.pack.read_text(encoding="utf-8"))

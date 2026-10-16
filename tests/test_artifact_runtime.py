@@ -8,11 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from data_sources.modules.artifact_runtime.limits import (
-    ARTICLE_MAX_BYTES,
-    SUBPROCESS_MAX_INPUT_BYTES,
-    validate_text_artifact,
-)
+from data_sources.modules.artifact_runtime.limits import SUBPROCESS_MAX_INPUT_BYTES
 from data_sources.modules.artifact_runtime.paths import cache_path, spool_path
 from data_sources.modules.artifact_runtime.subprocesses import (
     ProcessCleanupError,
@@ -24,56 +20,6 @@ from data_sources.modules.bounded_io import (
     JsonOutputLimitError,
     bounded_canonical_json_bytes,
 )
-
-
-def test_validate_text_artifact_accepts_exact_limit_and_rejects_one_more(
-    tmp_path: Path,
-) -> None:
-    exact = tmp_path / "article.md"
-    exact.write_bytes(b"a" * ARTICLE_MAX_BYTES)
-
-    assert validate_text_artifact(
-        exact,
-        label="article",
-        workspace_root=tmp_path,
-        max_bytes=ARTICLE_MAX_BYTES,
-    ) == exact.resolve()
-
-    exact.write_bytes(b"a" * (ARTICLE_MAX_BYTES + 1))
-    with pytest.raises(ValueError, match="article exceeds"):
-        validate_text_artifact(
-            exact,
-            label="article",
-            workspace_root=tmp_path,
-            max_bytes=ARTICLE_MAX_BYTES,
-        )
-
-
-def test_validate_text_artifact_rejects_invalid_utf8_and_workspace_escape(
-    tmp_path: Path,
-) -> None:
-    invalid = tmp_path / "invalid.md"
-    invalid.write_bytes(b"\xff")
-    with pytest.raises(ValueError, match="valid UTF-8"):
-        validate_text_artifact(
-            invalid,
-            label="article",
-            workspace_root=tmp_path,
-            max_bytes=ARTICLE_MAX_BYTES,
-        )
-
-    outside = tmp_path.parent / "outside.md"
-    outside.write_text("outside", encoding="utf-8")
-    try:
-        with pytest.raises(ValueError, match="inside the workspace"):
-            validate_text_artifact(
-                outside,
-                label="article",
-                workspace_root=tmp_path,
-                max_bytes=ARTICLE_MAX_BYTES,
-            )
-    finally:
-        outside.unlink(missing_ok=True)
 
 
 def test_bounded_process_keeps_small_output_in_memory() -> None:

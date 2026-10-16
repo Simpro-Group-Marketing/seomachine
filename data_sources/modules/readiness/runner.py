@@ -24,7 +24,6 @@ from .gate_policy import RETIRED_BLOG_READINESS
 from .gate_policy import artifact_kind_rule_id as _artifact_kind_rule_id
 from .pipeline_tail import _run_remaining_gates
 from .runtime_policy import _bom_runtime_policy
-from ..wording_edit_lineage import verified_bom_lineage
 from .workspace_bindings import (
     _captured_context_payloads,
     _captured_json,
@@ -147,9 +146,6 @@ def _run_context_gate(
     if client is not None and session is not None and session.telemetry is not None:
         session.telemetry.increment("connector_operations")
     inputs = session.inputs if session is not None else None
-    accepted = verified_bom_lineage(
-        runtime_policy.get("assembly_bom") or {}, workspace_root, captured=inputs
-    )[0]
     if inputs is None:
         result = _timed_call(
             telemetry,
@@ -164,7 +160,6 @@ def _run_context_gate(
             editorial_plan=runtime_policy.get("editorial_plan"),
             vault_root=vault_root,
             client=client,
-            accepted_article_sha256s=accepted,
         )
     else:
         article_snapshot = inputs.snapshot("article")
@@ -183,7 +178,6 @@ def _run_context_gate(
             editorial_plan=_captured_json(inputs, "editorial_plan"),
             vault_root=vault_root,
             client=client,
-            accepted_article_sha256s=accepted,
         )
     if session is not None:
         session.set_context_result(result)

@@ -1,20 +1,15 @@
-import hashlib
-import json
 import tempfile
 import unittest
 from contextlib import redirect_stderr
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
 
-from data_sources.modules import content_scrubber as content_scrubber_module
 from data_sources.modules.content_scrubber import (
     ContentScrubber,
     main,
     scrub_content,
     scrub_file,
 )
-from data_sources.modules.blog_assembly_stage_receipt import StageReceiptError
 
 
 class ContentScrubberTests(unittest.TestCase):
@@ -195,82 +190,6 @@ secondary_keywords:
 
         self.assertEqual(once, twice)
 
-    def test_stage_receipt_cli_records_real_hashes_and_previous_link(self):
-        with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
-            root = Path(tmp)
-            article = root / 'article.md'
-            first_receipt_path = root / 'scrub.json'
-            article.write_text('Dispatch work.', encoding='utf-8')
-            before = hashlib.sha256(article.read_bytes()).hexdigest()
-            first = scrub_file(
-                str(article),
-                stage_receipt_output=str(first_receipt_path),
-                run_id='run-42',
-            )
-            after = hashlib.sha256(article.read_bytes()).hexdigest()
-
-            self.assertEqual(first['input_artifact_hashes'], {'article': before})
-            self.assertEqual(first['output_artifact_hashes']['article'], after)
-            evidence_path = root / 'scrub-evidence.json'
-            self.assertEqual(
-                first['output_artifact_hashes']['stage_evidence'],
-                hashlib.sha256(evidence_path.read_bytes()).hexdigest(),
-            )
-            self.assertEqual(first['tool'], {'name': 'content_scrubber', 'version': '1.0.0'})
-            self.assertEqual(after, before)
-            self.assertFalse(first['mutation'])
-            self.assertEqual(set(first['evidence_hashes']), {'scrub_statistics'})
-            self.assertEqual(len(first['evidence_hashes']['scrub_statistics']), 64)
-            article.write_text('Schedule work.', encoding='utf-8')
-            second_receipt_path = root / 'post-scrub.json'
-            exit_code = main(
-                [
-                    str(article),
-                    '--stage-receipt-output', str(second_receipt_path),
-                    '--previous-receipt', str(first_receipt_path),
-                    '--stage', 'post_optimization_scrub',
-                ]
-            )
-            second = json.loads(second_receipt_path.read_text(encoding='utf-8'))
-
-            self.assertEqual(exit_code, 0)
-            self.assertEqual(second['run_id'], 'run-42')
-            self.assertEqual(second['stage'], 'post_optimization_scrub')
-            self.assertEqual(second['previous_receipt_hash'], first['receipt_hash'])
-
-    def test_invalid_previous_receipt_never_mutates_article(self):
-        with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
-            root = Path(tmp)
-            article = root / 'article.md'
-            previous = root / 'invalid-previous.json'
-            article.write_text('Dispatch' + chr(8212) + 'work.', encoding='utf-8')
-            previous.write_text('not json', encoding='utf-8')
-            before = article.read_bytes()
-
-            with self.assertRaises(StageReceiptError):
-                scrub_file(
-                    str(article),
-                    stage_receipt_output=str(root / 'scrub.json'),
-                    previous_receipt=str(previous),
-                )
-
-            self.assertEqual(article.read_bytes(), before)
-
-    def test_receipt_output_cannot_overwrite_article(self):
-        with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
-            article = Path(tmp) / 'article.md'
-            article.write_text('Dispatch' + chr(8212) + 'work.', encoding='utf-8')
-            before = article.read_bytes()
-
-            with self.assertRaises(StageReceiptError):
-                scrub_file(
-                    str(article),
-                    stage_receipt_output=str(article),
-                    run_id='run-42',
-                )
-
-            self.assertEqual(article.read_bytes(), before)
-
     def test_default_scrub_file_reports_without_article_replace(self):
         with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
             root = Path(tmp)
@@ -279,69 +198,12 @@ secondary_keywords:
             before_bytes = article.read_bytes()
             before_files = set(root.iterdir())
 
-            with patch(
-                'data_sources.modules.content_scrubber.os.replace',
-                side_effect=OSError('replace blocked'),
-            ):
-                report = scrub_file(str(article))
+            report = scrub_file(str(article))
 
             self.assertEqual(article.read_bytes(), before_bytes)
             self.assertEqual(set(root.iterdir()), before_files)
             self.assertTrue(report['would_change'])
             self.assertEqual(report['statistics']['emdashes_replaced'], 1)
-
-    def test_receipt_write_failure_rolls_back_in_place_article(self):
-        with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
-            root = Path(tmp)
-            article = root / 'article.md'
-            receipt = root / 'scrub-receipt.json'
-            article.write_text('Dispatch work.', encoding='utf-8')
-            before_bytes = article.read_bytes()
-
-            with patch.object(
-                content_scrubber_module,
-                'write_stage_receipt',
-                side_effect=OSError('receipt write failed'),
-            ):
-                with self.assertRaisesRegex(OSError, 'receipt write failed'):
-                    scrub_file(
-                        str(article),
-                        stage_receipt_output=str(receipt),
-                        run_id='run-rollback',
-                    )
-
-            self.assertEqual(article.read_bytes(), before_bytes)
-            self.assertFalse(receipt.exists())
-
-    def test_receipt_completion_is_captured_without_article_output_write(self):
-        with tempfile.TemporaryDirectory(dir=Path.cwd()) as tmp:
-            root = Path(tmp)
-            article = root / 'article.md'
-            receipt = root / 'scrub-receipt.json'
-            article.write_text('Dispatch work.', encoding='utf-8')
-            real_builder = content_scrubber_module.build_stage_receipt
-
-            def build_after_output(**kwargs):
-                self.assertEqual('Dispatch work.', article.read_text(encoding='utf-8'))
-                self.assertFalse(kwargs['mutation'])
-                self.assertEqual(
-                    kwargs['input_artifact_hashes']['article'],
-                    kwargs['output_artifact_hashes']['article'],
-                )
-                return real_builder(**kwargs)
-
-            with patch.object(
-                content_scrubber_module,
-                'build_stage_receipt',
-                side_effect=build_after_output,
-            ):
-                scrub_file(
-                    str(article),
-                    stage_receipt_output=str(receipt),
-                    run_id='run-completion-order',
-                )
-
-            self.assertTrue(receipt.is_file())
 
     def test_cli_reports_expected_input_errors_without_traceback(self):
         stderr = StringIO()

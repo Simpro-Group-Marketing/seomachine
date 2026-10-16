@@ -9,7 +9,6 @@ from data_sources.modules.readiness.adapters import _scorecard_from_scorer_resul
 from data_sources.modules import context_binding_generator, customer_proof_selector
 from data_sources.modules.content_scrubber import scrub_file
 from data_sources.modules import fred_authority_selector
-from data_sources.modules.blog_assembly_stage_receipt import StageReceiptError
 from data_sources.modules.grav_publisher import GravPublisher
 
 
@@ -33,23 +32,6 @@ def test_scrub_file_reports_changes_without_mutating_article_markdown(tmp_path):
     assert report["statistics"]["emdashes_replaced"] == 1
     assert "cleaned_content" not in report
 
-
-def test_receipt_backed_scrub_writes_governance_only_not_article(tmp_path):
-    article = tmp_path / "article.md"
-    receipt_path = tmp_path / "scrub-receipt.json"
-    article.write_text("Schedule" + chr(8212) + "work.\n", encoding="utf-8")
-    before = article.read_bytes()
-
-    with pytest.raises(StageReceiptError) as raised:
-        scrub_file(
-            str(article),
-            stage_receipt_output=str(receipt_path),
-            run_id="run-native-boundary",
-        )
-
-    assert article.read_bytes() == before
-    assert raised.value.code == "scrub_changes_required"
-    assert not receipt_path.exists()
 
 def test_grav_dry_run_does_not_persist_local_blog_markdown_preview(tmp_path, monkeypatch):
     article = tmp_path / "post.md"
