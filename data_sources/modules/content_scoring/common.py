@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -49,25 +49,7 @@ def default_scoring_dependencies() -> ScoringDependencies:
     )
 
 
-def copy_prevalidated_findings(
-    findings_by_gate: Mapping[str, Sequence[Mapping[str, Any]]] | None,
-    gate_name: str,
-) -> list[dict[str, Any]] | None:
-    if findings_by_gate is None or gate_name not in findings_by_gate:
-        return None
-    raw_findings = findings_by_gate[gate_name]
-    if isinstance(raw_findings, (str, bytes)) or not isinstance(raw_findings, Sequence):
-        raise TypeError(f"prevalidated findings for {gate_name!r} must be a sequence")
-    copied: list[dict[str, Any]] = []
-    for index, finding in enumerate(raw_findings):
-        if not isinstance(finding, Mapping):
-            raise TypeError(f"prevalidated finding {gate_name}[{index}] must be a mapping")
-        copied.append(dict(finding))
-    return copied
-
-
 __all__ = [
     "ScoringDependencies",
-    "copy_prevalidated_findings",
     "default_scoring_dependencies",
 ]

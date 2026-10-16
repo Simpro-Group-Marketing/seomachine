@@ -35,23 +35,18 @@ def _check_bound_paa_provenance(
     expected_collection_date: Optional[str],
     expected_run_id: Optional[str],
     paa_artifact: Optional[str],
-    prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
 ) -> Dict[str, Any]:
-    findings = (
-        [dict(finding) for finding in prevalidated_findings]
-        if prevalidated_findings is not None
-        else check_paa_provenance_content(
-            content,
-            source_path=source_path,
-            proof_content=proof_sidecar_content,
-            workflow_mode=workflow_mode,
-            content_brief=content_brief,
-            answersocrates_blocker=answersocrates_blocker,
-            expected_query=expected_query,
-            expected_collection_date=expected_collection_date,
-            expected_run_id=expected_run_id,
-            paa_artifact=paa_artifact,
-        )
+    findings = check_paa_provenance_content(
+        content,
+        source_path=source_path,
+        proof_content=proof_sidecar_content,
+        workflow_mode=workflow_mode,
+        content_brief=content_brief,
+        answersocrates_blocker=answersocrates_blocker,
+        expected_query=expected_query,
+        expected_collection_date=expected_collection_date,
+        expected_run_id=expected_run_id,
+        paa_artifact=paa_artifact,
     )
     return {
         'passed': _findings_passed(findings),
@@ -64,7 +59,7 @@ def _check_bound_paa_provenance(
         'details': {
             'finding_count': len(findings),
             'findings': findings,
-            'prevalidated': prevalidated_findings is not None,
+            'prevalidated': False,
         },
     }
 
@@ -128,16 +123,8 @@ def _check_faq_answer_lengths(body: str) -> Dict[str, Any]:
         },
     }
 
-def _check_faq_answer_quality(
-    content: str,
-    *,
-    prevalidated_findings: Optional[Sequence[Mapping[str, Any]]] = None,
-) -> Dict[str, Any]:
-    findings = (
-        [dict(finding) for finding in prevalidated_findings]
-        if prevalidated_findings is not None
-        else check_faq_answer_quality(content)
-    )
+def _check_faq_answer_quality(content: str) -> Dict[str, Any]:
+    findings = check_faq_answer_quality(content)
     passed = _findings_passed(findings)
 
     return {
@@ -152,7 +139,7 @@ def _check_faq_answer_quality(
         "details": {
             "finding_count": len(findings),
             "findings": findings,
-            "prevalidated": prevalidated_findings is not None,
+            "prevalidated": False,
         },
     }
 
