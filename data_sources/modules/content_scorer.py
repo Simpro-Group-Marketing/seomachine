@@ -52,17 +52,8 @@ def lint_content(*args: Any, **kwargs: Any) -> Any:
     return default_scoring_dependencies().lint_content(*args, **kwargs)
 
 
-def check_customer_proof_diversity(*args: Any, **kwargs: Any) -> Any:
-    dependency = default_scoring_dependencies().check_customer_proof_diversity
-    return dependency(*args, **kwargs)
-
-
 def split_frontmatter(*args: Any, **kwargs: Any) -> Any:
     return default_scoring_dependencies().split_frontmatter(*args, **kwargs)
-
-
-def check_metric_proof_pack(*args: Any, **kwargs: Any) -> Any:
-    return default_scoring_dependencies().check_metric_proof_pack(*args, **kwargs)
 
 
 def load_sidecar_content(*args: Any, **kwargs: Any) -> Any:
@@ -71,16 +62,6 @@ def load_sidecar_content(*args: Any, **kwargs: Any) -> Any:
 
 def resolve_sidecar_path(*args: Any, **kwargs: Any) -> Any:
     return default_scoring_dependencies().resolve_sidecar_path(*args, **kwargs)
-
-
-def trusted_readiness_findings(*args: Any, **kwargs: Any) -> Any:
-    dependency = default_scoring_dependencies().trusted_readiness_findings
-    return dependency(*args, **kwargs)
-
-
-def check_review_story_identity(*args: Any, **kwargs: Any) -> Any:
-    dependency = default_scoring_dependencies().check_review_story_identity
-    return dependency(*args, **kwargs)
 
 
 def check_source_support(*args: Any, **kwargs: Any) -> Any:
@@ -108,9 +89,6 @@ __all__ = [
     "SEO_PUBLISHING_THRESHOLD",
     "SEO_TARGET_SCORE",
     "ScoringDependencies",
-    "check_customer_proof_diversity",
-    "check_metric_proof_pack",
-    "check_review_story_identity",
     "check_source_support",
     "lint_content",
     "load_sidecar_content",
@@ -118,7 +96,6 @@ __all__ = [
     "rate_aeo_geo",
     "resolve_sidecar_path",
     "split_frontmatter",
-    "trusted_readiness_findings",
     "validate_content_urls",
 ]
 

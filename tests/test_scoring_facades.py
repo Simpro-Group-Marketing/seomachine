@@ -29,13 +29,9 @@ def _dependencies() -> ScoringDependencies:
         seo_rater_factory=Mock(return_value=object()),
         rate_aeo_geo=Mock(return_value={"passed": True, "checks": {}}),
         lint_content=noop,
-        check_customer_proof_diversity=noop,
         split_frontmatter=Mock(return_value=({}, "", 1)),
-        check_metric_proof_pack=noop,
         load_sidecar_content=Mock(return_value=""),
         resolve_sidecar_path=Mock(return_value=None),
-        trusted_readiness_findings=Mock(return_value=None),
-        check_review_story_identity=noop,
         check_source_support=noop,
         validate_content_urls=Mock(),
     )

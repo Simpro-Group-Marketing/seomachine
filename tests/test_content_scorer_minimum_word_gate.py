@@ -26,9 +26,6 @@ def _passing_dependencies():
                 "issues": [],
             }
         ),
-        check_metric_proof_pack=Mock(return_value=[]),
-        check_customer_proof_diversity=Mock(return_value=[]),
-        check_review_story_identity=Mock(return_value=[]),
     )
 
 

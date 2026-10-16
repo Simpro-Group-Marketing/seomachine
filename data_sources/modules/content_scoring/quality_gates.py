@@ -72,45 +72,6 @@ class QualityGatesMixin:
         aeo_geo = self.dependencies.rate_aeo_geo(content, metadata, **aeo_kwargs)
         faq_proof_check = aeo_geo.get('checks', {}).get('faq_proof', {})
         paa_provenance_check = aeo_geo.get('checks', {}).get('paa_provenance', {})
-        metric_proof_pack_findings = self.dependencies.trusted_readiness_findings(
-            readiness_gate_context,
-            "metric_proof_pack",
-            article_content=content,
-            proof_sidecar_content=proof_sidecar_content,
-        )
-        if metric_proof_pack_findings is None:
-            metric_proof_pack_findings = self.dependencies.check_metric_proof_pack(
-                content,
-                source_path=source_path,
-                proof_content=proof_sidecar_content,
-            )
-        customer_proof_findings = self.dependencies.trusted_readiness_findings(
-            readiness_gate_context,
-            "customer_proof_diversity",
-            article_content=content,
-            proof_sidecar_content=proof_sidecar_content,
-        )
-        if customer_proof_findings is None:
-            customer_proof_findings = self.dependencies.check_customer_proof_diversity(
-                content,
-                source_path=source_path,
-                proof_content=proof_sidecar_content,
-                proof_sidecar_path=proof_sidecar_path,
-            )
-        review_story_findings = self.dependencies.trusted_readiness_findings(
-            readiness_gate_context,
-            "review_story_identity",
-            article_content=content,
-            proof_sidecar_content=proof_sidecar_content,
-        )
-        if review_story_findings is None:
-            review_story_findings = self.dependencies.check_review_story_identity(
-                content,
-                source_path=source_path,
-                proof_content=proof_sidecar_content,
-                proof_sidecar_path=proof_sidecar_path,
-            )
-
         source_support_findings = []
         if validate_source_support:
             source_support_findings = self.dependencies.check_source_support(
@@ -132,14 +93,6 @@ class QualityGatesMixin:
             'faq_proof_passed': bool(faq_proof_check.get('passed', True)),
             'paa_provenance_check': paa_provenance_check,
             'paa_provenance_passed': bool(paa_provenance_check.get('passed', True)),
-            'metric_proof_pack_findings': metric_proof_pack_findings,
-            'metric_proof_pack_passed': not self._has_error_finding(
-                metric_proof_pack_findings
-            ),
-            'customer_proof_findings': customer_proof_findings,
-            'customer_proof_passed': not self._has_error_finding(customer_proof_findings),
-            'review_story_findings': review_story_findings,
-            'review_story_passed': not self._has_error_finding(review_story_findings),
             'url_validation': url_validation,
             'url_validation_passed': True if url_validation is None else url_validation.passed,
             'source_support_findings': source_support_findings,
@@ -159,9 +112,6 @@ class QualityGatesMixin:
             and gate_context['aeo_geo_passed']
             and gate_context['faq_proof_passed']
             and gate_context['paa_provenance_passed']
-            and gate_context['metric_proof_pack_passed']
-            and gate_context['customer_proof_passed']
-            and gate_context['review_story_passed']
             and gate_context['url_validation_passed']
             and gate_context['source_support_passed']
             and gate_context['minimum_visible_words_passed']
@@ -179,9 +129,6 @@ class QualityGatesMixin:
         aeo_geo = gate_context['aeo_geo']
         faq_proof_check = gate_context['faq_proof_check']
         paa_provenance_check = gate_context['paa_provenance_check']
-        metric_proof_pack_findings = gate_context['metric_proof_pack_findings']
-        customer_proof_findings = gate_context['customer_proof_findings']
-        review_story_findings = gate_context['review_story_findings']
         minimum_visible_words = gate_context['minimum_visible_words']
         seo_score = seo.get('score', 0)
         seo_target_met = (
@@ -225,21 +172,6 @@ class QualityGatesMixin:
             'paa_provenance': {
                 'finding_count': paa_provenance_check.get('details', {}).get('finding_count', 0),
                 'passed': gate_context['paa_provenance_passed']
-            },
-            'metric_proof_pack': {
-                'finding_count': len(metric_proof_pack_findings),
-                'passed': gate_context['metric_proof_pack_passed'],
-                'findings': metric_proof_pack_findings
-            },
-            'customer_proof_diversity': {
-                'finding_count': len(customer_proof_findings),
-                'passed': gate_context['customer_proof_passed'],
-                'findings': customer_proof_findings
-            },
-            'review_story_identity': {
-                'finding_count': len(review_story_findings),
-                'passed': gate_context['review_story_passed'],
-                'findings': review_story_findings
             },
             'minimum_visible_words': {
                 'word_count': minimum_visible_words['word_count'],

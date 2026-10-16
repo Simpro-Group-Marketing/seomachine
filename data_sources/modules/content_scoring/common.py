@@ -15,13 +15,9 @@ class ScoringDependencies:
     seo_rater_factory: Callable[..., Any]
     rate_aeo_geo: Callable[..., dict[str, Any]]
     lint_content: Callable[..., Any]
-    check_customer_proof_diversity: Callable[..., Any]
     split_frontmatter: Callable[..., Any]
-    check_metric_proof_pack: Callable[..., Any]
     load_sidecar_content: Callable[..., Any]
     resolve_sidecar_path: Callable[..., Any]
-    trusted_readiness_findings: Callable[..., Any]
-    check_review_story_identity: Callable[..., Any]
     check_source_support: Callable[..., Any]
     validate_content_urls: Callable[..., Any]
 
@@ -30,22 +26,12 @@ def default_scoring_dependencies() -> ScoringDependencies:
     """Load scoring dependencies only when a scorer is instantiated."""
     from data_sources.modules.ai_copy_linter import lint_content
     from data_sources.modules.content_scoring.aeo_orchestration import rate_aeo_geo
-    from data_sources.modules.customer_proof.diversity import (
-        check_content as check_customer_proof_diversity,
-    )
     from data_sources.modules.frontmatter import split_frontmatter
-    from data_sources.modules.metric_proof_pack_guard import (
-        check_content as check_metric_proof_pack,
-    )
     from data_sources.modules.proof_sidecar import (
         load_sidecar_content,
         resolve_sidecar_path,
     )
     from data_sources.modules.readability_scorer import ReadabilityScorer
-    from data_sources.modules.readiness_gate_context import trusted_readiness_findings
-    from data_sources.modules.review_story_identity_guard import (
-        check_content as check_review_story_identity,
-    )
     from data_sources.modules.content_scoring.seo_rater_orchestration import SEOQualityRater
     from data_sources.modules.source_support_guard import check_content as check_source_support
     from data_sources.modules.url_validator import validate_content_urls
@@ -55,13 +41,9 @@ def default_scoring_dependencies() -> ScoringDependencies:
         seo_rater_factory=SEOQualityRater,
         rate_aeo_geo=rate_aeo_geo,
         lint_content=lint_content,
-        check_customer_proof_diversity=check_customer_proof_diversity,
         split_frontmatter=split_frontmatter,
-        check_metric_proof_pack=check_metric_proof_pack,
         load_sidecar_content=load_sidecar_content,
         resolve_sidecar_path=resolve_sidecar_path,
-        trusted_readiness_findings=trusted_readiness_findings,
-        check_review_story_identity=check_review_story_identity,
         check_source_support=check_source_support,
         validate_content_urls=validate_content_urls,
     )

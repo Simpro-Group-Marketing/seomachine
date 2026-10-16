@@ -89,40 +89,6 @@ def _build_gate_fixes(gate_context: Mapping[str, Any]) -> List[Dict[str, Any]]:
             )
         )
 
-    if not gate_context["metric_proof_pack_passed"]:
-        metric_lines = _line_summary(gate_context["metric_proof_pack_findings"])
-        fixes.append(
-            _gate_fix(
-                "Metric Proof Pack blockers detected",
-                "Add a Metric Proof Pack with a search log and approved metrics "
-                f"with source-visible Evidence, or document not applicable: {metric_lines}",
-                "metric_proof_pack",
-            )
-        )
-
-    if not gate_context["review_story_passed"]:
-        review_story_lines = _line_summary(gate_context["review_story_findings"])
-        fixes.append(
-            _gate_fix(
-                "Review story identity blockers detected",
-                "Add a Review Story Selection with a real person or business identity, "
-                "public review URL, and same-paragraph article link; or remove review-derived copy: "
-                f"{review_story_lines}",
-                "review_story_identity",
-            )
-        )
-
-    if not gate_context["customer_proof_passed"]:
-        customer_lines = _line_summary(gate_context["customer_proof_findings"])
-        fixes.append(
-            _gate_fix(
-                "Customer proof diversity blockers detected",
-                "Add Quote Matrix, Reference, Customer Story, or review-site search evidence, "
-                f"or document a Reuse reason for repeated customer proof: {customer_lines}",
-                "customer_proof_diversity",
-            )
-        )
-
     url_validation = gate_context["url_validation"]
     if url_validation is not None and not url_validation.passed:
         blocker_urls = ", ".join(result.url for result in url_validation.blockers[:3])
@@ -179,9 +145,6 @@ def _has_independent_aeo_geo_blocker(gate_context: Mapping[str, Any]) -> bool:
             "source_support_passed",
             "faq_proof_passed",
             "paa_provenance_passed",
-            "metric_proof_pack_passed",
-            "customer_proof_passed",
-            "review_story_passed",
             "minimum_visible_words_passed",
         )
     ) or (

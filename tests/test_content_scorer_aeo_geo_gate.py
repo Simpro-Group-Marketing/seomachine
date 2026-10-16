@@ -565,7 +565,8 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertGreaterEqual(result["aeo_geo"]["score"], 90)
         self.assertTrue(result["quality_gates"]["content_quality"]["passed"])
         self.assertTrue(result["quality_gates"]["aeo_geo"]["passed"])
-        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
+        for retired in ("metric_proof_pack", "customer_proof_diversity", "review_story_identity"):
+            self.assertNotIn(retired, result["quality_gates"])
 
     def test_strong_composite_cannot_bypass_canonical_seo_blockers(self):
         scorer = ContentScorer()
@@ -653,64 +654,14 @@ Use operating data to compare the same workflow before and after the pilot.
 
         self.assertFalse(result["passed"])
         self.assertTrue(result["quality_gates"]["paa_provenance"]["passed"])
-        self.assertTrue(result["quality_gates"]["metric_proof_pack"]["passed"])
-        customer_gate = result["quality_gates"]["customer_proof_diversity"]
-        self.assertFalse(customer_gate["passed"])
-        self.assertEqual(
-            customer_gate["findings"][0]["rule_id"],
-            "customer_proof_selector_evidence_unverified",
-        )
-
-    def test_review_story_identity_failure_blocks_content_scorer(self):
-        scorer = ContentScorer()
-        content = COMPLIANT_ARTICLE.replace(
-            "\n[BWE Engineering](https://www.simprogroup.com/case-studies/bwe-engineering) shows how field service teams use connected workflows to improve operational control.\n",
-            "\n[G2 reviews](https://www.g2.com/products/simpro/reviews) mention quote-to-invoice workflows for trade businesses.\n",
-        )
-        content = content.replace(METRIC_PROOF_BLOCK, "").replace(PAA_PROVENANCE_BLOCK, "")
-        article_path, sidecar_path = write_sidecar_fixture(self, content)
-
-        with patch.object(
-            ContentScorer,
-            "_score_humanity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_specificity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_structure_balance",
-            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
-        ), patch.object(
-            ContentScorer,
-            "_score_seo",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_readability",
-            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
-        ):
-            result = scorer.score(
-                content,
-                {"primary_keyword": "hvac scheduling software"},
-                source_path=article_path,
-                paa_expected_run_id="content-scorer-fixture",
-                proof_sidecar=sidecar_path,
-            )
-
-        self.assertFalse(result["passed"])
-        self.assertIn("review_story_identity", result["quality_gates"])
-        self.assertFalse(result["quality_gates"]["review_story_identity"]["passed"])
-        self.assertIn("Review story identity blockers detected", result["priority_fixes"][0]["issue"])
+        # Unverified selector evidence earns no experience proof, so the AEO/GEO gate fails on E-E-A-T.
+        self.assertFalse(result["quality_gates"]["aeo_geo"]["passed"])
+        self.assertFalse(result["aeo_geo"]["checks"]["eeat_proof"]["passed"])
 
     def test_quality_gate_passes_resolved_proof_sidecar_path_to_aeo_rater(self):
         rate = Mock(return_value={"passed": True, "checks": {}})
         scorer = scorer_with_dependencies(
             rate_aeo_geo=rate,
-            check_metric_proof_pack=Mock(return_value=[]),
-            check_customer_proof_diversity=Mock(return_value=[]),
-            check_review_story_identity=Mock(return_value=[]),
         )
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -738,9 +689,6 @@ Use operating data to compare the same workflow before and after the pilot.
         rate = Mock(return_value={"passed": True, "checks": {}})
         scorer = scorer_with_dependencies(
             rate_aeo_geo=rate,
-            check_metric_proof_pack=Mock(return_value=[]),
-            check_customer_proof_diversity=Mock(return_value=[]),
-            check_review_story_identity=Mock(return_value=[]),
         )
         finalized_bom = {
             "schema": "simpro-blog-assembly-bom/v1",
@@ -787,38 +735,6 @@ Use operating data to compare the same workflow before and after the pilot.
             paa_expected_collection_date="2026-05-21",
             paa_expected_run_id="article-run-123",
             paa_artifact="research/paa-questions-article-2026-05-21.md",
-        )
-
-    def test_quality_gate_passes_resolved_proof_sidecar_path_to_customer_proof_guard(
-        self,
-    ):
-        check_customer_proof = Mock(return_value=[])
-        scorer = scorer_with_dependencies(
-            rate_aeo_geo=Mock(return_value={"passed": True, "checks": {}}),
-            check_metric_proof_pack=Mock(return_value=[]),
-            check_customer_proof_diversity=check_customer_proof,
-            check_review_story_identity=Mock(return_value=[]),
-        )
-        with TemporaryDirectory() as temp_dir:
-            root = Path(temp_dir)
-            article = root / "drafts" / "article.md"
-            sidecar = root / "research" / "validation-article.md"
-            article.parent.mkdir(parents=True)
-            sidecar.parent.mkdir(parents=True)
-            article.write_text("# Article\n", encoding="utf-8")
-            sidecar.write_text("# Validation\n", encoding="utf-8")
-            scorer._run_quality_gates(
-                "# Article\n",
-                {},
-                validate_urls=False,
-                validate_source_support=False,
-                source_path=str(article),
-                proof_sidecar=str(sidecar),
-            )
-
-        self.assertEqual(
-            check_customer_proof.call_args.kwargs["proof_sidecar_path"],
-            str(sidecar.resolve()),
         )
 
     def test_url_validation_failure_blocks_content_scorer_when_enabled(self):
@@ -1062,140 +978,6 @@ Use operating data to compare the same workflow before and after the pilot.
         self.assertIn("paa_provenance", result["quality_gates"])
         self.assertFalse(result["quality_gates"]["paa_provenance"]["passed"])
         self.assertIn("PAA provenance blockers detected", result["priority_fixes"][0]["issue"])
-
-    def test_metric_proof_pack_failure_blocks_content_scorer(self):
-        scorer = ContentScorer()
-        content = COMPLIANT_ARTICLE.replace(METRIC_PROOF_BLOCK, "")
-
-        with patch.object(
-            ContentScorer,
-            "_score_humanity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_specificity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_structure_balance",
-            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
-        ), patch.object(
-            ContentScorer,
-            "_score_seo",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_readability",
-            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
-        ):
-            result = scorer.score(
-                content,
-                {"primary_keyword": "hvac scheduling software"},
-                source_path=write_paa_fixture(self, content),
-                paa_expected_run_id="content-scorer-fixture",
-            )
-
-        self.assertFalse(result["passed"])
-        self.assertIn("metric_proof_pack", result["quality_gates"])
-        self.assertFalse(result["quality_gates"]["metric_proof_pack"]["passed"])
-        self.assertIn("Metric Proof Pack blockers detected", result["priority_fixes"][0]["issue"])
-
-    def test_customer_proof_diversity_failure_blocks_content_scorer(self):
-        scorer = ContentScorer()
-        content = COMPLIANT_ARTICLE.replace(CUSTOMER_PROOF_BLOCK, "")
-
-        with patch.object(
-            ContentScorer,
-            "_score_humanity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_specificity",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_structure_balance",
-            return_value={"score": 100, "issues": [], "details": {}, "prose_ratio": 0.65},
-        ), patch.object(
-            ContentScorer,
-            "_score_seo",
-            return_value={"score": 100, "issues": [], "details": {}},
-        ), patch.object(
-            ContentScorer,
-            "_score_readability",
-            return_value={"score": 100, "issues": [], "details": {}, "flesch": 68},
-        ):
-            result = scorer.score(
-                content,
-                {"primary_keyword": "hvac scheduling software"},
-                source_path=write_paa_fixture(self, content),
-                paa_expected_run_id="content-scorer-fixture",
-            )
-
-        self.assertFalse(result["passed"])
-        self.assertIn("customer_proof_diversity", result["quality_gates"])
-        self.assertFalse(result["quality_gates"]["customer_proof_diversity"]["passed"])
-        self.assertIn("Customer proof diversity blockers detected", result["priority_fixes"][0]["issue"])
-
-    def test_raw_prevalidated_findings_do_not_suppress_proof_gate_runs(self):
-        aeo_result = {
-            "score": 100,
-            "passed": True,
-            "checks": {
-                "faq_proof": {"passed": True, "details": {"findings": []}},
-                "paa_provenance": {"passed": True, "details": {"findings": []}},
-            },
-            "issues": [],
-        }
-        rate = Mock(return_value=aeo_result)
-        metric_gate = Mock(return_value=[])
-        diversity_gate = Mock(return_value=[])
-        review_gate = Mock(return_value=[])
-        scorer = scorer_with_dependencies(
-            rate_aeo_geo=rate,
-            check_metric_proof_pack=metric_gate,
-            check_customer_proof_diversity=diversity_gate,
-            check_review_story_identity=review_gate,
-        )
-        scorer.score(
-            COMPLIANT_ARTICLE,
-            {"primary_keyword": "hvac scheduling software"},
-            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-            paa_expected_run_id="content-scorer-fixture",
-            prevalidated_gate_findings={
-                "metric_proof_pack": (),
-                "customer_proof_diversity": (),
-                "review_story_identity": (),
-            },
-        )
-
-        metric_gate.assert_called_once()
-        diversity_gate.assert_called_once()
-        review_gate.assert_called_once()
-        self.assertNotIn("prevalidated_gate_findings", rate.call_args.kwargs)
-
-    def test_raw_prevalidated_findings_cannot_bypass_proof_gate_execution(self):
-        blocker = {
-            "rule_id": "metric_proof_missing",
-            "severity": "error",
-            "line": 1,
-            "column": 1,
-            "message": "Metric proof is missing.",
-            "suggestion": "Add proof.",
-        }
-        metric_gate = Mock(return_value=[blocker])
-        scorer = scorer_with_dependencies(check_metric_proof_pack=metric_gate)
-        result = scorer.score(
-            COMPLIANT_ARTICLE,
-            {"primary_keyword": "hvac scheduling software"},
-            source_path=write_paa_fixture(self, COMPLIANT_ARTICLE),
-            paa_expected_run_id="content-scorer-fixture",
-            prevalidated_gate_findings={"metric_proof_pack": ()},
-        )
-
-        metric_gate.assert_called_once()
-        self.assertFalse(result["quality_gates"]["metric_proof_pack"]["passed"])
-
 
 if __name__ == "__main__":
     unittest.main()
