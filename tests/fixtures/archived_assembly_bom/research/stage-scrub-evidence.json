@@ -1,9 +1,0 @@
-{
-  "evidence_hashes": {
-    "scrub_statistics": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-  },
-  "payload": {
-    "fixture": true
-  },
-  "schema": "simpro-blog-stage-evidence/v1"
-}

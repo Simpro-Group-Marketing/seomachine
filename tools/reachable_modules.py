@@ -109,14 +109,29 @@ def _bare_paths(root: Path, path: Path, name: str) -> list[Path]:
     return found
 
 
+def _docstring_ids(tree: ast.AST) -> set[int]:
+    """The string constants that are module, class, or function docstrings: prose, not references."""
+    owners = (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+    return {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(node, owners)
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+        and isinstance(node.body[0].value.value, str)
+    }
+
+
 def _import_names(root: Path, path: Path, tree: ast.AST) -> list[str]:
     names: list[str] = []
+    docstrings = _docstring_ids(tree)
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.level:
             names += _relative_targets(root, path, node)
         elif isinstance(node, (ast.Import, ast.ImportFrom)):
             names += _absolute_targets(node)
-        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings:
             names += _DOTTED_REF.findall(node.value)
     return names
 

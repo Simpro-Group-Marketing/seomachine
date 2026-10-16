@@ -1,1 +1,0 @@
-# keyword-mapper diagnostics

@@ -82,3 +82,23 @@ def test_scripts_importing_modules_via_data_sources_on_sys_path(tmp_path):
     names = {path.relative_to(tmp_path).as_posix() for path in reachable(tmp_path, ["scripts/run.py"])}
     assert "data_sources/modules/orphan.py" in names
     assert "data_sources/modules/orphan_pkg/leaf.py" in names
+
+
+def test_a_docstring_mention_is_not_an_import(tmp_path):
+    _write(tmp_path, "data_sources/__init__.py")
+    _write(tmp_path, "data_sources/modules/__init__.py")
+    _write(tmp_path, "data_sources/modules/entry.py", (
+        '"""Entry point; see ``data_sources.modules.mentioned`` for history."""\n\n'
+        "class C:\n"
+        '    """Also see data_sources.modules.mentioned_in_class."""\n\n'
+        "    def f(self):\n"
+        '        """And data_sources.modules.mentioned_in_function."""\n'
+        "        return 'data_sources.modules.dispatched'\n"
+    ))
+    for name in ("mentioned", "mentioned_in_class", "mentioned_in_function", "dispatched"):
+        _write(tmp_path, f"data_sources/modules/{name}.py", "")
+    found = reachable(tmp_path, ["data_sources/modules/entry.py"])
+    names = {path.relative_to(tmp_path).as_posix() for path in found}
+    assert "data_sources/modules/dispatched.py" in names  # a string constant in code still counts
+    assert not {"data_sources/modules/mentioned.py", "data_sources/modules/mentioned_in_class.py",
+                "data_sources/modules/mentioned_in_function.py"} & names
