@@ -12,7 +12,6 @@ from .artifact_io import HASH_CHUNK_BYTES
 from ..artifact_runtime.limits import ARTIFACT_STORE_MAX_BYTES
 from .artifact_store import InstrumentedArtifactStore
 from .input_spec import ReadinessInputSpec
-from .artifact_views import ArtifactMarkdownView, thaw_value
 from .telemetry import ReadinessTelemetry
 
 
@@ -58,7 +57,7 @@ class ReadinessInputs:
         by_label: Mapping[str, InputSnapshot],
         by_path: Mapping[Path, InputSnapshot],
         telemetry: ReadinessTelemetry | None,
-        store: InstrumentedArtifactStore | None = None,
+        store: InstrumentedArtifactStore,
     ) -> None:
         self._workspace_root = workspace_root
         self._by_label = MappingProxyType(dict(by_label))
@@ -121,8 +120,6 @@ class ReadinessInputs:
 
     @property
     def artifacts(self) -> InstrumentedArtifactStore:
-        if self._store is None:
-            raise RuntimeError("legacy ReadinessInputs has no artifact store")
         return self._store
 
     @property
@@ -142,53 +139,6 @@ class ReadinessInputs:
     def optional_snapshot(self, label: str) -> InputSnapshot | None:
         return self._by_label.get(label)
 
-    def snapshot_row(self, row: Any, *, field: str) -> InputSnapshot:
-        """Resolve a strict path/hash row to its already captured snapshot."""
-        if not isinstance(row, Mapping) or set(row) != {"path", "sha256"}:
-            raise ValueError(f"{field} must be a path/hash object")
-        relative_path = row.get("path")
-        expected_sha256 = row.get("sha256")
-        if not isinstance(relative_path, str) or not relative_path:
-            raise ValueError(f"{field}.path is invalid")
-        matches = (
-            snapshot
-            for snapshot in self._by_path.values()
-            if snapshot.relative_path == relative_path
-        )
-        snapshot = next(matches, None)
-        if snapshot is None:
-            raise ValueError(f"{field}.path was not captured")
-        if snapshot.sha256 != expected_sha256:
-            raise ValueError(f"{field}.sha256 does not match captured contents")
-        return snapshot
-
-    def json_row(self, row: Any, *, field: str) -> Mapping[str, Any]:
-        """Return one deeply immutable JSON object selected by a BOM row."""
-        payload = self.snapshot_row(row, field=field).json_payload
-        if payload is None:
-            raise ValueError(f"{field} is not a JSON object")
-        return payload
-
-    def json_row_copy(self, row: Any, *, field: str) -> dict[str, Any]:
-        """Return a defensive mutable projection for legacy validators."""
-        value = thaw_value(self.json_row(row, field=field))
-        if not isinstance(value, dict):  # pragma: no cover - guarded above.
-            raise ValueError(f"{field} is not a JSON object")
-        return value
-
-    def text_row(self, row: Any, *, field: str) -> str:
-        """Return strict UTF-8 text selected by a BOM row."""
-        snapshot = self.snapshot_row(row, field=field)
-        value = snapshot.text
-        if value is None:
-            label = next(
-                label
-                for label, candidate in self._by_label.items()
-                if candidate is snapshot
-            )
-            return self.artifacts.text(label)
-        return value
-
     def bytes(self, label: str) -> bytes:
         return self.artifacts.bytes(label)
 
@@ -204,52 +154,12 @@ class ReadinessInputs:
             raise ValueError(f"readiness input {label} is not a JSON object")
         return payload
 
-    def markdown_view(self, label: str) -> ArtifactMarkdownView:
-        return self.artifacts.markdown_view(label)
-
     def hash_inventory(self) -> dict[str, dict[str, str]]:
-        if self._store is not None:
-            return self._store.hash_inventory()
-        return {
-            label: {
-                "path": self._by_label[label].relative_path,
-                "sha256": self._by_label[label].sha256,
-            }
-            for label in sorted(self._by_label)
-        }
-
-    def release_inventory(self) -> dict[str, dict[str, str | int]]:
-        if self._store is not None:
-            return self._store.release_inventory()
-        return {
-            label: {
-                "path": self._by_label[label].relative_path,
-                "sha256": self._by_label[label].sha256,
-                "bytes": self._by_label[label].byte_count,
-            }
-            for label in sorted(self._by_label)
-        }
+        return self._store.hash_inventory()
 
     def reseal(self) -> None:
-        """Preserve the legacy no-return API while using the stronger seal."""
-        if self._store is not None:
-            self._store.reseal(hash_reader=_stream_sha256)
-            return
-        for path, snapshot in sorted(
-            self._by_path.items(), key=lambda item: item[1].relative_path
-        ):
-            try:
-                current = _stream_sha256(path)
-                if self._telemetry is not None:
-                    self._telemetry.increment("final_rehashes")
-            except OSError as error:
-                raise ValueError(
-                    f"readiness input changed during readiness: {snapshot.relative_path}: {error}"
-                ) from error
-            if current != snapshot.sha256:
-                raise ValueError(
-                    f"readiness input changed during readiness: {snapshot.relative_path}"
-                )
+        """Re-verify every captured artifact's identity and digest."""
+        self._store.reseal(hash_reader=_stream_sha256)
 
 
 def _read_bounded(path: Path, *, max_bytes: int, field: str) -> bytes:

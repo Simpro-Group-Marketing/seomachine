@@ -14,7 +14,7 @@ from ..artifact_runtime.limits import (
     JSON_MAX_BYTES,
     TEXT_MAX_BYTES,
 )
-from ..blog_assembly_contract import artifact_inventory_snapshots, load_json_text
+from ..blog_assembly_contract import load_json_text
 from ..publishable_markdown import parse_publishable_markdown
 from .artifact_io import (
     read_bounded as _read_bounded,
@@ -29,7 +29,6 @@ from .artifact_views import (
     ArtifactTextView,
     FileIdentity,
     freeze_mapping,
-    thaw_value,
 )
 from .input_spec import ReadinessInputSpec
 from .telemetry import ReadinessTelemetry
@@ -161,8 +160,6 @@ class InstrumentedArtifactStore:
             aggregate_budget_bytes,
         )
         builder.bind_spec(spec)
-        if spec.expand_bom_inventory:
-            builder.bind_bom_inventory()
         store = builder.build()
         if telemetry is not None:
             telemetry.set_gauge("artifact_store_source_bytes", store.total_bytes)
@@ -214,7 +211,7 @@ class InstrumentedArtifactStore:
                 "path": self._by_label[label].bytes_view.relative_path,
                 "sha256": self._by_label[label].bytes_view.sha256,
             }
-            for label in sorted(key for key in self._by_label if not key.startswith("prior_preflight."))
+            for label in sorted(self._by_label)
         }
 
     def release_inventory(self) -> dict[str, dict[str, str | int]]:
@@ -224,7 +221,7 @@ class InstrumentedArtifactStore:
                 "sha256": self._by_label[label].bytes_view.sha256,
                 "bytes": self._by_label[label].bytes_view.byte_count,
             }
-            for label in sorted(key for key in self._by_label if not key.startswith("prior_preflight."))
+            for label in sorted(self._by_label)
         }
 
     def reseal(
@@ -311,28 +308,6 @@ class _StoreBuilder:
                 expected_bytes=binding.expected_bytes,
             )
 
-    def bind_bom_inventory(self) -> None:
-        record = self.by_label.get("assembly_bom")
-        if record is None:
-            return
-        payload = record.json("assembly_bom").payload
-        artifacts = payload.get("artifacts")
-        if not isinstance(artifacts, Mapping):
-            raise ValueError("assembly_bom artifacts must be an object")
-        snapshots = artifact_inventory_snapshots(thaw_value(artifacts))
-        for label in sorted(snapshots):
-            row = snapshots[label]
-            self.bind(label, row["path"], expected_sha256=row["sha256"])
-        self._bind_machine_reviews(payload.get("machine_reviews"))
-        self._bind_serp_raw_capture()
-        self._bind_paa_raw_capture()
-        self._bind_historical(payload.get("preflight"), prefix="historical_preflight")
-        prior = self.by_label.get("prior_preflight_readiness")
-        if prior is not None:
-            prior_inputs = prior.json("prior_preflight_readiness").payload.get("input_hashes")
-            if isinstance(prior_inputs, Mapping):
-                self._bind_historical_row("assembly_bom", prior_inputs.get("assembly_bom"), prefix="prior_preflight")
-
     def bind(
         self,
         label: str,
@@ -385,72 +360,6 @@ class _StoreBuilder:
             by_path=self.by_path,
             telemetry=self.telemetry,
         )
-
-    def _bind_historical(self, preflight: Any, *, prefix: str) -> None:
-        if preflight is None:
-            return
-        if not isinstance(preflight, Mapping):
-            raise ValueError("assembly_bom preflight must be an object")
-        historical = preflight.get("input_hashes")
-        if not isinstance(historical, Mapping) or not historical:
-            raise ValueError("assembly_bom preflight input_hashes must be an object")
-        for label in sorted(historical, key=str):
-            self._bind_historical_row(label, historical[label], prefix=prefix)
-
-    def _bind_serp_raw_capture(self) -> None:
-        record = self.by_label.get("serp_evidence")
-        if record is None:
-            return
-        raw_capture = record.json("serp_evidence").payload.get("raw_capture")
-        if not isinstance(raw_capture, Mapping):
-            return
-        raw_path = raw_capture.get("path")
-        sha256 = raw_capture.get("sha256")
-        if isinstance(raw_path, str) and isinstance(sha256, str):
-            self.bind("serp_raw_capture", raw_path, expected_sha256=sha256)
-
-    def _bind_paa_raw_capture(self) -> None:
-        record = self.by_label.get("paa_artifact")
-        if record is None:
-            return
-        raw_capture = record.json("paa_artifact").payload.get("raw_capture")
-        if not isinstance(raw_capture, Mapping):
-            return
-        raw_path = raw_capture.get("path")
-        sha256 = raw_capture.get("sha256")
-        if isinstance(raw_path, str) and isinstance(sha256, str):
-            self.bind("paa_raw_capture", raw_path, expected_sha256=sha256)
-
-    def _bind_machine_reviews(self, reviews: Any) -> None:
-        if reviews is None:
-            return
-        if not isinstance(reviews, Mapping):
-            raise ValueError("assembly_bom machine_reviews must be an object")
-        for phase in sorted(reviews, key=str):
-            row = reviews[phase]
-            if not isinstance(row, Mapping) or set(row) != {"path", "sha256"}:
-                raise ValueError(
-                    f"assembly_bom machine_reviews.{phase} must contain path and sha256"
-                )
-            self.bind(
-                f"machine_reviews.{phase}",
-                str(row["path"]),
-                expected_sha256=str(row["sha256"]),
-            )
-
-    def _bind_historical_row(self, label: Any, row: Any, *, prefix: str) -> None:
-        if not isinstance(label, str) or not isinstance(row, Mapping):
-            raise ValueError("assembly_bom preflight input hashes are invalid")
-        if set(row) != {"path", "sha256"}:
-            raise ValueError(
-                f"assembly_bom preflight input {label} must contain path and sha256"
-            )
-        self.bind(
-            f"{prefix}.{label}",
-            str(row["path"]),
-            expected_sha256=str(row["sha256"]),
-        )
-
 
 def _capture_record(
     path: Path,

@@ -9,29 +9,14 @@ from typing import Any, Mapping
 GateResult = dict[str, Any]
 ReadinessResult = dict[str, Any]
 READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v1"
-
+LANDING_PAGE_SCORE_THRESHOLD = 75
 
 
 class ExecutedReadinessResult(dict[str, Any]):
-    """A readiness result from the gate runner, carrying its workspace and sealed inventory."""
+    """A readiness result from the gate runner, bound to its workspace."""
 
-    __slots__ = ("_sealed_inventory", "_workspace_root")
+    __slots__ = ("_workspace_root",)
 
-    def __init__(
-        self,
-        value: Mapping[str, Any],
-        *,
-        workspace_root: Path,
-        sealed_inventory: Any = None,
-    ) -> None:
+    def __init__(self, value: Mapping[str, Any], *, workspace_root: Path) -> None:
         super().__init__(value)
         self._workspace_root = workspace_root.resolve()
-        self._sealed_inventory = sealed_inventory
-
-    @property
-    def sealed_inventory(self) -> Any:
-        """Return the non-serializable final-session capability, when present."""
-        return self._sealed_inventory
-
-
-

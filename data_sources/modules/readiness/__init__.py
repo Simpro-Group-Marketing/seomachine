@@ -1,7 +1,7 @@
 """Run-scoped publish-readiness infrastructure.
 
-Landing-page readiness enters through ``readiness.api``. This package also
-holds the artifact-store building blocks the production blog release uses.
+Landing-page readiness enters through ``readiness.api``. The source-support
+registry checks also load ``readiness.git_registry`` from this package.
 """
 
 from .artifact_store import InstrumentedArtifactStore
@@ -16,7 +16,6 @@ from .inputs import ReadinessInputs
 from .input_spec import ReadinessInputBinding, ReadinessInputSpec
 from .git_registry import GitRegistryState
 from .session import ValidationSession
-from .sealed_inventory import SealedInventory
 from .telemetry import ReadinessTelemetry
 
 __all__ = [
@@ -30,7 +29,6 @@ __all__ = [
     "ReadinessInputBinding",
     "ReadinessInputSpec",
     "ReadinessInputs",
-    "SealedInventory",
     "ReadinessTelemetry",
     "ValidationSession",
 ]

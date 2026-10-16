@@ -21,7 +21,6 @@ try:
         ai_copy_linter,
         answer_withholding_guard,
         blog_identity_guard,
-        blog_strategy_plan_guard,
         chrome_review_evidence,
         context_boundary_guard,
         context_binding_guard,
@@ -32,22 +31,18 @@ try:
         fred_authority_guard,
         hindsight_boundary_guard,
         faq_proof_guard,
-        industry_cluster_link_policy,
         metric_proof_pack_guard,
         named_feature_status_guard,
         numeric_claim_source_guard,
         public_research_link_guard,
         public_artifact_guard,
         review_story_identity_guard,
-        semrush_keyword_decision_guard,
-        schema_handoff_guard,
-        source_quality_plan_guard,
+        source_quality_guard,
         source_support_guard,
         vault_brand_language_guard,
     )
     from ..blog_assembly_contract import (
         atomic_write_json,
-        canonical_artifact,
         is_json_number,
         load_json_object_snapshot,
         resolve_artifact,
@@ -58,9 +53,9 @@ try:
         read_publishable_markdown,
         split_frontmatter,
     )
-    from ..readiness_gate_context import _issue_readiness_gate_context
     from .inputs import ReadinessInputs
     from .contracts import (
+        LANDING_PAGE_SCORE_THRESHOLD,
         READINESS_RESULT_SCHEMA,
         ExecutedReadinessResult,
         GateResult,
@@ -70,7 +65,7 @@ try:
     from .session import ValidationSession
     from .orchestrator import run_in_session
     from .telemetry import ReadinessTelemetry
-    from .scoring_contracts import compatibility_symbols
+    from .scoring_contracts import create_landing_page_scorer
     from ..vault_claim_receipts import (
         ValidatedClaimSet,
         VaultClaimReceiptError,
@@ -79,13 +74,10 @@ try:
     from ..guard_common import should_fail, summarize_findings
     from ..url_validator import UrlValidationSummary, UrlValidator
     import data_sources.modules.customer_proof.diversity as customer_proof_diversity_guard
-    import data_sources.modules.editorial_plan.orchestration as editorial_plan_guard
-    import data_sources.modules.paa_provenance.evaluation as paa_provenance_guard
 except ImportError:  # pragma: no cover - supports direct script execution.
     import ai_copy_linter
     import answer_withholding_guard
     import blog_identity_guard
-    import blog_strategy_plan_guard
     import chrome_review_evidence
     import context_boundary_guard
     import context_binding_guard
@@ -96,21 +88,17 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import fred_authority_guard
     import hindsight_boundary_guard
     import faq_proof_guard
-    import industry_cluster_link_policy
     import metric_proof_pack_guard
     import named_feature_status_guard
     import numeric_claim_source_guard
     import public_research_link_guard
     import public_artifact_guard
     import review_story_identity_guard
-    import semrush_keyword_decision_guard
-    import schema_handoff_guard
-    import source_quality_plan_guard
+    import source_quality_guard
     import source_support_guard
     import vault_brand_language_guard
     from blog_assembly_contract import (
         atomic_write_json,
-        canonical_artifact,
         is_json_number,
         load_json_object_snapshot,
         resolve_artifact,
@@ -121,9 +109,9 @@ except ImportError:  # pragma: no cover - supports direct script execution.
         read_publishable_markdown,
         split_frontmatter,
     )
-    from readiness_gate_context import _issue_readiness_gate_context
     from readiness.inputs import ReadinessInputs
     from readiness.contracts import (
+        LANDING_PAGE_SCORE_THRESHOLD,
         READINESS_RESULT_SCHEMA,
         ExecutedReadinessResult,
         GateResult,
@@ -133,7 +121,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from readiness.session import ValidationSession
     from readiness.orchestrator import run_in_session
     from readiness.telemetry import ReadinessTelemetry
-    from readiness.scoring_contracts import compatibility_symbols
+    from readiness.scoring_contracts import create_landing_page_scorer
     from vault_claim_receipts import (
         ValidatedClaimSet,
         VaultClaimReceiptError,
@@ -142,47 +130,16 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from guard_common import should_fail, summarize_findings
     from url_validator import UrlValidationSummary, UrlValidator
     import customer_proof.diversity as customer_proof_diversity_guard
-    import editorial_plan.orchestration as editorial_plan_guard
-    import paa_provenance.evaluation as paa_provenance_guard
 
 
 _ExecutedReadinessResult = ExecutedReadinessResult
-ContentScorer, LandingPageScorer, SEO_PUBLISHING_THRESHOLD, SEO_TARGET_SCORE = (
-    compatibility_symbols()
-)
+LandingPageScorer = create_landing_page_scorer
 
-NO_FIT_CUSTOMER_PROOF_OUTCOME = "no_fit_customer_proof"
-CUSTOMER_PROOF_NO_FIT_MARKERS = (
-    "case study",
-    "customer story",
-    "customer proof",
-    "testimonial",
-    "review story",
-    "review-derived",
-    "reviewer",
-    "capterra",
-    "g2.com",
-    "software advice",
-    "/case-studies/",
-    "quote matrix",
-)
-CUSTOMER_PROOF_EXACT_QUOTE_RE = re.compile(
-    r"(?:\"[^\"]{20,}\"|\u201c[^\u201d]{20,}\u201d)"
-)
-CUSTOMER_PROOF_QUOTE_CONTEXT_RE = re.compile(
-    r"\b(?:customer|review|testimonial|said|says|reviewer|quoted)\b",
-    re.IGNORECASE,
-)
 ARTICLE_GATES = (
     (
         "context_boundary",
         "Context Boundary",
         context_boundary_guard,
-    ),
-    (
-        "industry_cluster_link_policy",
-        "Industry Cluster Link Policy",
-        industry_cluster_link_policy,
     ),
     (
         "metric_proof_pack",
@@ -205,26 +162,6 @@ ARTICLE_GATES = (
         faq_proof_guard,
     ),
     (
-        "paa_provenance",
-        "PAA Provenance",
-        paa_provenance_guard,
-    ),
-    (
-        "editorial_plan",
-        "Editorial Plan",
-        editorial_plan_guard,
-    ),
-    (
-        "semrush_keyword_decision",
-        "Semrush Keyword Decision",
-        semrush_keyword_decision_guard,
-    ),
-    (
-        "blog_strategy",
-        "Blog Strategy",
-        blog_strategy_plan_guard,
-    ),
-    (
         "competitive_shortlist",
         "Competitive Shortlist",
         competitive_shortlist_guard,
@@ -242,7 +179,7 @@ ARTICLE_GATES = (
     (
         "source_quality",
         "Source Quality and Lifecycle",
-        source_quality_plan_guard,
+        source_quality_guard,
     ),
     (
         "customer_proof_diversity",
@@ -270,11 +207,6 @@ ARTICLE_GATES = (
         answer_withholding_guard,
     ),
     (
-        "schema_handoff",
-        "Schema Handoff",
-        schema_handoff_guard,
-    ),
-    (
         "vault_brand_language",
         "Vault Brand Language",
         vault_brand_language_guard,
@@ -291,14 +223,9 @@ ARTICLE_GATES = (
     ),
 )
 
-SIMPRO_CONTEXT_GATE_NAMES = frozenset({
-    "vault_brand_language",
-    "named_feature_status",
-})
+from .gate_registry import assert_landing_gate_invariant
 
-from .gate_registry import assert_gate_executor_invariant
-
-assert_gate_executor_invariant(
+assert_landing_gate_invariant(
     (name for name, _, _ in ARTICLE_GATES),
     CONTENT_GATE_NAMES,
 )

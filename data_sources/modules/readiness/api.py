@@ -4,6 +4,7 @@ from typing import Any
 
 from .adapters import _gate_from_findings
 from .common import (
+    LANDING_PAGE_SCORE_THRESHOLD,
     READINESS_RESULT_SCHEMA,
     ReadinessResult,
     ReadinessTelemetry,
@@ -143,16 +144,6 @@ def _run_publish_readiness_session(
     )
 
 
-def _optional_workspace_artifact(
-    workspace_root: str | Path,
-    relative_path: str,
-) -> Path | None:
-    """Return an existing fixed workspace input for authoritative capture."""
-    root = Path(workspace_root).resolve()
-    candidate = (root / relative_path).resolve(strict=False)
-    return candidate if candidate.is_file() else None
-
-
 def _load_session_claims(
     context_pack: str | Path | None,
     context_receipt: str | Path | None,
@@ -212,7 +203,7 @@ def _input_capture_blocked_result(
         "artifact_kind": None,
         "gates": [gate],
         "score": None,
-        "score_threshold": 85,
+        "score_threshold": LANDING_PAGE_SCORE_THRESHOLD,
         "aeo_geo": {"score": None, "threshold": 90, "passed": False},
         "priority_fixes": [{"dimension": gate_name, "issue": str(error)}],
     }

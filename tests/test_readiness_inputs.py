@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from pathlib import Path
 
 import pytest
@@ -50,41 +49,6 @@ def test_capture_reads_duplicate_paths_once(tmp_path: Path, monkeypatch: pytest.
         "path": "drafts/article.md",
         "sha256": hashlib.sha256(article.read_bytes()).hexdigest(),
     }
-
-
-def test_capture_expands_bom_inventory_without_rereading_direct_inputs(tmp_path: Path):
-    article = _write(tmp_path / "drafts" / "article.md", "# Article\n")
-    sidecar = _write(tmp_path / "research" / "validation.md", "# Validation\n")
-    bom = {
-        "artifacts": {
-            "article": {
-                "path": "drafts/article.md",
-                "sha256": hashlib.sha256(article.read_bytes()).hexdigest(),
-            },
-            "validation_sidecar": {
-                "path": "research/validation.md",
-                "sha256": hashlib.sha256(sidecar.read_bytes()).hexdigest(),
-            },
-        }
-    }
-    bom_path = tmp_path / "research" / "bom.json"
-    bom_path.write_text(json.dumps(bom), encoding="utf-8")
-
-    captured = ReadinessInputs.capture(
-        {
-            "article": article,
-            "validation_sidecar": sidecar,
-            "assembly_bom": bom_path,
-        },
-        workspace_root=tmp_path,
-    )
-
-    inventory = captured.hash_inventory()
-    assert inventory["article"]["sha256"] == bom["artifacts"]["article"]["sha256"]
-    assert inventory["validation_sidecar"]["sha256"] == (
-        bom["artifacts"]["validation_sidecar"]["sha256"]
-    )
-    assert inventory["assembly_bom"]["path"] == "research/bom.json"
 
 
 def test_capture_rejects_oversized_text_and_invalid_utf8(tmp_path: Path):

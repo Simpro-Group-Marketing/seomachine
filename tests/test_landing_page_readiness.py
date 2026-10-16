@@ -10,6 +10,7 @@ from data_sources.modules import context_binding_guard
 from data_sources.modules.readiness.adapters import _score_content
 from data_sources.modules.readiness.api import run_publish_readiness
 from data_sources.modules.readiness.dependencies import ReadinessDependencies
+from data_sources.modules.readiness.gate_registry import expected_landing_gate_inventory
 from data_sources.modules.vault_claim_receipts import ValidatedClaimSet
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
 
@@ -138,12 +139,8 @@ def run_landing(path, *, overrides=None, connector_required=False, mutate_during
         )
         for name, target in LANDING_GATES + (CONNECTOR_GATES if connector_required else []):
             mocks[name] = stack.enter_context(patch(f"{COMMON}.{target}", side_effect=gate(name)))
-        # Landing pages carry no current strategy, so source quality runs the legacy guard.
         mocks["source_quality"] = stack.enter_context(
-            patch(
-                "data_sources.modules.readiness.gates.legacy_source_quality_guard.check_content",
-                side_effect=gate("source_quality"),
-            )
+            patch(f"{COMMON}.source_quality_guard.check_content", side_effect=gate("source_quality"))
         )
         stack.enter_context(
             patch("data_sources.modules.readiness.pipeline_tail.validate_content_urls", side_effect=validate_urls)
@@ -173,6 +170,7 @@ def test_landing_page_result_shape_and_gate_inventory_are_stable(page):
 
     assert sorted(result) == RESULT_KEYS
     assert result["gate_inventory"] == NONCONNECTOR_INVENTORY
+    assert expected_landing_gate_inventory(connector_required=False) == NONCONNECTOR_INVENTORY
     assert [gate["name"] for gate in result["gates"]] == NONCONNECTOR_INVENTORY
     assert result["input_seal"] == {"status": "verified"}
     assert result["score"] == 82.0
@@ -295,6 +293,7 @@ def test_missing_artifact_kind_fails_before_context_binding(page):
 
     assert [gate["name"] for gate in result["gates"]] == ["artifact_identity", "input_seal"]
     assert result["gates"][0]["findings"][0]["rule_id"] == "artifact_kind_missing"
+    assert result["score_threshold"] == 75
     assert order == []
 
 
@@ -312,6 +311,7 @@ def test_missing_direct_input_fails_before_any_gate(page):
 
     assert result["passed"] is False
     assert [gate["name"] for gate in result["gates"]] == ["input_seal"]
+    assert result["score_threshold"] == 75
     assert order == []
 
 
@@ -329,12 +329,7 @@ def test_landing_page_uses_landing_scorer_contract(page):
         "data_sources.modules.readiness.adapters.LandingPageScorer",
         return_value=scorer,
     ) as scorer_type:
-        result = _score_content(
-            page,
-            proof_sidecar=None,
-            artifact_kind="landing_page",
-            workspace_root=page.parents[1],
-        )
+        result = _score_content(page)
 
     scorer_type.assert_called_once_with("ppc", "demo")
     assert result["passed"] is True

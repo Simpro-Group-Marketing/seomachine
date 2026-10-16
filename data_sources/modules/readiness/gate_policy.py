@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
-
-from .common import SIMPRO_CONTEXT_GATE_NAMES
+from .gate_registry import CONNECTOR_GATE_NAMES
 
 RETIRED_BLOG_READINESS = (
     "unsupported artifact_kind blog: readiness serves landing pages only; "
@@ -12,38 +10,9 @@ RETIRED_BLOG_READINESS = (
 )
 
 
-def missing_gate_finding(
-    rule_id: str,
-    message: str,
-    suggestion: str,
-) -> List[Dict[str, Any]]:
-    return [{
-        "rule_id": rule_id,
-        "severity": "error",
-        "line": 1,
-        "column": 1,
-        "message": message,
-        "suggestion": suggestion,
-    }]
-
-
-def skip_article_gate(
-    name: str,
-    *,
-    artifact_kind: str,
-    visible_faq: bool,
-    simpro_context_required: bool,
-) -> bool:
-    blog_only = artifact_kind != "blog" and name in {
-        "industry_cluster_link_policy",
-        "paa_provenance",
-        "editorial_plan",
-        "semrush_keyword_decision",
-    }
-    faq_skipped = name in {"faq_answer_quality", "faq_proof"} and not visible_faq
-    context_skipped = name in SIMPRO_CONTEXT_GATE_NAMES and not simpro_context_required
-    fred_skipped = name == "fred_authority" and not simpro_context_required
-    return blog_only or faq_skipped or context_skipped or fred_skipped
+def skip_article_gate(name: str, *, simpro_context_required: bool) -> bool:
+    """Connector-evidence gates run only for pages that require Simpro context."""
+    return name in CONNECTOR_GATE_NAMES and not simpro_context_required
 
 
 def artifact_kind_rule_id(message: str) -> str:
@@ -55,4 +24,4 @@ def artifact_kind_rule_id(message: str) -> str:
     return "artifact_kind_missing"
 
 
-__all__ = ["RETIRED_BLOG_READINESS", "artifact_kind_rule_id", "missing_gate_finding", "skip_article_gate"]
+__all__ = ["RETIRED_BLOG_READINESS", "artifact_kind_rule_id", "skip_article_gate"]

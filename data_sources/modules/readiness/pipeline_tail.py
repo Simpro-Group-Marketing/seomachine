@@ -1,9 +1,8 @@
-"""Article gates, scoring, and final input sealing."""
+"""Landing-page article gates, scoring, and final input sealing."""
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Sequence
+from typing import Any, List
 
 from .adapters import (
-    _blocked_readiness_result,
     _content_score,
     _gate_from_findings,
     _gate_from_score,
@@ -14,15 +13,12 @@ from .adapters import (
 )
 from .common import (
     ARTICLE_GATES,
-    CONTENT_GATE_NAMES,
     ContentGateInputs,
     GateResult,
-    ReadinessInputs,
     ReadinessResult,
     ReadinessTelemetry,
     UrlValidator,
     ValidationSession,
-    _issue_readiness_gate_context,
     ai_copy_linter,
     chrome_review_evidence,
     context_binding_guard,
@@ -30,154 +26,15 @@ from .common import (
     public_research_link_guard,
     run_content_gate,
 )
-from .runtime_policy import _no_fit_customer_proof_findings
 from .workspace_bindings import _captured_proof_content, _readiness_run_id
-from .gate_policy import (
-    missing_gate_finding as _missing_gate_finding,
-    skip_article_gate as _skip_article_gate,
-)
+from .gate_policy import skip_article_gate as _skip_article_gate
 try:
     from ..url_validator import validate_content_urls
 except ImportError:  # pragma: no cover - direct script compatibility.
     from url_validator import validate_content_urls
 
-from .finalization import _utc_now, finalize_blocked_result, reseal_readiness_inputs
-from .snapshot_gates import (
-    run_editorial_plan_gate,
-    run_keyword_gate,
-    source_registry_state,
-)
-
-
-def _guard_kwargs(
-    name: str,
-    *,
-    proof_sidecar_path: str | None,
-    context_pack_path: str | None,
-    context_receipt_path: str | None,
-    vault_root: str | Path | None,
-    validated_claim_set: Any,
-    runtime_policy: Mapping[str, Any],
-) -> Dict[str, Any]:
-    kwargs: Dict[str, Any] = {
-        "fail_on": "error",
-        "proof_sidecar": proof_sidecar_path,
-    }
-    if name in {
-        "competitive_shortlist",
-        "named_feature_status",
-        "customer_proof_diversity",
-        "fred_authority",
-        "vault_brand_language",
-    }:
-        kwargs.update({
-            "context_pack": context_pack_path,
-            "context_receipt": context_receipt_path,
-        })
-    if name in {"named_feature_status", "competitive_shortlist", "fred_authority"}:
-        kwargs["vault_root"] = vault_root
-        kwargs["validated_claim_set"] = validated_claim_set
-    if name == "eeat_strength":
-        kwargs.update({
-            "editorial_plan": runtime_policy.get("editorial_plan"),
-            "customer_proof_selector_evidence": runtime_policy.get(
-                "customer_proof_selector_evidence"
-            ),
-            "fred_authority_evidence": runtime_policy.get("fred_authority_evidence"),
-        })
-    if name == "industry_cluster_link_policy":
-        kwargs["editorial_plan"] = runtime_policy.get("editorial_plan")
-    if name == "paa_provenance":
-        kwargs.update(runtime_policy["paa_kwargs"])
-    return kwargs
-
-
-def _run_editorial_plan_gate(
-    guard_module: Any,
-    *,
-    article_path: Path,
-    runtime_policy: Mapping[str, Any],
-    content_gate_inputs: ContentGateInputs | None,
-    telemetry: ReadinessTelemetry | None,
-) -> List[Dict[str, Any]]:
-    return run_editorial_plan_gate(
-        guard_module,
-        article_path=article_path,
-        runtime_policy=runtime_policy,
-        content_gate_inputs=content_gate_inputs,
-        telemetry=telemetry,
-        timed_call=_timed_call,
-        missing_finding=_missing_gate_finding,
-    )
-
-
-def _run_keyword_gate(
-    guard_module: Any,
-    *,
-    article_path: Path,
-    runtime_policy: Mapping[str, Any],
-    content_gate_inputs: ContentGateInputs | None,
-    telemetry: ReadinessTelemetry | None,
-) -> List[Dict[str, Any]]:
-    return run_keyword_gate(
-        guard_module,
-        article_path=article_path,
-        runtime_policy=runtime_policy,
-        content_gate_inputs=content_gate_inputs,
-        telemetry=telemetry,
-        timed_call=_timed_call,
-        missing_finding=_missing_gate_finding,
-    )
-
-
-def _execute_article_gate(
-    name: str,
-    guard_module: Any,
-    *,
-    article_path: Path,
-    content_gate_inputs: ContentGateInputs | None,
-    runtime_policy: Mapping[str, Any],
-    guard_kwargs: Mapping[str, Any],
-    telemetry: ReadinessTelemetry | None,
-) -> List[Dict[str, Any]]:
-    if name in CONTENT_GATE_NAMES and content_gate_inputs is not None:
-        return _timed_call(
-            telemetry, f"gate.{name}", run_content_gate, name, guard_module, content_gate_inputs
-        )
-    if name == "editorial_plan":
-        return _run_editorial_plan_gate(
-            guard_module,
-            article_path=article_path,
-            runtime_policy=runtime_policy,
-            content_gate_inputs=content_gate_inputs,
-            telemetry=telemetry,
-        )
-    if name == "semrush_keyword_decision":
-        return _run_keyword_gate(
-            guard_module,
-            article_path=article_path,
-            runtime_policy=runtime_policy,
-            content_gate_inputs=content_gate_inputs,
-            telemetry=telemetry,
-        )
-    return _timed_call(
-        telemetry,
-        f"gate.{name}",
-        guard_module.check_file,
-        str(article_path),
-        **guard_kwargs,
-    )
-
-
-def _record_gate_findings(
-    session: ValidationSession | None,
-    name: str,
-    findings: Sequence[Mapping[str, Any]],
-) -> tuple[Mapping[str, Any], ...]:
-    if session is None:
-        return tuple(dict(finding) for finding in findings)
-    session.record_findings(name, findings)
-    return tuple(session.findings(name) or [])
+from .finalization import _utc_now, reseal_readiness_inputs
+from .snapshot_gates import source_registry_state
 
 
 def _run_remaining_gates(
@@ -194,18 +51,14 @@ def _run_remaining_gates(
     ai_profile: str,
     phase: str,
     workspace_root: str | Path,
-    readiness_root: Path,
     artifact_kind: str,
-    score_threshold: int,
     gates: List[GateResult],
-    runtime_policy: Mapping[str, Any],
-    session: ValidationSession | None,
-    sealed_inputs: ReadinessInputs | None,
-    sealed_input_hashes: Dict[str, Dict[str, str]] | None,
+    session: ValidationSession,
     input_capture_error: ValueError | None,
     telemetry: ReadinessTelemetry | None,
     run_id: str | None,
 ) -> ReadinessResult:
+    sealed_inputs = session.inputs
     gates.append(
         _gate_from_findings(
             "public_artifact",
@@ -239,7 +92,7 @@ def _run_remaining_gates(
         "gate.url_validator",
         validate_content_urls,
         article_content,
-        validator=UrlValidator(transport=session.transport()) if session is not None else None,
+        validator=UrlValidator(transport=session.transport()),
     )
     url_summary = chrome_review_evidence.apply_chrome_review_evidence_fallbacks(
         url_summary,
@@ -248,6 +101,10 @@ def _run_remaining_gates(
     )
     gates.append(_gate_from_url_summary(url_summary))
 
+    proof_sidecar_content = _captured_proof_content(
+        sealed_inputs,
+        proof_sidecar_path=proof_sidecar_path,
+    )
     gates.append(
         _gate_from_findings(
             "public_research_links",
@@ -257,132 +114,45 @@ def _run_remaining_gates(
                 "gate.public_research_links",
                 public_research_link_guard.check_content,
                 article_content,
-                proof_content=_captured_proof_content(
-                    sealed_inputs,
-                    proof_sidecar_path=proof_sidecar_path,
-                ),
+                proof_content=proof_sidecar_content,
                 url_summary=url_summary,
             ),
         )
     )
 
     simpro_context_required = context_binding_guard.requires_context(article_content)
-    validated_claim_set = (
-        session.validated_claim_set()
-        if session is not None and simpro_context_required
-        else None
-    )
-    proof_sidecar_content = _captured_proof_content(
-        sealed_inputs,
-        proof_sidecar_path=proof_sidecar_path,
-    )
-    content_gate_inputs = (
-        ContentGateInputs(
-            article_content=article_content,
-            proof_content=proof_sidecar_content,
-            article_path=article_path,
-            proof_sidecar_path=proof_sidecar_path,
-            context_pack_path=context_pack_path,
-            context_receipt_path=context_receipt_path,
-            vault_root=vault_root,
-            runtime_policy=runtime_policy,
-            captured=sealed_inputs,
-            validated_claim_set=validated_claim_set,
-            transport=session.transport() if session is not None else None,
-            normalize_source=(
-                session.normalized_source if session is not None else None
-            ),
-            registry_state=source_registry_state(session, sealed_inputs),
-            url_summary=url_summary,
-        )
-        if sealed_inputs is not None
-        else None
-    )
-    prevalidated_gate_findings: Dict[
-        str,
-        tuple[Mapping[str, Any], ...],
-    ] = {}
-    for name, label, guard_module in ARTICLE_GATES:
-        if name in {"blog_strategy", "schema_handoff"} and not runtime_policy.get(
-            "current_strategy"
-        ):
-            continue
-        if _skip_article_gate(
-            name,
-            artifact_kind=artifact_kind,
-            visible_faq=bool(runtime_policy["visible_faq"]),
-            simpro_context_required=simpro_context_required,
-        ):
-            continue
-        findings = _execute_article_gate(
-            name,
-            guard_module,
-            article_path=article_path,
-            content_gate_inputs=content_gate_inputs,
-            runtime_policy=runtime_policy,
-            guard_kwargs=_guard_kwargs(
-                name,
-                proof_sidecar_path=proof_sidecar_path,
-                context_pack_path=context_pack_path,
-                context_receipt_path=context_receipt_path,
-                vault_root=vault_root,
-                validated_claim_set=validated_claim_set,
-                runtime_policy=runtime_policy,
-            ),
-            telemetry=telemetry,
-        )
-        if name == "customer_proof_diversity":
-            findings = [
-                *findings,
-                *_no_fit_customer_proof_findings(
-                    article_content,
-                    runtime_policy=runtime_policy,
-                    inputs=sealed_inputs,
-                ),
-            ]
-        prevalidated_gate_findings[name] = _record_gate_findings(session, name, findings)
-        gate = _gate_from_findings(name, label, findings)
-        gates.append(gate)
-        if name == "semrush_keyword_decision" and not gate["passed"]:
-            blocked = _blocked_readiness_result(
-                phase=phase,
-                article_path=article_path,
-                proof_sidecar_path=proof_sidecar_path,
-                context_request_path=context_request_path,
-                context_pack_path=context_pack_path,
-                context_receipt_path=context_receipt_path,
-                artifact_kind=artifact_kind,
-                gates=gates,
-                score_threshold=score_threshold,
-                gate=gate,
-            )
-            return finalize_blocked_result(
-                blocked,
-                inputs=sealed_inputs,
-                capture_error=input_capture_error,
-            )
-
-    readiness_gate_context = _issue_readiness_gate_context(
-        prevalidated_gate_findings,
+    content_gate_inputs = ContentGateInputs(
         article_content=article_content,
-        proof_sidecar_content=proof_sidecar_content,
-        input_hashes=sealed_input_hashes or {},
-        workspace_root=readiness_root,
+        proof_content=proof_sidecar_content,
+        article_path=article_path,
+        proof_sidecar_path=proof_sidecar_path,
+        context_pack_path=context_pack_path,
+        context_receipt_path=context_receipt_path,
+        vault_root=vault_root,
+        captured=sealed_inputs,
+        validated_claim_set=(
+            session.validated_claim_set() if simpro_context_required else None
+        ),
+        transport=session.transport(),
+        normalize_source=session.normalized_source,
+        registry_state=source_registry_state(session, sealed_inputs),
     )
+    for name, label, guard_module in ARTICLE_GATES:
+        if _skip_article_gate(name, simpro_context_required=simpro_context_required):
+            continue
+        findings = _timed_call(
+            telemetry, f"gate.{name}", run_content_gate, name, guard_module, content_gate_inputs
+        )
+        session.record_findings(name, findings)
+        gates.append(_gate_from_findings(name, label, findings))
 
     scorer_result = _timed_call(
         telemetry,
         "gate.content_scorer",
         _score_content,
         article_path,
-        proof_sidecar_path,
         article_content=article_content,
         article=article,
-        proof_content=proof_sidecar_content,
-        artifact_kind=artifact_kind or "blog",
-        runtime_policy=runtime_policy,
-        workspace_root=readiness_root,
-        readiness_gate_context=readiness_gate_context,
     )
     gates.append(_gate_from_score(scorer_result))
 
@@ -391,12 +161,9 @@ def _run_remaining_gates(
         capture_error=input_capture_error,
     )
 
-    scorecard = _scorecard_from_scorer_result(
-        scorer_result,
-        artifact_kind=artifact_kind,
-    )
+    scorecard = _scorecard_from_scorer_result(scorer_result)
     passed = all(gate["passed"] for gate in gates) and bool(scorecard["passed"])
-    result = {
+    return {
         "schema": "simpro-publish-readiness-result/v1",
         "tool": {"name": "publish_readiness", "version": "1.0.0"},
         "phase": phase,
@@ -410,7 +177,7 @@ def _run_remaining_gates(
         "artifact_kind": artifact_kind,
         "gates": gates,
         "score": _content_score(scorer_result),
-        "score_threshold": scorer_result.get("threshold", 85),
+        "score_threshold": scorer_result["threshold"],
         "aeo_geo": scorer_result.get("aeo_geo", {}),
         "scorecard": scorecard,
         "priority_fixes": scorer_result.get("priority_fixes", []),
@@ -419,11 +186,10 @@ def _run_remaining_gates(
         "input_seal": {
             "status": "verified" if not seal_findings else "failed",
         },
-        "run_id": run_id or _readiness_run_id(None, article.sha256),
+        "run_id": run_id or _readiness_run_id(article.sha256),
         "started_at": run_started_at,
         "completed_at": _utc_now(),
     }
-    return result
 
 
 __all__ = ["_run_remaining_gates"]

@@ -3,17 +3,11 @@
     "data_sources/modules/above_fold_analyzer.py": {
       "_analyze_headline": 15
     },
-    "data_sources/modules/blog_assembly_contract.py": {
-      "artifact_inventory_snapshots": 12
-    },
     "data_sources/modules/blog_identity_guard.py": {
       "check_article": 16
     },
     "data_sources/modules/blog_strategy_contract.py": {
       "validate_contract": 17
-    },
-    "data_sources/modules/blog_strategy_guard.py": {
-      "check_content": 38
     },
     "data_sources/modules/chrome_review_evidence.py": {
       "validate_evidence_artifact": 19
@@ -125,10 +119,6 @@
     "data_sources/modules/review_story_identity_guard.py": {
       "_review_theme_findings": 11
     },
-    "data_sources/modules/schema_handoff_guard.py": {
-      "_author_verified": 11,
-      "check_content": 18
-    },
     "data_sources/modules/schema_item_list.py": {
       "inspect_item_list_schema": 12
     },
@@ -217,7 +207,6 @@
     "data_sources/modules/proof_link_policy.py": 993,
     "data_sources/modules/public_research_link_guard.py": 615,
     "data_sources/modules/readability_scorer.py": 505,
-    "data_sources/modules/readiness/artifact_store.py": 515,
     "data_sources/modules/review_story_identity_guard.py": 857,
     "data_sources/modules/semrush_keyword_decision_guard.py": 665,
     "data_sources/modules/source_support/orchestration.py": 511,
@@ -251,10 +240,8 @@
     "tests/test_answer_withholding_guard.py": 212,
     "tests/test_artifact_runtime.py": 167,
     "tests/test_author_video_policy.py": 160,
-    "tests/test_blog_assembly_contract.py": 238,
+    "tests/test_blog_assembly_contract.py": 157,
     "tests/test_blog_identity_guard.py": 90,
-    "tests/test_blog_strategy_guard.py": 518,
-    "tests/test_bom_snapshot_store.py": 85,
     "tests/test_chrome_review_evidence.py": 141,
     "tests/test_commercial_pillar_index.py": 497,
     "tests/test_competitive_shortlist_guard.py": 171,
@@ -293,7 +280,7 @@
     "tests/test_humanizer_update_workflow.py": 65,
     "tests/test_humanizer_upstream.py": 524,
     "tests/test_industry_cluster_link_policy.py": 208,
-    "tests/test_instrumented_artifact_store.py": 306,
+    "tests/test_instrumented_artifact_store.py": 163,
     "tests/test_item_list_schema_support.py": 134,
     "tests/test_link_policy_override.py": 128,
     "tests/test_mcp_gsc_package.py": 445,
@@ -301,7 +288,7 @@
     "tests/test_metric_proof_pack_guard.py": 124,
     "tests/test_named_feature_status_guard.py": 487,
     "tests/test_named_feature_topology.py": 296,
-    "tests/test_native_blog_workflow_boundaries.py": 285,
+    "tests/test_native_blog_workflow_boundaries.py": 1,
     "tests/test_nonvault_customer_proof_selector.py": 308,
     "tests/test_numeric_claim_source_guard.py": 290,
     "tests/test_optimizer_modules.py": 1056,
@@ -321,10 +308,10 @@
     "tests/test_publish_content_safety.py": 55,
     "tests/test_publishable_markdown.py": 38,
     "tests/test_python_structure.py": 82,
-    "tests/test_readiness_inputs.py": 182,
+    "tests/test_readiness_inputs.py": 146,
     "tests/test_readiness_lazy_scoring.py": 59,
     "tests/test_readiness_session.py": 157,
-    "tests/test_readiness_snapshot_integration.py": 262,
+    "tests/test_readiness_snapshot_integration.py": 50,
     "tests/test_readiness_telemetry.py": 75,
     "tests/test_readiness_telemetry_v2.py": 93,
     "tests/test_repurpose_workflow_docs.py": 178,
@@ -333,7 +320,6 @@
     "tests/test_research_quick_wins_helpers.py": 90,
     "tests/test_retention_plan_manifest.py": 176,
     "tests/test_review_story_identity_guard.py": 750,
-    "tests/test_schema_handoff_guard.py": 181,
     "tests/test_scoring_facades.py": 92,
     "tests/test_semrush_keyword_decision_guard.py": 310,
     "tests/test_shared_infrastructure_packages.py": 117,

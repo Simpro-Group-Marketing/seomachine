@@ -3,7 +3,7 @@
 ## Architecture
 
 - The blog release owner is [release.py](data_sources/modules/production/release.py): one pass that rebuilds the production BOM and checks truth, coverage, and the three scores, then writes the release record through [record.py](data_sources/modules/production/record.py).
-- Landing-page readiness (the WordPress page gate) enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry. Readiness refuses blog articles and assembly BOMs; blogs release only through `production.release`.
+- Landing-page readiness (the WordPress page gate) enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry. Readiness runs only the closed landing-page gate inventory in [readiness/gate_registry.py](data_sources/modules/readiness/gate_registry.py) and refuses blog articles; blogs release only through `production.release`.
 - Proof gates, connector revision checks, parsing, and lazy scoring remain serial. Only deduplicated public HTTP retrieval uses bounded worker threads behind [public_http/transport.py](data_sources/modules/public_http/transport.py), with stable result ordering.
 
 ## Package ownership

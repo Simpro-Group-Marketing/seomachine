@@ -1,24 +1,20 @@
 """Publish-readiness adapters responsibilities."""
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping
 
 from .common import (
-    ContentScorer,
     GateResult,
+    LANDING_PAGE_SCORE_THRESHOLD,
     LandingPageScorer,
     READINESS_RESULT_SCHEMA,
     ReadinessResult,
     ReadinessTelemetry,
-    SEO_PUBLISHING_THRESHOLD,
-    SEO_TARGET_SCORE,
     UrlValidationSummary,
     is_json_number as _is_number,
     read_publishable_markdown,
     should_fail,
     summarize_findings,
 )
-from .artifact_views import thaw_value
-from .runtime_policy import _bom_runtime_policy
 
 
 def _gate_from_findings(
@@ -129,179 +125,86 @@ def _gate_from_score(score_result: Dict[str, Any]) -> GateResult:
 
 def _score_content(
     article_path: Path,
-    proof_sidecar: Optional[str],
     *,
     article_content: str | None = None,
     article: Any | None = None,
-    proof_content: str | None = None,
-    artifact_kind: str = "blog",
-    assembly_bom: Optional[str] = None,
-    runtime_policy: Mapping[str, Any] | None = None,
-    workspace_root: str | Path,
-    readiness_gate_context: object = None,
 ) -> Dict[str, Any]:
     content = article_content if article_content is not None else article_path.read_text(
         encoding="utf-8"
     )
-    if artifact_kind == "landing_page":
-        artifact = article or read_publishable_markdown(article_path)
-        page_type = artifact.scalar("page_type").casefold()
-        conversion_goal = artifact.scalar("conversion_goal").casefold()
-        if page_type not in {"seo", "ppc"} or conversion_goal not in {
-            "trial",
-            "demo",
-            "lead",
-        }:
-            return {
-                "passed": False,
-                "content_quality_score": None,
-                "threshold": 75,
-                "aeo_geo": {
-                    "score": None,
-                    "threshold": None,
-                    "passed": True,
-                    "not_applicable": True,
-                },
-                "priority_fixes": [
-                    {
-                        "dimension": "landing_page_metadata",
-                        "issue": "Landing pages require page_type seo|ppc and conversion_goal trial|demo|lead.",
-                    }
-                ],
-                "gate_name": "landing_page_scorer",
-                "gate_label": "Landing Page Scorer",
-            }
-        result = LandingPageScorer(page_type, conversion_goal).score(
-            content,
-            meta_title=artifact.scalar("meta_title", "title"),
-            meta_description=artifact.scalar("meta_description"),
-            primary_keyword=artifact.scalar("primary_keyword", "target_keyword"),
-        )
-        issues = [
-            {"dimension": "landing_page", "issue": str(issue)}
-            for issue in result.get("critical_issues", [])
-        ]
-        if not issues and not result.get("publishing_ready"):
-            issues = [
-                {"dimension": "landing_page", "issue": str(issue)}
-                for issue in result.get("suggestions", [])[:5]
-            ]
+    artifact = article or read_publishable_markdown(article_path)
+    page_type = artifact.scalar("page_type").casefold()
+    conversion_goal = artifact.scalar("conversion_goal").casefold()
+    if page_type not in {"seo", "ppc"} or conversion_goal not in {
+        "trial",
+        "demo",
+        "lead",
+    }:
         return {
-            "passed": bool(result.get("publishing_ready")),
-            "content_quality_score": result.get("overall_score"),
-            "threshold": 75,
+            "passed": False,
+            "content_quality_score": None,
+            "threshold": LANDING_PAGE_SCORE_THRESHOLD,
             "aeo_geo": {
                 "score": None,
                 "threshold": None,
                 "passed": True,
                 "not_applicable": True,
             },
-            "priority_fixes": issues,
+            "priority_fixes": [
+                {
+                    "dimension": "landing_page_metadata",
+                    "issue": "Landing pages require page_type seo|ppc and conversion_goal trial|demo|lead.",
+                }
+            ],
             "gate_name": "landing_page_scorer",
             "gate_label": "Landing Page Scorer",
-            "landing_page": result,
         }
-    scorer = ContentScorer()
-    policy = dict(runtime_policy or {})
-    if assembly_bom and not policy:
-        policy = _bom_runtime_policy(
-            assembly_bom,
-            workspace_root=workspace_root,
-        )
-    raw_metadata = policy.get("scoring_metadata")
-    metadata = thaw_value(raw_metadata) if isinstance(raw_metadata, Mapping) else {}
-    metadata["faq_policy_status"] = str(policy.get("faq_policy_status") or "")
-    raw_paa = policy.get("paa_kwargs")
-    paa = dict(raw_paa) if isinstance(raw_paa, Mapping) else {}
-    return scorer.score(
+    result = LandingPageScorer(page_type, conversion_goal).score(
         content,
-        metadata=metadata,
-        validate_urls=False,
-        validate_source_support=False,
-        source_path=str(article_path),
-        proof_sidecar=proof_sidecar,
-        proof_content=proof_content,
-        finalized_bom=(
-            policy.get("assembly_bom")
-            if isinstance(policy.get("assembly_bom"), Mapping)
-            else None
-        ),
-        assembly_date=str(policy.get("assembly_date") or "") or None,
-        paa_workflow_mode=str(paa.get("workflow_mode") or "") or None,
-        paa_content_brief=str(paa.get("content_brief") or "") or None,
-        paa_answersocrates_blocker=(
-            str(paa.get("answersocrates_blocker") or "") or None
-        ),
-        paa_expected_query=str(paa.get("expected_query") or "") or None,
-        paa_expected_collection_date=(
-            str(paa.get("expected_collection_date") or "") or None
-        ),
-        paa_expected_run_id=str(paa.get("expected_run_id") or "") or None,
-        paa_artifact=str(paa.get("paa_artifact") or "") or None,
-        readiness_gate_context=readiness_gate_context,
+        meta_title=artifact.scalar("meta_title", "title"),
+        meta_description=artifact.scalar("meta_description"),
+        primary_keyword=artifact.scalar("primary_keyword", "target_keyword"),
     )
+    issues = [
+        {"dimension": "landing_page", "issue": str(issue)}
+        for issue in result.get("critical_issues", [])
+    ]
+    if not issues and not result.get("publishing_ready"):
+        issues = [
+            {"dimension": "landing_page", "issue": str(issue)}
+            for issue in result.get("suggestions", [])[:5]
+        ]
+    return {
+        "passed": bool(result.get("publishing_ready")),
+        "content_quality_score": result.get("overall_score"),
+        "threshold": LANDING_PAGE_SCORE_THRESHOLD,
+        "aeo_geo": {
+            "score": None,
+            "threshold": None,
+            "passed": True,
+            "not_applicable": True,
+        },
+        "priority_fixes": issues,
+        "gate_name": "landing_page_scorer",
+        "gate_label": "Landing Page Scorer",
+        "landing_page": result,
+    }
 
 def _content_score(score_result: Dict[str, Any]) -> Any:
     return score_result.get("content_quality_score", score_result.get("composite_score"))
 
 
-def _content_scorecard_gate(
-    score_result: Mapping[str, Any],
-    source: Mapping[str, Any],
-    artifact_kind: str,
-) -> Dict[str, Any]:
-    threshold = source.get("threshold", score_result.get("threshold"))
+def _content_scorecard_gate(score_result: Mapping[str, Any]) -> Dict[str, Any]:
+    threshold = score_result.get("threshold")
     if not _is_number(threshold):
-        threshold = 75 if artifact_kind == "landing_page" else 85
-    score = source.get("score", _content_score(dict(score_result)))
-    passed = bool(source.get(
-        "passed", _is_number(score) and float(score) >= float(threshold)
-    ))
+        threshold = LANDING_PAGE_SCORE_THRESHOLD
+    score = _content_score(dict(score_result))
+    passed = bool(_is_number(score) and float(score) >= float(threshold))
     return {"score": score, "threshold": threshold, "passed": passed}
 
 
-def _seo_scorecard_gate(
-    source: Mapping[str, Any],
-    *,
-    applicable: bool,
-    threshold: int = SEO_PUBLISHING_THRESHOLD,
-    target: int = SEO_TARGET_SCORE,
-) -> Dict[str, Any]:
-    if not applicable:
-        return {
-            "score": None, "threshold": None, "passed": True,
-            "critical_issue_count": 0, "not_applicable": True,
-        }
-    issues = source.get("critical_issues", [])
-    critical_issues = issues if isinstance(issues, list) else []
-    score = source.get("score")
-    passed = (
-        _is_number(score)
-        and float(score) >= float(threshold)
-        and not critical_issues
-    )
-    target_met = _is_number(score) and float(score) >= float(target)
-    status = "failed_floor" if not passed else "met" if target_met else "below_target"
-    gate = {
-        "score": score,
-        "threshold": threshold,
-        "passed": passed,
-        "critical_issue_count": len(critical_issues),
-        "target": target,
-        "target_met": bool(target_met),
-        "target_status": status,
-    }
-    if critical_issues:
-        gate["critical_issues"] = critical_issues
-    return gate
-
-
-def _aeo_scorecard_gate(
-    source: Mapping[str, Any],
-    *,
-    artifact_kind: str,
-) -> Dict[str, Any]:
-    not_applicable = artifact_kind != "blog" and source.get("not_applicable") is True
+def _aeo_scorecard_gate(source: Mapping[str, Any]) -> Dict[str, Any]:
+    not_applicable = source.get("not_applicable") is True
     threshold = source.get("threshold", 90)
     score = source.get("score")
     passed = bool(source.get(
@@ -309,50 +212,23 @@ def _aeo_scorecard_gate(
         True if not_applicable else _is_number(score) and float(score) >= float(threshold),
     ))
     gate = {"score": score, "threshold": threshold, "passed": passed}
-    if source.get("not_applicable") is True:
+    if not_applicable:
         gate["not_applicable"] = True
     return gate
 
 
-def _scorecard_from_scorer_result(
-    score_result: Mapping[str, Any],
-    *,
-    artifact_kind: str,
-    seo_threshold: int = SEO_PUBLISHING_THRESHOLD,
-    seo_target: int = SEO_TARGET_SCORE,
-) -> Dict[str, Any]:
-    """Return independent publish score gates from a scorer result."""
-    gates = score_result.get("quality_gates")
-    quality_gates = gates if isinstance(gates, Mapping) else {}
-    content_source = quality_gates.get("content_quality")
-    if not isinstance(content_source, Mapping):
-        content_source = {}
-    seo_source = quality_gates.get("seo_quality")
-    if not isinstance(seo_source, Mapping):
-        seo_source = {}
-    aeo_source = quality_gates.get("aeo_geo")
-    if not isinstance(aeo_source, Mapping):
-        aeo_source = score_result.get("aeo_geo")
-    if not isinstance(aeo_source, Mapping):
-        aeo_source = {}
-
-    seo_not_applicable = artifact_kind != "blog" and not seo_source
-    content_gate = _content_scorecard_gate(score_result, content_source, artifact_kind)
-    seo_gate = _seo_scorecard_gate(
-        seo_source,
-        applicable=not seo_not_applicable,
-        threshold=seo_threshold,
-        target=seo_target,
-    )
-    aeo_gate = _aeo_scorecard_gate(aeo_source, artifact_kind=artifact_kind)
+def _scorecard_from_scorer_result(score_result: Mapping[str, Any]) -> Dict[str, Any]:
+    """Return the landing-page score gates; SEO is not scored for landing pages."""
+    aeo_source = score_result.get("aeo_geo")
+    content_gate = _content_scorecard_gate(score_result)
+    aeo_gate = _aeo_scorecard_gate(aeo_source if isinstance(aeo_source, Mapping) else {})
     return {
-        "passed": bool(
-            content_gate["passed"]
-            and seo_gate["passed"]
-            and aeo_gate["passed"]
-        ),
+        "passed": bool(content_gate["passed"] and aeo_gate["passed"]),
         "content_quality": content_gate,
-        "seo_quality": seo_gate,
+        "seo_quality": {
+            "score": None, "threshold": None, "passed": True,
+            "critical_issue_count": 0, "not_applicable": True,
+        },
         "aeo_geo": aeo_gate,
     }
 

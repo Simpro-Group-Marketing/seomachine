@@ -17,10 +17,6 @@ try:
     from .bounded_io import parse_json as _parse_json
     from .bounded_io import stream_sha256 as _stream_sha256
     from .bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
-    from .blog_gate_inventory import (
-        expected_blog_gate_inventory as expected_blog_gate_inventory,
-        order_blog_gate_results as order_blog_gate_results,
-    )
     from .blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
     from .blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
 except ImportError:  # pragma: no cover - supports direct script execution.
@@ -29,10 +25,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import parse_json as _parse_json
     from bounded_io import stream_sha256 as _stream_sha256
     from bounded_io import atomic_write_canonical_json as _atomic_write_canonical_json
-    from blog_gate_inventory import (
-        expected_blog_gate_inventory as expected_blog_gate_inventory,
-        order_blog_gate_results as order_blog_gate_results,
-    )
     from blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
     from blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
 
@@ -43,24 +35,6 @@ PUBLIC_ARTICLE_DIRECTORIES = frozenset(
     {"drafts", "rewrites", "published", "review-required"}
 )
 DEFAULT_JSON_MAX_BYTES = 8 * 1024 * 1024
-NORMAL_STAGE_SEQUENCE = (
-    "draft",
-    "scrub",
-    "context_binding",
-    "preflight_readiness",
-    "final_readiness_attestation",
-)
-OPTIMIZED_STAGE_SEQUENCE = (
-    "draft",
-    "scrub",
-    "context_binding",
-    "preflight_readiness",
-    "optimization",
-    "post_optimization_scrub",
-    "post_optimization_context_binding",
-    "final_preflight_readiness",
-    "final_readiness_attestation",
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,13 +104,6 @@ def current_utc_date() -> date:
 def file_sha256(path: str | Path) -> str:
     """Return the SHA-256 digest of the exact bytes on disk."""
     return _stream_sha256(path)
-
-
-def normalized_text_sha256(value: Any, *, field: str) -> str:
-    """Hash one required text value after the workflow's whitespace normalization."""
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"{field} must be a non-empty string")
-    return hashlib.sha256(value.strip().encode("utf-8")).hexdigest()
 
 
 def canonical_json_bytes(payload: Mapping[str, Any]) -> bytes:
@@ -238,60 +205,6 @@ def canonical_artifact_identity(
         "path": relative,
         "sha256": validate_sha256(sha256, field="artifact.sha256"),
     }
-
-
-def artifact_inventory_snapshots(
-    artifacts: Mapping[str, Any],
-) -> dict[str, dict[str, str]]:
-    """Flatten a strict BOM artifact inventory into readiness snapshots."""
-    if not isinstance(artifacts, Mapping):
-        raise ValueError("artifacts must be an object")
-    snapshots: dict[str, dict[str, str]] = {}
-
-    def add(label: str, row: Any, *, field: str) -> None:
-        if label in snapshots:
-            raise ValueError(f"duplicate artifact snapshot label: {label}")
-        snapshots[label] = _snapshot_row(row, field=field)
-
-    for label, value in artifacts.items():
-        if value is None:
-            continue
-        if label == "execution_evidence":
-            if not isinstance(value, Mapping):
-                raise ValueError("artifacts.execution_evidence must be an object")
-            for evidence_label, row in value.items():
-                if not isinstance(evidence_label, str) or not evidence_label:
-                    raise ValueError(
-                        "artifacts.execution_evidence labels must be non-empty strings"
-                    )
-                add(
-                    evidence_label,
-                    row,
-                    field=f"artifacts.execution_evidence.{evidence_label}",
-                )
-            continue
-        if isinstance(value, list):
-            for index, row in enumerate(value):
-                add(
-                    f"{label}[{index}]",
-                    row,
-                    field=f"artifacts.{label}[{index}]",
-                )
-            continue
-        add(str(label), value, field=f"artifacts.{label}")
-    return snapshots
-
-
-def _snapshot_row(value: Any, *, field: str) -> dict[str, str]:
-    if not isinstance(value, Mapping):
-        raise ValueError(f"{field} must be an artifact object")
-    if set(value) != {"path", "sha256"}:
-        raise ValueError(f"{field} must contain only path and sha256")
-    path = value.get("path")
-    if not isinstance(path, str) or not path:
-        raise ValueError(f"{field}.path must be a non-empty string")
-    digest = validate_sha256(value.get("sha256"), field=f"{field}.sha256")
-    return {"path": path, "sha256": digest}
 
 
 def resolve_artifact(

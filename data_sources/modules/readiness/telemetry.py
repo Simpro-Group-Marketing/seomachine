@@ -16,9 +16,6 @@ from ..resource_metrics import process_peak_rss_bytes
 
 
 TELEMETRY_SCHEMA = "simpro-readiness-telemetry/v3"
-SUPPORTED_TELEMETRY_SCHEMAS = frozenset(
-    {"simpro-readiness-telemetry/v1", "simpro-readiness-telemetry/v2", TELEMETRY_SCHEMA}
-)
 COUNTERS = (
     "full_readiness_executions",
     "gate_invocations",

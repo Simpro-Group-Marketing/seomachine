@@ -38,10 +38,10 @@ def test_importing_readiness_does_not_load_scoring_stack() -> None:
     assert imported == []
 
 
-def test_legacy_scorer_factories_load_only_the_requested_stack() -> None:
+def test_landing_scorer_factory_loads_no_scoring_stack() -> None:
     imported = _imported_scoring_modules(
         "from data_sources.modules.readiness import common as readiness; "
-        "readiness.ContentScorer"
+        "readiness.LandingPageScorer"
     )
 
     assert imported == []

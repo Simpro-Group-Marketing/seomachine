@@ -8,11 +8,8 @@ from pathlib import Path
 import pytest
 
 from data_sources.modules.blog_assembly_contract import (
-    artifact_inventory_snapshots,
     atomic_write_json,
     canonical_artifact,
-    expected_blog_gate_inventory,
-    order_blog_gate_results,
     resolve_artifact,
     validate_governance_output_path,
     validate_sha256,
@@ -56,45 +53,6 @@ def test_canonical_artifact_stores_workspace_relative_posix_path_and_hash(tmp_pa
         "path": "research/evidence.json",
         "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
     }
-
-
-def test_execution_evidence_flattens_exact_labels_without_container_prefix():
-    digest = "a" * 64
-    artifacts = {
-        "article": {"path": "drafts/article.md", "sha256": digest},
-        "execution_evidence": {
-            "command_definition.write-command": {
-                "path": ".claude/commands/write.md",
-                "sha256": "b" * 64,
-            },
-            "agent_output.seo-optimizer": {
-                "path": "research/agent-outputs/seo-optimizer-topic-2026-08-12.md",
-                "sha256": "c" * 64,
-            },
-        },
-    }
-
-    assert artifact_inventory_snapshots(artifacts) == {
-        "article": artifacts["article"],
-        "command_definition.write-command": artifacts["execution_evidence"][
-            "command_definition.write-command"
-        ],
-        "agent_output.seo-optimizer": artifacts["execution_evidence"][
-            "agent_output.seo-optimizer"
-        ],
-    }
-
-
-def test_execution_evidence_rejects_duplicate_flattened_labels():
-    row = {"path": "drafts/article.md", "sha256": "a" * 64}
-
-    with pytest.raises(ValueError, match="duplicate artifact snapshot label"):
-        artifact_inventory_snapshots(
-            {
-                "agent_output.seo-optimizer": row,
-                "execution_evidence": {"agent_output.seo-optimizer": row},
-            }
-        )
 
 
 def test_canonical_artifact_rejects_workspace_escape(tmp_path: Path):
@@ -197,42 +155,3 @@ def test_atomic_write_json_preserves_destination_and_cleans_temp_on_replace_fail
     assert json.loads(destination.read_text(encoding="utf-8")) == {"old": True}
     assert [path.name for path in tmp_path.iterdir()] == ["bom.json"]
 
-
-def test_expected_gate_inventory_is_conditional_without_losing_gate_order():
-    minimal = expected_blog_gate_inventory(
-        visible_faq=False,
-        connector_required=False,
-    )
-    complete = expected_blog_gate_inventory(
-        visible_faq=True,
-        connector_required=True,
-    )
-
-    assert "faq_answer_quality" not in minimal
-    assert "faq_proof" not in minimal
-    assert "vault_brand_language" not in minimal
-    assert "named_feature_status" not in minimal
-    assert "fred_authority" not in minimal
-    assert complete.index("faq_answer_quality") < complete.index("paa_provenance")
-    assert complete.index("editorial_plan") < complete.index("semrush_keyword_decision")
-    assert complete.index("semrush_keyword_decision") < complete.index("source_support")
-    assert complete.index("review_story_identity") < complete.index("eeat_strength")
-    assert complete.index("eeat_strength") < complete.index("early_artifact")
-    assert complete.index("vault_brand_language") < complete.index("fred_authority")
-    assert complete[-2:] == ["content_scorer", "input_seal"]
-
-
-def test_shared_gate_descriptors_order_executor_results_and_inventory():
-    expected = expected_blog_gate_inventory(
-        visible_faq=False,
-        connector_required=False,
-    )
-    shuffled = [{"name": name} for name in reversed(expected)]
-
-    ordered = order_blog_gate_results(
-        shuffled,
-        visible_faq=False,
-        connector_required=False,
-    )
-
-    assert [row["name"] for row in ordered] == expected
