@@ -8,7 +8,7 @@ import pytest
 
 from data_sources.modules import context_binding_guard
 from data_sources.modules.readiness.adapters import _score_content
-from data_sources.modules.readiness.api import RETIRED_ASSEMBLY_BOM, run_publish_readiness
+from data_sources.modules.readiness.api import run_publish_readiness
 from data_sources.modules.readiness.dependencies import ReadinessDependencies
 from data_sources.modules.vault_claim_receipts import ValidatedClaimSet
 from data_sources.modules.url_validator import UrlValidationResult, UrlValidationSummary
@@ -59,7 +59,7 @@ NONCONNECTOR_INVENTORY = [
     "landing_page_scorer",
 ]
 RESULT_KEYS = [
-    "aeo_geo", "artifact_kind", "assembly_bom", "completed_at", "context_pack", "context_receipt",
+    "aeo_geo", "artifact_kind", "completed_at", "context_pack", "context_receipt",
     "context_request", "file", "gate_inventory", "gates", "input_hashes", "input_seal", "passed",
     "phase", "priority_fixes", "proof_sidecar", "run_id", "schema", "score", "score_threshold",
     "scorecard", "started_at", "tool", "verification_scope",
@@ -175,7 +175,6 @@ def test_landing_page_result_shape_and_gate_inventory_are_stable(page):
     assert result["gate_inventory"] == NONCONNECTOR_INVENTORY
     assert [gate["name"] for gate in result["gates"]] == NONCONNECTOR_INVENTORY
     assert result["input_seal"] == {"status": "verified"}
-    assert result["assembly_bom"] is None
     assert result["score"] == 82.0
     assert result["score_threshold"] == 75
 
@@ -284,11 +283,9 @@ def test_a_requested_blog_kind_is_refused_at_artifact_identity(page):
     assert result["gates"][0]["findings"][0]["rule_id"] == "artifact_kind_unsupported"
 
 
-def test_an_assembly_bom_is_refused_at_the_api_entry(page):
-    with pytest.raises(ValueError, match="assembly_bom is retired") as raised:
+def test_readiness_no_longer_accepts_an_assembly_bom(page):
+    with pytest.raises(TypeError, match="assembly_bom"):
         run_publish_readiness(page, assembly_bom="research/bom.json", workspace_root=page.parents[1])
-
-    assert str(raised.value) == RETIRED_ASSEMBLY_BOM
 
 
 def test_missing_artifact_kind_fails_before_context_binding(page):

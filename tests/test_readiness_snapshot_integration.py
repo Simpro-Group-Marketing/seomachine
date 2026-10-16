@@ -113,7 +113,6 @@ def test_pipeline_uses_content_apis_for_public_article_gates(
         context_request_path=None,
         context_pack_path=None,
         context_receipt_path=None,
-        assembly_bom_path=None,
         vault_root=None,
         ai_profile="simpro-web",
         phase="preflight",

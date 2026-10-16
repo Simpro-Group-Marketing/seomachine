@@ -108,7 +108,6 @@ def _blocked_for_gate(
         context_request_path=paths["context_request"],
         context_pack_path=paths["context_pack"],
         context_receipt_path=paths["context_receipt"],
-        assembly_bom_path=paths["assembly_bom"],
         artifact_kind=artifact_kind,
         gates=gates,
         score_threshold=score_threshold,
@@ -201,7 +200,6 @@ def _run_publish_readiness(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
-    assembly_bom: str | Path | None = None,
     vault_root: str | Path | None = None,
     ai_profile: str = "simpro-web",
     phase: str = "preflight",
@@ -222,7 +220,6 @@ def _run_publish_readiness(
         "context_request": str(context_request) if context_request is not None else None,
         "context_pack": str(context_pack) if context_pack is not None else None,
         "context_receipt": str(context_receipt) if context_receipt is not None else None,
-        "assembly_bom": str(assembly_bom) if assembly_bom is not None else None,
     }
     readiness_root = Path(workspace_root).resolve()
     article, article_error = _read_article_snapshot(article_path, session)
@@ -284,11 +281,10 @@ def _run_publish_readiness(
     context_request_path = paths["context_request"]
     context_pack_path = paths["context_pack"]
     context_receipt_path = paths["context_receipt"]
-    assembly_bom_path = paths["assembly_bom"]
     score_threshold = 75 if artifact_kind == "landing_page" else 85
     gates: List[GateResult] = []
     runtime_policy = _bom_runtime_policy(
-        assembly_bom_path,
+        None,
         workspace_root=readiness_root,
         inputs=session.inputs if session is not None else None,
     )
@@ -355,7 +351,6 @@ def _run_publish_readiness(
         context_request_path=context_request_path,
         context_pack_path=context_pack_path,
         context_receipt_path=context_receipt_path,
-        assembly_bom_path=assembly_bom_path,
         vault_root=vault_root,
         ai_profile=ai_profile,
         phase=phase,

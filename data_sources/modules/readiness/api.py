@@ -19,10 +19,6 @@ from .workspace_bindings import (
     _resolve_workspace_input,
 )
 
-RETIRED_ASSEMBLY_BOM = (
-    "assembly_bom is retired: readiness serves landing pages only, and blogs release through "
-    "/publish-readiness (production.release)"
-)
 
 
 def run_publish_readiness(
@@ -32,7 +28,6 @@ def run_publish_readiness(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
-    assembly_bom: str | Path | None = None,
     vault_root: str | Path | None = None,
     ai_profile: str = "simpro-web",
     phase: str = "preflight",
@@ -45,8 +40,6 @@ def run_publish_readiness(
     """Run the complete gate stack inside one trusted workspace boundary."""
     if phase not in {"preflight", "final"}:
         raise ValueError("phase must be preflight or final")
-    if assembly_bom is not None:
-        raise ValueError(RETIRED_ASSEMBLY_BOM)
     root = Path(workspace_root or Path.cwd()).resolve()
     article_path = _resolve_workspace_input(file_path, workspace_root=root, field="file")
     proof_path = _resolve_optional_workspace_input(
@@ -69,18 +62,12 @@ def run_publish_readiness(
         workspace_root=root,
         field="context_receipt",
     )
-    bom_path = _resolve_optional_workspace_input(
-        assembly_bom,
-        workspace_root=root,
-        field="assembly_bom",
-    )
     raw = _run_publish_readiness_session(
         article_path,
         proof_sidecar=proof_path,
         context_request=request_path,
         context_pack=pack_path,
         context_receipt=receipt_path,
-        assembly_bom=bom_path,
         vault_root=vault_root,
         ai_profile=ai_profile,
         phase=phase,
@@ -99,7 +86,6 @@ def _run_publish_readiness_session(
     context_request: str | Path | None = None,
     context_pack: str | Path | None = None,
     context_receipt: str | Path | None = None,
-    assembly_bom: str | Path | None = None,
     vault_root: str | Path | None = None,
     ai_profile: str = "simpro-web",
     phase: str = "preflight",
@@ -118,7 +104,6 @@ def _run_publish_readiness_session(
         "context_request": context_request,
         "context_pack": context_pack,
         "context_receipt": context_receipt,
-        "assembly_bom": assembly_bom,
         "vault_root": vault_root,
         "ai_profile": ai_profile,
         "phase": phase,
@@ -133,7 +118,6 @@ def _run_publish_readiness_session(
             "context_request": context_request,
             "context_pack": context_pack,
             "context_receipt": context_receipt,
-            "assembly_bom": assembly_bom,
         },
         workspace_root=workspace_root,
         runner=readiness_runner,
@@ -145,7 +129,6 @@ def _run_publish_readiness_session(
             context_request=context_request,
             context_pack=context_pack,
             context_receipt=context_receipt,
-            assembly_bom=assembly_bom,
             phase=phase,
         ),
         connector_factory=lambda: dependencies.connector_factory(vault_root=vault_root),
@@ -196,7 +179,6 @@ def _input_capture_blocked_result(
     context_request: str | Path | None,
     context_pack: str | Path | None,
     context_receipt: str | Path | None,
-    assembly_bom: str | Path | None,
     phase: str,
 ) -> ReadinessResult:
     invalid_article_utf8 = str(error).startswith(
@@ -226,7 +208,6 @@ def _input_capture_blocked_result(
         "context_request": str(context_request) if context_request is not None else None,
         "context_pack": str(context_pack) if context_pack is not None else None,
         "context_receipt": str(context_receipt) if context_receipt is not None else None,
-        "assembly_bom": str(assembly_bom) if assembly_bom is not None else None,
         "passed": False,
         "artifact_kind": None,
         "gates": [gate],
@@ -237,4 +218,4 @@ def _input_capture_blocked_result(
     }
 
 
-__all__ = ['RETIRED_ASSEMBLY_BOM', '_input_capture_blocked_result', '_load_session_claims', '_run_publish_readiness_session', 'run_publish_readiness']
+__all__ = ['_input_capture_blocked_result', '_load_session_claims', '_run_publish_readiness_session', 'run_publish_readiness']
