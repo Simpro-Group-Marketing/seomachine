@@ -265,7 +265,12 @@ def _reuse_stage(
     if saved is None:
         return None
     pack, receipt = saved
-    validation = client.validate_context(spec.request, pack, receipt)
+    try:
+        validation = client.validate_context(spec.request, pack, receipt)
+    except VaultClientError as error:
+        if getattr(error, "code", None) == "pack_stale":
+            return None  # stale receipt or vault revisions: rebuild this stage
+        raise
     if not isinstance(validation, dict) or validation.get("valid") is not True:
         return None
     outcome = StageOutcome(

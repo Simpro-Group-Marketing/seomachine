@@ -151,3 +151,53 @@ def test_cli_reports_malformed_build_result_as_json(tmp_path, capsys, monkeypatc
     output = json.loads(capsys.readouterr().out)
     assert output["error"]["code"] == "ContextBuildError"
     assert "build_context result" in output["error"]["message"]
+
+
+class StaleSavedClient(FreshOnlyClient):
+    """Raises like the real connector (code pack_stale) for saved packs it did not build itself."""
+
+    def __init__(self, *, stale_claims=None, code="pack_stale", **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.stale_claims = stale_claims
+        self.code = code
+
+    def validate_context(self, request, pack, receipt):
+        self.calls.append("validate")
+        if any(pack is built for built in self._built):
+            return {"valid": True, "errors": []}
+        if self.stale_claims is None or pack.get("claims") in self.stale_claims:
+            raise VaultClientError(self.code, "Receipt validation time is stale", "Rebuild and revalidate.")
+        return {"valid": True, "errors": []}
+
+
+def test_resume_rebuilds_every_stage_whose_receipt_is_stale(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+
+    client = StaleSavedClient()
+    result = run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["built", "built", "built"]
+    assert client.build_count == 3
+
+
+def test_resume_rebuilds_only_the_stale_stage(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+
+    client = StaleSavedClient(stale_claims=[["claim-1"]])
+    result = run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
+
+    assert [stage.action for stage in result.stages] == ["built", "reused", "reused"]
+    assert client.build_count == 1
+
+
+def test_resume_still_fails_closed_on_other_vault_errors(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+
+    with pytest.raises(VaultClientError) as caught:
+        run_context_build(spec, client=StaleSavedClient(code="pack_tampered"), workspace_root=tmp_path,
+                          resume=True, now=NOW)
+    assert caught.value.code == "pack_tampered"
+    assert _stage_ids_not_rebuilt(caught.value) == ["stage1", "stage2", "stage3"]
