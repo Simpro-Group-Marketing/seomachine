@@ -201,3 +201,19 @@ def test_resume_still_fails_closed_on_other_vault_errors(tmp_path):
                           resume=True, now=NOW)
     assert caught.value.code == "pack_tampered"
     assert _stage_ids_not_rebuilt(caught.value) == ["stage1", "stage2", "stage3"]
+
+
+def test_resume_fails_closed_when_the_rebuilt_pack_is_still_stale(tmp_path):
+    spec = _spec(tmp_path)
+    run_context_build(spec, client=FakeVaultClient(), workspace_root=tmp_path, resume=False, now=NOW)
+
+    class AlwaysStale(FakeVaultClient):
+        def validate_context(self, request, pack, receipt):
+            raise VaultClientError("pack_stale", "Pack revisions are stale", "Rebuild and revalidate.")
+
+    client = AlwaysStale()
+    with pytest.raises(VaultClientError) as caught:
+        run_context_build(spec, client=client, workspace_root=tmp_path, resume=True, now=NOW)
+    assert caught.value.code == "pack_stale"
+    assert client.build_count == 1
+    assert _stage_ids_not_rebuilt(caught.value) == ["stage1", "stage2", "stage3"]
