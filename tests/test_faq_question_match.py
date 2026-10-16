@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 
 from data_sources.modules import blog_assembly_contract
-from data_sources.modules.faq_structure import faq_question_match_key, faq_questions_match
+from data_sources.modules.faq_structure import faq_question_match_key
 
 
 @pytest.fixture(autouse=True)
@@ -18,22 +18,4 @@ def _freeze_workflow_clock(monkeypatch: pytest.MonkeyPatch):
 def test_key_ignores_case_spacing_and_apostrophe_style() -> None:
     assert faq_question_match_key("Is simpro a CRM system?") == faq_question_match_key("Is Simpro a CRM  system?")
     assert faq_question_match_key("What’s Simpro?") == faq_question_match_key("What's Simpro?")
-
-
-def test_questions_match_in_order_only() -> None:
-    assert faq_questions_match(
-        ["Is simpro a CRM system?", "Is simpro a good system?"],
-        ["Is Simpro a CRM system?", "Is Simpro a good system?"],
-        source_kind="answersocrates",
-    )
-    assert not faq_questions_match(["A one?", "B two?"], ["B two?", "A one?"], source_kind="answersocrates")
-
-
-def test_different_wording_still_fails() -> None:
-    assert not faq_questions_match(["Is Simpro a CRM?"], ["Is Simpro a CRM system?"], source_kind="answersocrates")
-
-
-def test_brief_paa_stays_exact_except_outer_whitespace() -> None:
-    assert not faq_questions_match(["is simpro a crm system?"], ["Is Simpro a CRM system?"], source_kind="brief_paa")
-    assert faq_questions_match([" Is Simpro a CRM system? "], ["Is Simpro a CRM system?"], source_kind="brief_paa")
 

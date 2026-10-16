@@ -640,7 +640,6 @@ class WordPressPublisher:
         context_request: Optional[str] = None,
         context_pack: Optional[str] = None,
         context_receipt: Optional[str] = None,
-        assembly_bom: Optional[str] = None,
         vault_root: Optional[str | Path] = None,
         noindex: bool = False,
         template: str = '',
@@ -652,7 +651,7 @@ class WordPressPublisher:
         Args:
             file_path: Path to the markdown draft file
             post_type: Content type: 'post', 'posts', 'page', or 'pages'.
-            proof_sidecar, context_request, context_pack, context_receipt, assembly_bom,
+            proof_sidecar, context_request, context_pack, context_receipt,
             vault_root: Landing-page readiness inputs; blog posts ignore them.
             workspace_root: Repo root holding a blog post's passing release record (default: this repo).
 
@@ -679,7 +678,7 @@ class WordPressPublisher:
             raise ValueError(str(exc)) from exc
         landing_page = api_endpoint == "pages"
         gate_inputs = dict(proof_sidecar=proof_sidecar, context_request=context_request, context_pack=context_pack,
-                           context_receipt=context_receipt, assembly_bom=assembly_bom)
+                           context_receipt=context_receipt)
         readiness_input_paths = gate_inputs if landing_page else {}
         before_readiness_inputs = capture_file_snapshots(readiness_input_paths)
         release_root, release = _require_publish_gate(file_path, landing_page, gate_inputs, vault_root, workspace_root)
@@ -994,7 +993,6 @@ def _require_publish_readiness(
     context_request: Optional[str] = None,
     context_pack: Optional[str] = None,
     context_receipt: Optional[str] = None,
-    assembly_bom: Optional[str] = None,
     vault_root: Optional[str | Path] = None,
 ) -> Dict:
     """Landing pages only: the publish-readiness gate (blog posts use the release record)."""
@@ -1005,10 +1003,7 @@ def _require_publish_readiness(
         "context_receipt": context_receipt,
         "vault_root": vault_root,
     }
-    if assembly_bom is not None:
-        readiness_kwargs.update(context_inputs, assembly_bom=assembly_bom)
-    else:
-        readiness_kwargs.update({label: value for label, value in context_inputs.items() if value is not None})
+    readiness_kwargs.update({label: value for label, value in context_inputs.items() if value is not None})
     result = run_publish_readiness(file_path, **readiness_kwargs)
     if result.get("passed"):
         return result
@@ -1065,7 +1060,6 @@ def main():
     parser.add_argument('--context-request', help='Connector context request JSON path')
     parser.add_argument('--context-pack', help='Connector context pack JSON path')
     parser.add_argument('--context-receipt', help='Connector validation receipt JSON path')
-    parser.add_argument('--assembly-bom', help='Blog assembly BOM JSON path')
     parser.add_argument('--vault-root', help='Configured Simpro vault root override')
     parser.add_argument('--noindex', action='store_true', help='Request Yoast noindex metadata')
     parser.add_argument('--template', default='', help='WordPress page template slug')
@@ -1081,7 +1075,6 @@ def main():
             context_request=args.context_request,
             context_pack=args.context_pack,
             context_receipt=args.context_receipt,
-            assembly_bom=args.assembly_bom,
             vault_root=args.vault_root,
             noindex=args.noindex,
             template=args.template,

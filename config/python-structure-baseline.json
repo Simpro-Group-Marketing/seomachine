@@ -80,11 +80,6 @@
       "_score_ctas": 12,
       "_score_seo": 11
     },
-    "data_sources/modules/machine_review.py": {
-      "_check_agent_responses": 12,
-      "_check_findings": 11,
-      "check_machine_review": 13
-    },
     "data_sources/modules/metric_proof_pack_guard.py": {
       "_extract_metric_proof_pack": 13
     },
@@ -132,9 +127,6 @@
     "data_sources/modules/readability_scorer.py": {
       "_calculate_overall_score": 19,
       "_generate_recommendations": 17
-    },
-    "data_sources/modules/readiness/persistence_api.py": {
-      "write_readiness_result": 11
     },
     "data_sources/modules/review_story_identity_guard.py": {
       "_review_theme_findings": 11
@@ -227,7 +219,6 @@
     "data_sources/modules/grav_publisher.py": 790,
     "data_sources/modules/industry_cluster_link_policy.py": 1073,
     "data_sources/modules/landing_page_scorer.py": 782,
-    "data_sources/modules/machine_review.py": 696,
     "data_sources/modules/named_feature_status_guard.py": 1187,
     "data_sources/modules/numeric_claim_source_guard.py": 687,
     "data_sources/modules/opportunity_scorer.py": 515,
@@ -241,7 +232,7 @@
     "data_sources/modules/source_support/orchestration.py": 511,
     "data_sources/modules/trust_signal_analyzer.py": 567,
     "data_sources/modules/vault_brand_language_guard.py": 945,
-    "data_sources/modules/wordpress_publisher.py": 1125,
+    "data_sources/modules/wordpress_publisher.py": 1118,
     "scripts/research_competitor_gaps.py": 545,
     "scripts/research_serp_analysis.py": 1669,
     "scripts/research_topic_clusters.py": 565,
@@ -268,11 +259,9 @@
     "tests/test_ai_copy_linter.py": 663,
     "tests/test_answer_withholding_guard.py": 212,
     "tests/test_artifact_runtime.py": 221,
-    "tests/test_author_video_policy.py": 162,
-    "tests/test_blog_assembly_capabilities.py": 174,
-    "tests/test_blog_assembly_contract.py": 255,
+    "tests/test_author_video_policy.py": 160,
+    "tests/test_blog_assembly_contract.py": 238,
     "tests/test_blog_assembly_stage_receipt.py": 606,
-    "tests/test_blog_bom_validation_package.py": 61,
     "tests/test_blog_identity_guard.py": 90,
     "tests/test_blog_strategy_guard.py": 518,
     "tests/test_bom_snapshot_store.py": 85,
@@ -302,7 +291,7 @@
     "tests/test_fred_authority_guard.py": 859,
     "tests/test_fred_authority_selector.py": 467,
     "tests/test_fred_authority_topology.py": 182,
-    "tests/test_frontmatter_contract.py": 172,
+    "tests/test_frontmatter_contract.py": 168,
     "tests/test_git_registry_state.py": 297,
     "tests/test_google_analytics_compat.py": 102,
     "tests/test_grav_publisher.py": 674,
@@ -315,9 +304,8 @@
     "tests/test_humanizer_upstream.py": 524,
     "tests/test_industry_cluster_link_policy.py": 208,
     "tests/test_instrumented_artifact_store.py": 306,
-    "tests/test_item_list_schema_support.py": 165,
+    "tests/test_item_list_schema_support.py": 134,
     "tests/test_link_policy_override.py": 128,
-    "tests/test_machine_review.py": 139,
     "tests/test_mcp_gsc_package.py": 445,
     "tests/test_memory_contract.py": 100,
     "tests/test_metric_proof_pack_guard.py": 124,
@@ -331,7 +319,6 @@
     "tests/test_paa_provenance_collection.py": 111,
     "tests/test_paa_provenance_guard.py": 1870,
     "tests/test_post_publish_measurement_receipt.py": 1154,
-    "tests/test_post_publish_measurement_release_boundary.py": 152,
     "tests/test_proof_link_policy.py": 747,
     "tests/test_proof_sidecar.py": 58,
     "tests/test_proof_usage.py": 106,
@@ -342,13 +329,12 @@
     "tests/test_public_research_link_guard.py": 257,
     "tests/test_public_url_safety.py": 469,
     "tests/test_publish_content_safety.py": 55,
-    "tests/test_publish_readiness.py": 1898,
     "tests/test_publishable_markdown.py": 38,
     "tests/test_python_structure.py": 82,
     "tests/test_readiness_inputs.py": 182,
     "tests/test_readiness_lazy_scoring.py": 59,
     "tests/test_readiness_session.py": 157,
-    "tests/test_readiness_snapshot_integration.py": 330,
+    "tests/test_readiness_snapshot_integration.py": 262,
     "tests/test_readiness_telemetry.py": 75,
     "tests/test_readiness_telemetry_v2.py": 93,
     "tests/test_repurpose_workflow_docs.py": 178,
@@ -372,7 +358,7 @@
     "tests/test_vault_brand_language_guard.py": 544,
     "tests/test_vault_claim_receipts.py": 443,
     "tests/test_vault_topology_neutrality.py": 447,
-    "tests/test_wordpress_publisher.py": 1186,
+    "tests/test_wordpress_publisher.py": 1170,
     "tests/test_worker_metrics.py": 77,
     "tests/test_worker_metrics_contract.py": 106,
     "tests/vault_context_fixture.py": 203,

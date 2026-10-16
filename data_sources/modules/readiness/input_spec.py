@@ -21,9 +21,6 @@ _FIXED_WORKSPACE_INPUTS = (
 )
 # Readiness inputs bound from fixed workspace paths. They are never assembly
 # BOM artifacts, so BOM-side inventory checks must tolerate them as extras.
-FIXED_WORKSPACE_INPUT_LABELS = frozenset(
-    name for name, _ in _FIXED_WORKSPACE_INPUTS
-)
 
 
 @dataclass(frozen=True, slots=True)

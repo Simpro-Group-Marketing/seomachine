@@ -114,7 +114,7 @@ def test_wordpress_landing_page_still_runs_the_old_readiness_gate(tmp_path):
     ledger.assert_not_called()
 
 
-@pytest.mark.parametrize("flag", ["--proof-sidecar", "--context-pack", "--assembly-bom", "--vault-root"])
+@pytest.mark.parametrize("flag", ["--proof-sidecar", "--context-pack", "--vault-root"])
 def test_retired_gate_flag_on_a_blog_post_exits_two(tmp_path, capsys, flag):
     argv = ["wordpress_publisher.py", str(tmp_path / "post.md"), flag, "x"]
     with patch.object(sys, "argv", argv), pytest.raises(SystemExit) as raised:
@@ -240,8 +240,8 @@ def test_a_record_for_other_bytes_is_refused_by_both_publishers(layout):
 
 
 def test_wordpress_api_rejects_a_retired_argument_for_a_blog_post(layout):
-    with pytest.raises(ValueError, match="assembly_bom is retired for blog posts"):
-        _wp_publish_with(layout, assembly_bom="research/x.json")
+    with pytest.raises(ValueError, match="context_pack is retired for blog posts"):
+        _wp_publish_with(layout, context_pack="research/x.json")
 
 
 def _wp_publish_with(layout, **kwargs):

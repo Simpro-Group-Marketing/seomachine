@@ -26,8 +26,6 @@ from .common import (
     ai_copy_linter,
     chrome_review_evidence,
     context_binding_guard,
-    file_sha256,
-    order_blog_gate_results,
     public_artifact_guard,
     public_research_link_guard,
     run_content_gate,
@@ -180,60 +178,6 @@ def _record_gate_findings(
         return tuple(dict(finding) for finding in findings)
     session.record_findings(name, findings)
     return tuple(session.findings(name) or [])
-
-
-def _reseal_inputs(
-    *,
-    artifact_kind: str,
-    sealed_inputs: ReadinessInputs | None,
-    sealed_input_hashes: Dict[str, Dict[str, str]] | None,
-    input_capture_error: ValueError | None,
-) -> tuple[Dict[str, Dict[str, str]], List[Dict[str, Any]]]:
-    current_hashes, findings = reseal_readiness_inputs(
-        sealed_inputs,
-        capture_error=input_capture_error,
-    )
-    if not findings and artifact_kind == "blog" and current_hashes != sealed_input_hashes:
-        return current_hashes, _missing_gate_finding(
-            "readiness_inputs_changed_during_run",
-            "One or more bound artifacts changed during readiness.",
-            "Resume at the mutation receipt, then rerun scrub, Context Binding, BOM build, and readiness.",
-        )
-    return current_hashes, findings
-
-
-def _order_final_gates(
-    gates: List[GateResult],
-    *,
-    artifact_kind: str,
-    seal_findings: Sequence[Mapping[str, Any]],
-    runtime_policy: Mapping[str, Any],
-    simpro_context_required: bool,
-) -> List[GateResult]:
-    if artifact_kind != "blog":
-        return gates
-    gates.append(_gate_from_findings("input_seal", "Input Seal", seal_findings))
-    try:
-        return [
-            dict(row)
-            for row in order_blog_gate_results(
-                gates,
-                visible_faq=bool(runtime_policy["visible_faq"]),
-                connector_required=simpro_context_required,
-                current_strategy=bool(runtime_policy.get("current_strategy")),
-            )
-        ]
-    except ValueError:
-        gates.append(_gate_from_findings(
-            "readiness_contract",
-            "Readiness Contract",
-            _missing_gate_finding(
-                "readiness_gate_inventory_invalid",
-                "Readiness gate order drifted from the closed blog contract.",
-                "Restore the expected conditional gate inventory before sealing.",
-            ),
-        ))
-        return gates
 
 
 def _run_remaining_gates(
@@ -445,18 +389,9 @@ def _run_remaining_gates(
     )
     gates.append(_gate_from_score(scorer_result))
 
-    current_input_hashes, seal_findings = _reseal_inputs(
-        artifact_kind=artifact_kind,
-        sealed_inputs=sealed_inputs,
-        sealed_input_hashes=sealed_input_hashes,
-        input_capture_error=input_capture_error,
-    )
-    gates = _order_final_gates(
-        gates,
-        artifact_kind=artifact_kind,
-        seal_findings=seal_findings,
-        runtime_policy=runtime_policy,
-        simpro_context_required=simpro_context_required,
+    current_input_hashes, seal_findings = reseal_readiness_inputs(
+        sealed_inputs,
+        capture_error=input_capture_error,
     )
 
     scorecard = _scorecard_from_scorer_result(
@@ -492,8 +427,6 @@ def _run_remaining_gates(
         "started_at": run_started_at,
         "completed_at": _utc_now(),
     }
-    if phase == "final" and assembly_bom_path:
-        result["final_bom_sha256"] = file_sha256(assembly_bom_path)
     return result
 
 

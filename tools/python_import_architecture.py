@@ -15,7 +15,6 @@ TERMINAL_FACADE_PATHS = frozenset(
         "data_sources/modules/editorial_plan_guard.py",
         "data_sources/modules/nonvault_customer_proof_selector.py",
         "data_sources/modules/paa_provenance_guard.py",
-        "data_sources/modules/publish_readiness.py",
         "data_sources/modules/seo_quality_rater.py",
         "mcp-gsc/gsc_server.py",
     }

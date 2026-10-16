@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from data_sources.modules.content_scoring.aeo_metadata_schema import _check_schema
-from data_sources.modules.blog_assembly.policy import _schema_policy
 from data_sources.modules.frontmatter import FrontmatterError, split_frontmatter
-from data_sources.modules.publishable_markdown import read_publishable_markdown
 
 
 BASE_SCHEMA_NOTES = [
@@ -120,33 +116,6 @@ def test_aeo_schema_rejects_duplicate_item_list_notes() -> None:
         "schema_notes must contain exactly one canonical ItemList schema note"
         in result["details"]["item_list_errors"]
     )
-
-
-def test_bom_policy_rejects_a_blank_item_even_when_the_remaining_count_matches(
-    tmp_path: Path,
-) -> None:
-    article_path = tmp_path / "item-list.md"
-    entries = "".join(f"  - Tool {index}\n" for index in range(1, 14))
-    article_path.write_text(
-        "---\n"
-        "schema_notes:\n"
-        + "".join(f"  - {note}\n" for note in BASE_SCHEMA_NOTES)
-        + "  - ItemList for the 13 compared tools, with exactly 13 ListItem entries\n"
-        "item_list_entries:\n"
-        + entries
-        + "  -\n"
-        "---\n"
-        "# ItemList article\n",
-        encoding="utf-8",
-    )
-
-    article = read_publishable_markdown(article_path)
-
-    with pytest.raises(
-        ValueError,
-        match="item_list_entries cannot contain empty values",
-    ):
-        _schema_policy(article)
 
 
 def test_frontmatter_requires_item_list_entries_to_use_a_yaml_sequence() -> None:

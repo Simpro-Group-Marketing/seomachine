@@ -14,42 +14,6 @@ from ..blog_assembly_contract import canonical_json_bytes
 GateResult = dict[str, Any]
 ReadinessResult = dict[str, Any]
 READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v1"
-FINAL_READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v2"
-READINESS_TOOL = {"name": "publish_readiness", "version": "1.0.0"}
-PASSED_RESULT_FIELDS = frozenset(
-    {
-        "schema",
-        "tool",
-        "phase",
-        "verification_scope",
-        "file",
-        "proof_sidecar",
-        "context_request",
-        "context_pack",
-        "context_receipt",
-        "assembly_bom",
-        "passed",
-        "artifact_kind",
-        "gates",
-        "score",
-        "score_threshold",
-        "aeo_geo",
-        "scorecard",
-        "priority_fixes",
-        "gate_inventory",
-        "input_hashes",
-        "input_seal",
-        "run_id",
-        "started_at",
-        "completed_at",
-    }
-)
-FINAL_RELEASE_FIELDS = frozenset(
-    {"release_manifest", "release_manifest_sha256"}
-)
-GATE_RESULT_FIELDS = frozenset(
-    {"name", "label", "passed", "errors", "warnings", "findings", "blockers"}
-)
 
 
 _READINESS_EXECUTION_KEY = os.urandom(32)
@@ -88,6 +52,3 @@ def sign_readiness_execution(value: Mapping[str, Any]) -> str:
     ).hexdigest()
 
 
-def is_registered_execution(value: object) -> bool:
-    """Require the original in-process result object, not a copied mapping."""
-    return _EXECUTION_OBJECTS.get(id(value)) is value

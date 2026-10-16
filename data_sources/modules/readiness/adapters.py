@@ -1,6 +1,4 @@
 """Publish-readiness adapters responsibilities."""
-import argparse
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -19,35 +17,9 @@ from .common import (
     summarize_findings,
 )
 from .artifact_views import thaw_value
-from .result_validation import _is_number
+from .common import is_json_number as _is_number
 from .runtime_policy import _bom_runtime_policy
-from .workspace_bindings import _resolve_workspace_input
 
-
-def _reject_telemetry_output_collision(args: argparse.Namespace) -> None:
-    root = Path(args.workspace_root).resolve()
-    destination = _resolve_workspace_input(
-        args.telemetry_output,
-        workspace_root=root,
-        field="telemetry output",
-    )
-    candidates = {
-        "file": args.file_path,
-        "proof_sidecar": args.proof_sidecar,
-        "context_request": args.context_request,
-        "context_pack": args.context_pack,
-        "context_receipt": args.context_receipt,
-        "assembly_bom": args.assembly_bom,
-        "readiness_output": args.output,
-        "stage_receipt_output": args.stage_receipt_output,
-    }
-    destination_key = os.path.normcase(str(destination))
-    for label, value in candidates.items():
-        if value is None:
-            continue
-        candidate = _resolve_workspace_input(value, workspace_root=root, field=label)
-        if os.path.normcase(str(candidate)) == destination_key:
-            raise ValueError(f"telemetry output cannot overwrite {label}")
 
 def _gate_from_findings(
     name: str,
@@ -386,40 +358,6 @@ def _scorecard_from_scorer_result(
         "aeo_geo": aeo_gate,
     }
 
-def _score_report_line(
-    label: str,
-    score: Any,
-    threshold: Any,
-    passed: bool,
-) -> str:
-    if score is None:
-        return f"{label}: n/a"
-    status = "PASS" if passed else "FAIL"
-    return f"{label}: {score}/100 (threshold: {threshold}, {status})"
-
-def _seo_score_report_line(
-    label: str,
-    score: Any,
-    threshold: Any,
-    target: Any,
-    passed: bool,
-    *,
-    target_met: Any,
-    target_status: Any,
-) -> str:
-    if score is None:
-        return f"{label}: n/a"
-    if not passed:
-        status = "FAIL"
-    elif target_met is True or target_status == "met":
-        status = "PASS, TARGET MET"
-    else:
-        status = "PASS, BELOW TARGET"
-    return (
-        f"{label}: {score}/100 "
-        f"(release floor: {threshold}, target: {target}, {status})"
-    )
-
 def _finding_lines(findings: List[Dict[str, Any]]) -> List[str]:
     blockers = [
         finding
@@ -458,4 +396,4 @@ def _priority_fix_lines(priority_fixes: List[Dict[str, Any]]) -> List[str]:
     return lines
 
 
-__all__ = ['_blocked_readiness_result', '_content_score', '_finding_lines', '_gate_from_findings', '_gate_from_score', '_gate_from_url_summary', '_priority_fix_lines', '_reject_telemetry_output_collision', '_score_content', '_score_report_line', '_scorecard_from_scorer_result', '_seo_score_report_line', '_timed_call', '_url_blocker_line']
+__all__ = ['_blocked_readiness_result', '_content_score', '_finding_lines', '_gate_from_findings', '_gate_from_score', '_gate_from_url_summary', '_priority_fix_lines', '_score_content', '_scorecard_from_scorer_result', '_timed_call', '_url_blocker_line']

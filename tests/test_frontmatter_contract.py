@@ -10,7 +10,7 @@ from data_sources.modules.artifact_detection import (
     strip_frontmatter,
 )
 from data_sources.modules.grav_publisher import GravPublisher
-from data_sources.modules.publish_readiness import run_publish_readiness
+from data_sources.modules.readiness.api import run_publish_readiness
 from data_sources.modules.publishable_markdown import (
     FrontmatterError,
     read_publishable_markdown,

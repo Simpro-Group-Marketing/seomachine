@@ -20,7 +20,6 @@ on:
       - 'tests/test_blog_assembly_stage_receipt.py'
       - 'tests/test_content_scorer_aeo_geo_gate.py'
       - 'tests/test_humanizer_*.py'
-      - 'tests/test_publish_readiness.py'
       - 'tools/humanizer_upstream.py'
       - 'vendor/blader-humanizer/**'
 

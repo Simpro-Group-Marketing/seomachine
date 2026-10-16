@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import hmac
 import json
 import os
 import re
@@ -47,23 +46,12 @@ try:
         vault_brand_language_guard,
     )
     from ..blog_assembly_contract import (
-        artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
-        canonical_article_run_id,
-        canonical_json_bytes,
         expected_blog_gate_inventory,
-        file_sha256,
         is_json_number,
         load_json_object_snapshot,
-        order_blog_gate_results,
         resolve_artifact,
-        validate_sha256,
-    )
-    from ..blog_assembly_stage_receipt import (
-        build_stage_receipt,
-        check_receipt_chain,
-        write_stage_receipt,
     )
     from ..publishable_markdown import (
         FrontmatterError,
@@ -74,31 +62,23 @@ try:
     from ..readiness_gate_context import _issue_readiness_gate_context
     from .inputs import ReadinessInputs
     from .contracts import (
-        GATE_RESULT_FIELDS,
-        FINAL_READINESS_RESULT_SCHEMA,
-        FINAL_RELEASE_FIELDS,
-        PASSED_RESULT_FIELDS,
         READINESS_RESULT_SCHEMA,
-        READINESS_TOOL,
         ExecutedReadinessResult,
         GateResult,
         ReadinessResult,
-        sign_readiness_execution,
     )
     from .gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from .session import ValidationSession
     from .orchestrator import run_in_session
-    from .persistence import persist_new_result_pair, persist_result_pair
     from .telemetry import ReadinessTelemetry
     from .scoring_contracts import compatibility_symbols
-    from ..simpro_vault_client import SimproVaultClient
     from ..vault_claim_receipts import (
         ValidatedClaimSet,
         VaultClaimReceiptError,
         load_validated_claim_set,
     )
     from ..guard_common import should_fail, summarize_findings
-    from ..url_validator import UrlValidationSummary, UrlValidator, validate_file_urls
+    from ..url_validator import UrlValidationSummary, UrlValidator
     import data_sources.modules.customer_proof.diversity as customer_proof_diversity_guard
     import data_sources.modules.editorial_plan.orchestration as editorial_plan_guard
     import data_sources.modules.paa_provenance.evaluation as paa_provenance_guard
@@ -130,23 +110,12 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     import source_support_guard
     import vault_brand_language_guard
     from blog_assembly_contract import (
-        artifact_inventory_snapshots,
         atomic_write_json,
         canonical_artifact,
-        canonical_article_run_id,
-        canonical_json_bytes,
         expected_blog_gate_inventory,
-        file_sha256,
         is_json_number,
         load_json_object_snapshot,
-        order_blog_gate_results,
         resolve_artifact,
-        validate_sha256,
-    )
-    from blog_assembly_stage_receipt import (
-        build_stage_receipt,
-        check_receipt_chain,
-        write_stage_receipt,
     )
     from publishable_markdown import (
         FrontmatterError,
@@ -157,38 +126,29 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     from readiness_gate_context import _issue_readiness_gate_context
     from readiness.inputs import ReadinessInputs
     from readiness.contracts import (
-        GATE_RESULT_FIELDS,
-        FINAL_READINESS_RESULT_SCHEMA,
-        FINAL_RELEASE_FIELDS,
-        PASSED_RESULT_FIELDS,
         READINESS_RESULT_SCHEMA,
-        READINESS_TOOL,
         ExecutedReadinessResult,
         GateResult,
         ReadinessResult,
-        sign_readiness_execution,
     )
     from readiness.gates import CONTENT_GATE_NAMES, ContentGateInputs, run_content_gate
     from readiness.session import ValidationSession
     from readiness.orchestrator import run_in_session
-    from readiness.persistence import persist_new_result_pair, persist_result_pair
     from readiness.telemetry import ReadinessTelemetry
     from readiness.scoring_contracts import compatibility_symbols
-    from simpro_vault_client import SimproVaultClient
     from vault_claim_receipts import (
         ValidatedClaimSet,
         VaultClaimReceiptError,
         load_validated_claim_set,
     )
     from guard_common import should_fail, summarize_findings
-    from url_validator import UrlValidationSummary, UrlValidator, validate_file_urls
+    from url_validator import UrlValidationSummary, UrlValidator
     import customer_proof.diversity as customer_proof_diversity_guard
     import editorial_plan.orchestration as editorial_plan_guard
     import paa_provenance.evaluation as paa_provenance_guard
 
 
 _ExecutedReadinessResult = ExecutedReadinessResult
-_sign_readiness_execution = sign_readiness_execution
 ContentScorer, LandingPageScorer, SEO_PUBLISHING_THRESHOLD, SEO_TARGET_SCORE = (
     compatibility_symbols()
 )

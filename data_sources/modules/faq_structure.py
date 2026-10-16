@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import Sequence
 
 
 FAQ_H2_RE = re.compile(
@@ -171,16 +170,3 @@ def faq_question_match_key(text: str) -> str:
     )
 
 
-def faq_questions_match(
-    selected: Sequence[str], visible: Sequence[str], *, source_kind: str
-) -> bool:
-    """Compare planned and visible FAQ questions in order.
-
-    brief_paa questions are pre-picked verbatim, so they compare exactly
-    apart from outer whitespace.
-    """
-    if source_kind == "brief_paa":
-        return [q.strip() for q in selected] == [q.strip() for q in visible]
-    return [faq_question_match_key(q) for q in selected] == [
-        faq_question_match_key(q) for q in visible
-    ]

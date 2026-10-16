@@ -1,6 +1,6 @@
 """Publish-readiness api responsibilities."""
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from .adapters import _gate_from_findings
 from .common import (
@@ -12,22 +12,16 @@ from .common import (
     _ExecutedReadinessResult,
     load_validated_claim_set,
 )
-from .finalization import build_final_attestation
-from .finalization_dependencies import (
-    DEFAULT_FINALIZATION_DEPENDENCIES,
-    FinalizationDependencies,
-)
 from .dependencies import DEFAULT_READINESS_DEPENDENCIES, ReadinessDependencies
 from .orchestrator import run_in_session
-from .result_validation import (
-    _validate_actual_readiness_execution,
-    validate_passed_readiness_result,
-)
 from .workspace_bindings import (
-    _readiness_run_id,
     _resolve_optional_workspace_input,
     _resolve_workspace_input,
-    _result_workspace_root,
+)
+
+RETIRED_ASSEMBLY_BOM = (
+    "assembly_bom is retired: readiness serves landing pages only, and blogs release through "
+    "/publish-readiness (production.release)"
 )
 
 
@@ -51,6 +45,8 @@ def run_publish_readiness(
     """Run the complete gate stack inside one trusted workspace boundary."""
     if phase not in {"preflight", "final"}:
         raise ValueError("phase must be preflight or final")
+    if assembly_bom is not None:
+        raise ValueError(RETIRED_ASSEMBLY_BOM)
     root = Path(workspace_root or Path.cwd()).resolve()
     article_path = _resolve_workspace_input(file_path, workspace_root=root, field="file")
     proof_path = _resolve_optional_workspace_input(
@@ -95,41 +91,6 @@ def run_publish_readiness(
         dependencies=dependencies,
     )
     return _ExecutedReadinessResult(raw, workspace_root=root)
-
-def build_final_readiness_attestation(
-    preflight_result: Mapping[str, Any],
-    *,
-    final_bom: str | Path | None = None,
-    run_id: str | None = None,
-    workspace_root: str | Path | None = None,
-    telemetry: ReadinessTelemetry | None = None,
-    vault_root: str | Path | None = None,
-    dependencies: FinalizationDependencies = DEFAULT_FINALIZATION_DEPENDENCIES,
-) -> ReadinessResult:
-    """Bind an authenticated full preflight to one validated final BOM."""
-    root = _result_workspace_root(preflight_result, workspace_root)
-    final_bom_path = (
-        _resolve_workspace_input(
-            final_bom,
-            workspace_root=root,
-            field="final_bom",
-        )
-        if final_bom is not None
-        else None
-    )
-    return build_final_attestation(
-        preflight_result,
-        final_bom_path=final_bom_path,
-        workspace_root=root,
-        validate_execution=_validate_actual_readiness_execution,
-        validate_result=validate_passed_readiness_result,
-        executed_result_factory=_ExecutedReadinessResult,
-        readiness_run_id=_readiness_run_id,
-        run_id=run_id,
-        telemetry=telemetry,
-        vault_root=vault_root,
-        dependencies=dependencies,
-    )
 
 def _run_publish_readiness_session(
     file_path: str | Path,
@@ -276,4 +237,4 @@ def _input_capture_blocked_result(
     }
 
 
-__all__ = ['_input_capture_blocked_result', '_load_session_claims', '_run_publish_readiness_session', 'build_final_readiness_attestation', 'run_publish_readiness']
+__all__ = ['RETIRED_ASSEMBLY_BOM', '_input_capture_blocked_result', '_load_session_claims', '_run_publish_readiness_session', 'run_publish_readiness']

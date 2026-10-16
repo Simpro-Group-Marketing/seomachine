@@ -3,14 +3,14 @@
 ## Architecture
 
 - The blog release owner is [release.py](data_sources/modules/production/release.py): one pass that rebuilds the production BOM and checks truth, coverage, and the three scores, then writes the release record through [record.py](data_sources/modules/production/record.py).
-- Readiness orchestration enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry; compatibility facades preserve established imports and result schemas.
+- Landing-page readiness (the WordPress page gate) enters through [readiness/api.py](data_sources/modules/readiness/api.py). One `ValidationSession` owns its `InstrumentedArtifactStore`, parsed views, connector and Git state, source text, transport, and telemetry. Readiness refuses blog articles and assembly BOMs; blogs release only through `production.release`.
 - Proof gates, connector revision checks, parsing, and lazy scoring remain serial. Only deduplicated public HTTP retrieval uses bounded worker threads behind [public_http/transport.py](data_sources/modules/public_http/transport.py), with stable result ordering.
 
 ## Package ownership
 
 - `bounded_io` owns bounded bytes, strict UTF-8/JSON decoding, hashing, canonical JSON, and file identity; `resource_metrics` owns portable process-memory sampling.
 - `connector_snapshot` owns immutable connector workflow state and successful read-only operation caching; `public_http` owns typed transport, cache identity, concurrency, and batch byte budgets.
-- `blog_bom_validation`, `paa_provenance`, `customer_proof`, and `editorial_plan` own their proof-domain contracts and orchestration. Their historical top-level modules are explicit compatibility facades.
+- `paa_provenance`, `customer_proof`, and `editorial_plan` own their proof-domain contracts and orchestration. Their historical top-level modules are explicit compatibility facades. The assembly-BOM validator (`blog_bom_validation`) is retired.
 - `content_scoring` owns serial, lazy AEO/SEO scoring. `mcp-gsc/mcp_gsc` owns GSC authentication, contracts, tools, and server composition; `gsc_server.py` is its compatibility facade.
 
 ## Proof invariants

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from data_sources.modules.blog_assembly.policy import _schema_policy
 from data_sources.modules.blog_identity_guard import check_article
 from data_sources.modules.publishable_markdown import read_publishable_markdown
+from data_sources.modules.video_embed import inspect_video_embeds
 
 
 BASE_SCHEMA = (
@@ -90,14 +90,14 @@ def test_blog_identity_preserves_person_like_named_authors(author: str):
         '<video><source src="https://cdn.example.com/demo.webm"></video>',
     ),
 )
-def test_schema_policy_requires_videoobject_for_validated_https_video_sources(
+def test_validated_https_video_sources_are_supported_embeds(
     tmp_path: Path,
     embed: str,
 ):
-    policy = _schema_policy(_article(tmp_path, body=embed))
+    inspection = inspect_video_embeds(_article(tmp_path, body=embed).raw)
 
-    assert policy["video_embed"] is True
-    assert "VideoObject" in policy["required_entities"]
+    assert inspection.has_supported_embed is True
+    assert inspection.errors == ()
 
 
 @pytest.mark.parametrize(
@@ -115,24 +115,23 @@ def test_schema_policy_requires_videoobject_for_validated_https_video_sources(
         '<video src="https://cdn.example.com/demo.mp4" src="https://cdn.example.com/other.mp4"></video>',
     ),
 )
-def test_schema_policy_rejects_attempted_but_invalid_video_embeds(
+def test_attempted_but_invalid_video_embeds_report_errors(
     tmp_path: Path,
     embed: str,
 ):
-    with pytest.raises(ValueError, match="video embed"):
-        _schema_policy(_article(tmp_path, body=embed))
+    assert inspect_video_embeds(_article(tmp_path, body=embed).raw).errors
 
 
-def test_schema_policy_ignores_a_non_video_iframe(tmp_path: Path):
-    policy = _schema_policy(
+def test_a_non_video_iframe_is_not_a_video_embed(tmp_path: Path):
+    inspection = inspect_video_embeds(
         _article(
             tmp_path,
             body='<iframe src="https://maps.example.com/embed/location"></iframe>',
-        )
+        ).raw
     )
 
-    assert policy["video_embed"] is False
-    assert "VideoObject" not in policy["required_entities"]
+    assert inspection.has_supported_embed is False
+    assert inspection.errors == ()
 
 
 @pytest.mark.parametrize(
@@ -142,21 +141,20 @@ def test_schema_policy_ignores_a_non_video_iframe(tmp_path: Path):
         "~~~html\n<iframe src=\"https://www.youtube.com/embed/dQw4w9WgXcQ\"></iframe>\n~~~",
     ),
 )
-def test_schema_policy_ignores_inline_and_tilde_fenced_embed_examples(
+def test_inline_and_tilde_fenced_embed_examples_are_ignored(
     tmp_path: Path,
     body: str,
 ):
-    policy = _schema_policy(_article(tmp_path, body=body))
+    inspection = inspect_video_embeds(_article(tmp_path, body=body).raw)
 
-    assert policy["video_embed"] is False
-    assert "VideoObject" not in policy["required_entities"]
+    assert inspection.has_supported_embed is False
+    assert inspection.errors == ()
 
 
-def test_schema_policy_rejects_unclosed_video_iframe(tmp_path: Path):
-    with pytest.raises(ValueError, match="video embed"):
-        _schema_policy(
-            _article(
-                tmp_path,
-                body='<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ">',
-            )
-        )
+def test_an_unclosed_video_iframe_reports_an_error(tmp_path: Path):
+    assert inspect_video_embeds(
+        _article(
+            tmp_path,
+            body='<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ">',
+        ).raw
+    ).errors

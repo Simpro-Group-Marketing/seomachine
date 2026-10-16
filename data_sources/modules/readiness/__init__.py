@@ -1,8 +1,7 @@
 """Run-scoped publish-readiness infrastructure.
 
-The public command remains ``data_sources.modules.publish_readiness``.  This
-package contains the small, single-responsibility building blocks used by that
-compatibility facade and the atomic blog-release workflow.
+Landing-page readiness enters through ``readiness.api``. This package also
+holds the artifact-store building blocks the production blog release uses.
 """
 
 from .artifact_store import InstrumentedArtifactStore

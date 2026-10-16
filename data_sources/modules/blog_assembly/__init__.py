@@ -1,1 +1,1 @@
-"""Single-responsibility blog assembly implementation."""
+"""Archived blog assembly BOM schema constants."""

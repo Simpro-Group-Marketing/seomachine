@@ -6,6 +6,11 @@ from typing import Any, Dict, List
 
 from .common import SIMPRO_CONTEXT_GATE_NAMES
 
+RETIRED_BLOG_READINESS = (
+    "unsupported artifact_kind blog: readiness serves landing pages only; "
+    "blogs release through /publish-readiness (production.release)"
+)
+
 
 def missing_gate_finding(
     rule_id: str,
@@ -50,4 +55,4 @@ def artifact_kind_rule_id(message: str) -> str:
     return "artifact_kind_missing"
 
 
-__all__ = ["artifact_kind_rule_id", "missing_gate_finding", "skip_article_gate"]
+__all__ = ["RETIRED_BLOG_READINESS", "artifact_kind_rule_id", "missing_gate_finding", "skip_article_gate"]

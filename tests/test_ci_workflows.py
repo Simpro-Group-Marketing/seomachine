@@ -60,8 +60,7 @@ def test_humanizer_compatibility_installs_connector_free_runtime():
 
     assert RUNTIME_WITHOUT_CONNECTOR in compatibility
     assert "-r requirements-dev.txt" in compatibility
-    for vault_dependent in ("tests/test_publish_readiness.py", "tests/test_content_scorer_aeo_geo_gate.py"):
-        assert vault_dependent not in compatibility
+    assert "tests/test_content_scorer_aeo_geo_gate.py" not in compatibility
 
 
 def test_all_workflows_pin_official_actions_to_full_shas():

@@ -11,7 +11,6 @@ NON_ARTICLE_EXECUTORS = frozenset(
     {
         "artifact_identity",
         "context_binding",
-        "blog_assembly_bom",
         "public_artifact",
         "ai_copy_linter",
         "url_validator",

@@ -2,8 +2,7 @@
   "schema": "simpro-python-structure-baseline/v1",
   "maximum_lines": 500,
   "strict_files": [
-    "data_sources/modules/competitive_shortlist_guard.py",
-    "data_sources/modules/publish_readiness.py"
+    "data_sources/modules/competitive_shortlist_guard.py"
   ],
   "strict_directories": [
     "data_sources/modules/readiness"
@@ -12,9 +11,7 @@
     "data_sources/modules/fred_authority_guard.py": 1016,
     "data_sources/modules/named_feature_status_guard.py": 1187
   },
-  "complexity_strict_files": [
-    "data_sources/modules/publish_readiness.py"
-  ],
+  "complexity_strict_files": [],
   "complexity_strict_directories": [
     "data_sources/modules/readiness"
   ]

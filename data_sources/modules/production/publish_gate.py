@@ -19,7 +19,7 @@ from data_sources.modules.production.record import verify_publishable
 from data_sources.modules.production.usage_ledger import record_publish_use
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-RETIRED_BLOG_GATE_ARGS = ("proof_sidecar", "context_request", "context_pack", "context_receipt", "assembly_bom", "vault_root")
+RETIRED_BLOG_GATE_ARGS = ("proof_sidecar", "context_request", "context_pack", "context_receipt", "vault_root")
 
 
 def release_root(workspace_root: str | Path | None) -> Path:

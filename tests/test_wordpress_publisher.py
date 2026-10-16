@@ -32,12 +32,6 @@ def passing_readiness():
     }
 
 
-def _write_bom(tmpdir: str) -> str:
-    path = Path(tmpdir) / "blog-assembly-bom.json"
-    path.write_text('{"schema":"simpro-blog-assembly-bom/v1"}', encoding="utf-8")
-    return str(path)
-
-
 def failing_readiness(gate_name: str = DEFAULT_FAILING_GATE_NAME):
     return {
         "passed": False,
@@ -425,7 +419,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             request = Path(tmp) / "context-request.json"
             pack = Path(tmp) / "context-pack.json"
             receipt = Path(tmp) / "context-receipt.json"
-            bom = Path(_write_bom(tmp))
             path.write_text(DRAFT, encoding="utf-8")
             sidecar.write_text("Metric Proof Pack\n", encoding="utf-8")
 
@@ -444,7 +437,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                         context_request=str(request),
                         context_pack=str(pack),
                         context_receipt=str(receipt),
-                        assembly_bom=str(bom),
                         vault_root=Path(tmp),
                     )
 
@@ -455,7 +447,6 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
             context_request=str(request),
             context_pack=str(pack),
             context_receipt=str(receipt),
-            assembly_bom=str(bom),
             vault_root=Path(tmp),
         )
         create_draft.assert_not_called()
@@ -577,7 +568,7 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         self.assertEqual(calls, ["readiness", "create_draft"])
         self.assertEqual(result["post_id"], 123)
 
-    def test_publish_forwards_bom_and_reports_bom_hash(self):
+    def test_publish_forwards_sidecar_and_reports_its_hash(self):
         publisher = WordPressPublisher(
             url="https://wordpress.example",
             username="editor",
@@ -587,10 +578,9 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "landing-page.md"
             sidecar = Path(tmp) / "validation.md"
-            bom = Path(_write_bom(tmp))
-            bom_hash = hashlib.sha256(bom.read_bytes()).hexdigest()
             path.write_text(DRAFT, encoding="utf-8")
             sidecar.write_text("Metric Proof Pack\n", encoding="utf-8")
+            sidecar_hash = hashlib.sha256(sidecar.read_bytes()).hexdigest()
             with (
                 patch(
                     "data_sources.modules.wordpress_publisher.run_publish_readiness",
@@ -607,22 +597,16 @@ class WordPressPublisherPreflightTests(unittest.TestCase):
                     str(path),
                     post_type="page",
                     proof_sidecar=str(sidecar),
-                    assembly_bom=str(bom),
                 )
 
         readiness.assert_called_once_with(
             str(path),
             artifact_kind="landing_page",
             proof_sidecar=str(sidecar),
-            context_request=None,
-            context_pack=None,
-            context_receipt=None,
-            assembly_bom=str(bom),
-            vault_root=None,
         )
         self.assertEqual(
-            result["publish_input_sha256"]["assembly_bom"],
-            bom_hash,
+            result["publish_input_sha256"]["proof_sidecar"],
+            sidecar_hash,
         )
 
     def test_publish_rejects_article_changed_during_readiness(self):

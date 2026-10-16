@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
-from data_sources.modules import publish_readiness
 from data_sources.modules.readiness import api as readiness_api
-from data_sources.modules.readiness import finalization, pipeline_tail, runtime_policy
+from data_sources.modules.readiness import pipeline_tail, runtime_policy
 from data_sources.modules.readiness import snapshot_gates
 from data_sources.modules.readiness.inputs import ReadinessInputs
 from data_sources.modules.url_validator import UrlValidationSummary
@@ -149,7 +147,7 @@ def test_early_blocked_result_is_resealed_and_hash_bound(tmp_path: Path) -> None
         encoding="utf-8",
     )
 
-    result = publish_readiness.run_publish_readiness(
+    result = readiness_api.run_publish_readiness(
         article,
         workspace_root=tmp_path,
     )
@@ -238,72 +236,6 @@ def test_eeat_gate_uses_every_captured_evidence_payload(
         "customer_proof_evidence": {"status": "ready"},
         "fred_authority_content": "fred",
     }
-
-
-def test_final_attestation_owns_a_validation_session_through_reseal(
-    tmp_path: Path,
-    monkeypatch,
-) -> None:
-    article = tmp_path / "article.md"
-    sidecar = tmp_path / "validation.md"
-    final_bom = tmp_path / "final-bom.json"
-    registry = tmp_path / "registry.json"
-    article.write_text("# Article\n", encoding="utf-8")
-    sidecar.write_text("proof\n", encoding="utf-8")
-    final_bom.write_text(
-        '{"lifecycle_state":"final","artifacts":{}}\n',
-        encoding="utf-8",
-    )
-    registry.write_text('{"schema":"registry"}\n', encoding="utf-8")
-    events: list[str] = []
-
-    class RecordingSession:
-        def __init__(self, inputs: ReadinessInputs) -> None:
-            self.inputs = inputs
-
-        @classmethod
-        def capture(cls, paths, **kwargs):
-            events.append("capture")
-            return cls(
-                ReadinessInputs.capture(
-                    paths,
-                    workspace_root=kwargs["workspace_root"],
-                    telemetry=kwargs.get("telemetry"),
-                )
-            )
-
-        def __enter__(self):
-            events.append("enter")
-            return self
-
-        def __exit__(self, *args):
-            events.append("exit")
-
-    monkeypatch.setattr(finalization, "ValidationSession", RecordingSession, raising=False)
-    result = finalization.build_final_attestation(
-        {
-            "phase": "preflight",
-            "artifact_kind": "blog",
-            "file": str(article),
-            "proof_sidecar": str(sidecar),
-            "input_hashes": {
-                "source_decision_registry": {
-                    "path": "registry.json",
-                    "sha256": hashlib.sha256(registry.read_bytes()).hexdigest(),
-                }
-            },
-        },
-        final_bom_path=final_bom,
-        workspace_root=tmp_path,
-        validate_execution=lambda *args, **kwargs: None,
-        validate_result=lambda *args, **kwargs: None,
-        executed_result_factory=lambda value, **kwargs: value,
-        readiness_run_id=lambda bom, article_hash: f"{bom}:{article_hash}",
-        dependencies=finalization.FinalizationDependencies(final_bom_guard=lambda *_a, **_k: []),
-    )
-    assert result["input_seal"] == {"status": "verified"}
-    assert "source_decision_registry" in result["input_hashes"]
-    assert events == ["capture", "enter", "exit"]
 
 
 def test_source_registry_state_is_loaded_from_captured_bytes(tmp_path: Path) -> None:

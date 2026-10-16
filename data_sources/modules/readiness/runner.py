@@ -1,44 +1,29 @@
-"""Serial gate runner for publish readiness."""
-# ruff: noqa: F401
+"""Serial gate runner for landing-page publish readiness."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Mapping
+from typing import Any, List, Mapping
 
 from .adapters import (
     _blocked_readiness_result,
     _gate_from_findings,
-    _score_content,
-    _scorecard_from_scorer_result,
     _timed_call,
 )
 from .common import (
-    ContentScorer,
     FrontmatterError,
     GateResult,
-    LandingPageScorer,
     ReadinessResult,
     ReadinessTelemetry,
-    SimproVaultClient,
     ValidationSession,
     blog_identity_guard,
-    build_stage_receipt,
     context_binding_guard,
-    load_validated_claim_set,
     parse_publishable_markdown,
     read_publishable_markdown,
-    validate_file_urls,
-    write_stage_receipt,
 )
-from ..blog_bom_validation import api as blog_bom_validation_api
 from .finalization import _utc_now, finalize_blocked_result
+from .gate_policy import RETIRED_BLOG_READINESS
 from .gate_policy import artifact_kind_rule_id as _artifact_kind_rule_id
-from .persistence_api import readiness_stage_receipt_path, write_readiness_result
 from .pipeline_tail import _run_remaining_gates
-from .result_validation import (
-    _validate_actual_readiness_execution,
-    validate_passed_readiness_result,
-)
-from .runtime_policy import _bom_runtime_policy, _no_fit_customer_proof_findings
+from .runtime_policy import _bom_runtime_policy
 from ..wording_edit_lineage import verified_bom_lineage
 from .workspace_bindings import (
     _captured_context_payloads,
@@ -81,6 +66,8 @@ def _resolve_artifact_kind_value(
             raise ValueError("artifact_kind must be blog or landing_page")
         if requested == "blog" and detected != "blog":
             raise ValueError("artifact_kind does not match the article")
+        if "blog" in (requested, detected):
+            raise ValueError(RETIRED_BLOG_READINESS)
         return requested or detected, None
     except ValueError as error:
         return None, error
@@ -207,100 +194,6 @@ def _run_context_gate(
     )
 
 
-def _validate_bom_and_capture_hashes(
-    *,
-    article_path: Path,
-    artifact_kind: str,
-    paths: Mapping[str, str | None],
-    phase: str,
-    readiness_root: Path,
-    context_result: Any,
-    vault_root: str | Path | None,
-    session: ValidationSession | None,
-    input_capture_error: ValueError | None,
-    telemetry: ReadinessTelemetry | None,
-    gates: List[GateResult],
-    score_threshold: int,
-) -> tuple[ReadinessResult | None, Dict[str, Dict[str, str]] | None]:
-    bom_path = paths["assembly_bom"]
-    if artifact_kind == "blog" and bom_path is None:
-        gate = _gate_from_findings(
-            "blog_assembly_bom",
-            "Blog Assembly BOM",
-            [blog_bom_validation_api.missing_bom_finding()],
-        )
-        gates.append(gate)
-        return _blocked_for_gate(
-            gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=artifact_kind,
-            gates=gates,
-            score_threshold=score_threshold,
-        ), None
-    if bom_path is None:
-        return None, None
-    if session is None:
-        raise ValueError("readiness input snapshot is unavailable")
-    gate = _gate_from_findings(
-        "blog_assembly_bom",
-        "Blog Assembly BOM",
-        _timed_call(
-            telemetry,
-            "gate.blog_assembly_bom",
-            blog_bom_validation_api.check_bom,
-            _captured_json(session.inputs, "assembly_bom"),
-            article_path=article_path,
-            validation_sidecar_path=paths["proof_sidecar"] or "",
-            context_request_path=paths["context_request"],
-            context_pack_path=paths["context_pack"],
-            context_receipt_path=paths["context_receipt"],
-            workspace_root=readiness_root,
-            expected_lifecycle_state="provisional" if phase == "preflight" else "final",
-            require_current_schema=True,
-            context_result=context_result,
-            vault_root=vault_root,
-            captured=session.inputs,
-        ),
-    )
-    gates.append(gate)
-    if not gate["passed"]:
-        return _blocked_for_gate(
-            gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=artifact_kind,
-            gates=gates,
-            score_threshold=score_threshold,
-        ), None
-    try:
-        if input_capture_error is not None:
-            raise input_capture_error
-        if session is None:
-            raise ValueError("readiness input snapshot is unavailable")
-        return None, session.inputs.hash_inventory()
-    except ValueError as error:
-        seal_gate = _failure_gate(
-            "input_seal",
-            "Input Seal",
-            rule_id="readiness_input_snapshot_invalid",
-            message=str(error),
-            suggestion="Regenerate the BOM from unchanged current artifacts.",
-        )
-        gates.append(seal_gate)
-        return _blocked_for_gate(
-            seal_gate,
-            phase=phase,
-            article_path=article_path,
-            paths=paths,
-            artifact_kind=artifact_kind,
-            gates=gates,
-            score_threshold=score_threshold,
-        ), None
-
-
 def _run_publish_readiness(
     file_path: str | Path,
     *,
@@ -422,7 +315,7 @@ def _run_publish_readiness(
             input_capture_error=input_capture_error,
         )
 
-    context_result, context_gate = _run_context_gate(
+    _, context_gate = _run_context_gate(
         article_path=article_path,
         article_content=article_content,
         paths=paths,
@@ -449,27 +342,6 @@ def _run_publish_readiness(
         )
 
     sealed_inputs = session.inputs if session is not None else None
-    blocked, sealed_input_hashes = _validate_bom_and_capture_hashes(
-        article_path=article_path,
-        artifact_kind=artifact_kind,
-        paths=paths,
-        phase=phase,
-        readiness_root=readiness_root,
-        context_result=context_result,
-        vault_root=vault_root,
-        session=session,
-        input_capture_error=input_capture_error,
-        telemetry=telemetry,
-        gates=gates,
-        score_threshold=score_threshold,
-    )
-    if blocked is not None:
-        return _sealed_blocked_result(
-            blocked,
-            session=session,
-            input_capture_error=input_capture_error,
-        )
-
     return _run_remaining_gates(
         run_started_at=run_started_at,
         article_path=article_path,
@@ -491,7 +363,7 @@ def _run_publish_readiness(
         runtime_policy=runtime_policy,
         session=session,
         sealed_inputs=sealed_inputs,
-        sealed_input_hashes=sealed_input_hashes,
+        sealed_input_hashes=None,
         input_capture_error=input_capture_error,
         telemetry=telemetry,
         run_id=run_id,

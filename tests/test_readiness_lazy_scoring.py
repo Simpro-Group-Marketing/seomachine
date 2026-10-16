@@ -32,7 +32,7 @@ def _imported_scoring_modules(statement: str) -> list[str]:
 
 def test_importing_readiness_does_not_load_scoring_stack() -> None:
     imported = _imported_scoring_modules(
-        "import data_sources.modules.publish_readiness"
+        "import data_sources.modules.readiness.api"
     )
 
     assert imported == []
@@ -40,7 +40,7 @@ def test_importing_readiness_does_not_load_scoring_stack() -> None:
 
 def test_legacy_scorer_factories_load_only_the_requested_stack() -> None:
     imported = _imported_scoring_modules(
-        "from data_sources.modules import publish_readiness as readiness; "
+        "from data_sources.modules.readiness import common as readiness; "
         "readiness.ContentScorer"
     )
 
@@ -50,7 +50,7 @@ def test_legacy_scorer_factories_load_only_the_requested_stack() -> None:
 def test_early_input_blocker_does_not_load_scoring_stack() -> None:
     imported = _imported_scoring_modules(
         "import tempfile; from pathlib import Path; "
-        "from data_sources.modules.publish_readiness import run_publish_readiness; "
+        "from data_sources.modules.readiness.api import run_publish_readiness; "
         "root=Path(tempfile.mkdtemp()); "
         "result=run_publish_readiness(root/'missing.md', workspace_root=root); "
         "assert not result['passed']"

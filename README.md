@@ -95,10 +95,10 @@ Use slash commands; scripts and MCP calls are implementation details the command
 | `/write [topic]` | Native draft in `drafts/` from the production BOM, with parallel advisory reviewers |
 | `/rewrite [topic]` | Native rewrite in `rewrites/` with SEO plus AEO/GEO rewrite gates |
 | `/analyze-existing [URL or file]` | Content health and AEO/GEO rewrite-readiness audit |
-| `/optimize [file]` | Required post-preflight SEO/AEO repair or recorded no-op pass |
+| `/optimize [file]` | Revise from the latest release record's blocking findings and priority fixes, then release again |
 | `/scrub [file]` | Read-only diagnostics for invisible Unicode marks, em dashes, and whitespace artifacts |
 | `/publish-readiness [file]` | One-pass release (truth, coverage, and the three scores) that writes the release record; the sole release verdict |
-| `/publish-draft [file]` | Publish an article to WordPress via REST API with Yoast SEO metadata after readiness passes |
+| `/publish-draft [file]` | Publish an article to WordPress via REST API with Yoast SEO metadata; a blog post needs a passing release record |
 | `/performance-review [days]` | Analytics-driven content-work queue |
 | `/priorities` | Content prioritization matrix |
 | `/content-calendar` | Month-long content calendar mapped to clusters, keywords, and cadence |

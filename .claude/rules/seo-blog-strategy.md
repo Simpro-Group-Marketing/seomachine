@@ -46,6 +46,6 @@ The article frontmatter needs a valid `last_updated: YYYY-MM-DD` that is not lat
 
 ## Protected Gates and Scope
 
-The production release is the only release gate: BOM rebuild, truth, coverage, and the three score gates. WordPress and Grav publishing remain downstream of publish readiness. There is no permanent warning-only or publisher bypass. The context binding, URL, proof, vault, FAQ, PAA, capsule, early-artifact, answer-withholding, internal-link-count, Fred authority, and 85/90 score policies in `context/aeo-geo-blog-strategy.md` still apply; the release enforces each one its BOM build, truth, coverage, or scorer checks cover.
+The production release is the only release gate: BOM rebuild, truth, coverage, and the three score gates. WordPress and Grav publishing remain downstream of the release: a blog post publishes only with a passing release record for its current bytes. There is no permanent warning-only or publisher bypass. The context binding, URL, proof, vault, FAQ, PAA, capsule, early-artifact, answer-withholding, internal-link-count, Fred authority, and 85/90 score policies in `context/aeo-geo-blog-strategy.md` still apply; the release enforces each one its BOM build, truth, coverage, or scorer checks cover.
 
 This contract does not add `llms.txt`, universal IndexNow, fixed AI-citation targets, publishing quotas, speculative ranking guarantees, rendered-schema automation, an Original Contribution Plan, or media accessibility work.

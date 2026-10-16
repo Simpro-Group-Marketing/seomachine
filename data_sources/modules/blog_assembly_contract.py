@@ -23,7 +23,6 @@ try:
     )
     from .blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
     from .blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
-    from .blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 except ImportError:  # pragma: no cover - supports direct script execution.
     from bounded_io import canonical_json_bytes as _canonical_json_bytes
     from bounded_io import canonical_json_sha256 as _canonical_json_sha256
@@ -36,7 +35,6 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     from blog_sidecar_bindings import FRED_SELECTION_SECTION_RE as FRED_SELECTION_SECTION_RE
     from blog_sidecar_bindings import SELECTOR_EVIDENCE_LINE_RE as SELECTOR_EVIDENCE_LINE_RE
-    from blog_sidecar_bindings import binding_errors as _sidecar_binding_errors
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -63,10 +61,6 @@ OPTIMIZED_STAGE_SEQUENCE = (
     "final_preflight_readiness",
     "final_readiness_attestation",
 )
-NORMAL_PROVISIONAL_STAGES = NORMAL_STAGE_SEQUENCE[:3]
-NORMAL_FINAL_STAGES = NORMAL_STAGE_SEQUENCE[:4]
-OPTIMIZED_PROVISIONAL_STAGES = OPTIMIZED_STAGE_SEQUENCE[:7]
-OPTIMIZED_FINAL_STAGES = OPTIMIZED_STAGE_SEQUENCE[:8]
 
 
 @dataclass(frozen=True, slots=True)
@@ -116,14 +110,6 @@ def load_json_text(text: str, *, field: str) -> Any:
     return _parse_json(text, field=field)
 
 
-def load_json_object_text(text: str, *, field: str) -> dict[str, Any]:
-    """Parse one strict embedded JSON object without permissive decoder behavior."""
-    payload = load_json_text(text, field=field)
-    if not isinstance(payload, dict):
-        raise ValueError(f"{field} must be a JSON object")
-    return payload
-
-
 def is_json_number(value: Any) -> bool:
     """Return whether a value is a finite JSON number, explicitly excluding bool."""
     return (
@@ -133,64 +119,12 @@ def is_json_number(value: Any) -> bool:
     )
 
 
-def canonical_article_run_id(
-    article_path: str | Path,
-    *,
-    workspace_root: str | Path,
-    assembly_date: str | date,
-) -> str:
-    """Derive a run identity from the canonical article path and assembly date."""
-    root = Path(workspace_root).resolve()
-    candidate = Path(article_path).resolve()
-    if not _within(candidate, root):
-        raise ValueError("article is outside workspace")
-    relative = candidate.relative_to(root).as_posix()
-    resolve_artifact(relative, workspace_root=root)
-    if isinstance(assembly_date, datetime):
-        raise ValueError("assembly_date must be a date or canonical ISO date")
-    if isinstance(assembly_date, date):
-        date_text = assembly_date.isoformat()
-    elif isinstance(assembly_date, str):
-        try:
-            parsed = date.fromisoformat(assembly_date)
-        except ValueError as error:
-            raise ValueError("assembly_date must be a canonical ISO date") from error
-        if parsed.isoformat() != assembly_date:
-            raise ValueError("assembly_date must be a canonical ISO date")
-        date_text = assembly_date
-    else:
-        raise ValueError("assembly_date must be a date or canonical ISO date")
-    digest = hashlib.sha256(
-        f"simpro-blog-run/v1\n{relative}\n{date_text}\n".encode("utf-8")
-    ).hexdigest()
-    return f"blog-run-{digest}"
-
-
 def current_utc_date() -> date:
     """Return today's date in UTC through a patchable workflow clock."""
     test_override = os.environ.get("SEOMACHINE_TEST_CURRENT_UTC_DATE")
     if test_override:
         return date.fromisoformat(test_override)
     return datetime.now(timezone.utc).date()
-
-
-def validate_current_assembly_date(
-    value: Any,
-    *,
-    field: str = "assembly_date",
-) -> date:
-    """Require one canonical ISO date equal to the current UTC workflow date."""
-    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-        raise ValueError(f"{field} must be a canonical ISO date")
-    try:
-        parsed = date.fromisoformat(value)
-    except ValueError as error:
-        raise ValueError(f"{field} must be a canonical ISO date") from error
-    if parsed.isoformat() != value:
-        raise ValueError(f"{field} must be a canonical ISO date")
-    if parsed != current_utc_date():
-        raise ValueError(f"{field} must equal the current UTC date")
-    return parsed
 
 
 def file_sha256(path: str | Path) -> str:
@@ -346,23 +280,6 @@ def artifact_inventory_snapshots(
             continue
         add(str(label), value, field=f"artifacts.{label}")
     return snapshots
-
-
-def sidecar_evidence_binding_errors(
-    sidecar_content: str,
-    artifacts: Mapping[str, Any],
-    *,
-    workspace_root: str | Path,
-    required: bool,
-) -> list[tuple[str, str]]:
-    """Bind connector proof/Fred evidence inventory to exact sidecar evidence."""
-    return _sidecar_binding_errors(
-        sidecar_content,
-        artifacts,
-        workspace_root=workspace_root,
-        required=required,
-        resolve_artifact=resolve_artifact,
-    )
 
 
 def _snapshot_row(value: Any, *, field: str) -> dict[str, str]:

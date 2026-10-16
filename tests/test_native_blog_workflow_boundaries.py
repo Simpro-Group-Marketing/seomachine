@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_sources.modules import publish_readiness
+from data_sources.modules.readiness.adapters import _scorecard_from_scorer_result
 from data_sources.modules import context_binding_generator, customer_proof_selector
 from data_sources.modules.content_scrubber import scrub_file
 from data_sources.modules import fred_authority_selector
@@ -91,7 +91,7 @@ def test_readiness_scorecard_keeps_content_seo_and_aeo_gates_independent():
         },
     }
 
-    scorecard = publish_readiness._scorecard_from_scorer_result(
+    scorecard = _scorecard_from_scorer_result(
         scorer_result,
         artifact_kind="blog",
     )
@@ -130,7 +130,7 @@ def test_readiness_scorecard_reports_seo_target_separately_from_release_floor(
     expected_target_met,
     expected_target_status,
 ):
-    scorecard = publish_readiness._scorecard_from_scorer_result(
+    scorecard = _scorecard_from_scorer_result(
         {
             "content_quality_score": 95,
             "threshold": 85,
@@ -155,7 +155,7 @@ def test_readiness_scorecard_reports_seo_target_separately_from_release_floor(
 
 
 def test_readiness_scorecard_fails_floor_when_critical_issues_exist_even_at_target():
-    scorecard = publish_readiness._scorecard_from_scorer_result(
+    scorecard = _scorecard_from_scorer_result(
         {
             "content_quality_score": 95,
             "threshold": 85,
@@ -179,7 +179,7 @@ def test_readiness_scorecard_fails_floor_when_critical_issues_exist_even_at_targ
 
 
 def test_readiness_scorecard_uses_the_canonical_seo_threshold():
-    scorecard = publish_readiness._scorecard_from_scorer_result(
+    scorecard = _scorecard_from_scorer_result(
         {
             "content_quality_score": 95,
             "threshold": 85,
@@ -214,7 +214,7 @@ def test_landing_scorecard_marks_blog_only_gates_not_applicable():
         "priority_fixes": [],
     }
 
-    scorecard = publish_readiness._scorecard_from_scorer_result(
+    scorecard = _scorecard_from_scorer_result(
         scorer_result,
         artifact_kind="landing_page",
     )

@@ -12,7 +12,7 @@ python -m data_sources.modules.production.record verify "$FILE_PATH"
 
 Exit `0` means publishable. Exit `1` prints the refusal reason: no record, a failing release, or an article, BOM, spec, or evidence file changed since the passing release. Fix it through `/write`, `/rewrite`, or `/optimize`, then rerun `/publish-readiness`. Exit `2` is a layout error: the article must sit directly in `drafts/` or `rewrites/` as `<slug>-YYYY-MM-DD.md`. The publisher enforces the same check internally and rechecks the article hash before every WordPress write.
 
-The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-pack`, `--context-receipt`, `--assembly-bom`, `--vault-root`) are refused for blog posts with exit `2`. Landing pages use `/landing-publish`, which keeps its own readiness gate and flags.
+The retired readiness flags (`--proof-sidecar`, `--context-request`, `--context-pack`, `--context-receipt`, `--vault-root`) are refused for blog posts with exit `2`. Landing pages use `/landing-publish`, which keeps its own readiness gate and flags.
 
 ## Usage
 `/publish-draft [filename] [--type post|page]`

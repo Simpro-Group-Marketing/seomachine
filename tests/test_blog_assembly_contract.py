@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -16,10 +15,8 @@ from data_sources.modules.blog_assembly_contract import (
     order_blog_gate_results,
     resolve_artifact,
     validate_governance_output_path,
-    validate_current_assembly_date,
     validate_sha256,
 )
-from data_sources.modules import blog_assembly_contract
 
 
 @pytest.mark.parametrize(
@@ -170,20 +167,6 @@ def test_validate_sha256_requires_lowercase_64_character_digest():
     assert validate_sha256("a" * 64) == "a" * 64
     with pytest.raises(ValueError, match="lowercase SHA-256"):
         validate_sha256("A" * 64)
-
-
-def test_current_assembly_date_validation_is_utc_bound_and_patchable(monkeypatch):
-    monkeypatch.setattr(
-        blog_assembly_contract,
-        "current_utc_date",
-        lambda: date(2026, 8, 11),
-    )
-
-    assert validate_current_assembly_date("2026-08-11") == date(2026, 8, 11)
-    with pytest.raises(ValueError, match="current UTC date"):
-        validate_current_assembly_date("2026-08-10")
-    with pytest.raises(ValueError, match="current UTC date"):
-        validate_current_assembly_date("2026-08-12")
 
 
 def test_atomic_write_json_replaces_destination_without_temp_leak(tmp_path: Path):
