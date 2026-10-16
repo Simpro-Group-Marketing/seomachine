@@ -32,25 +32,10 @@ try:
     )
     from .production import publish_gate
     from .readiness.api import run_publish_readiness
-except ImportError:
-    from artifact_runtime.limits import JSON_MAX_BYTES
-    from bounded_io import bounded_json_bytes
-    from publisher_transport import publisher_response_preview, read_wordpress_json
-    from publishable_markdown import (
-        PublishableMarkdown,
-        capture_file_snapshots,
-        ensure_same_file_snapshots,
-        ensure_same_snapshot,
-        metadata_path_tail,
-        read_publishable_markdown,
-    )
-    from publish_content_safety import (
-        PublishContentSafetyError,
-        validate_publish_content,
-        validate_publish_plain_text,
-    )
-    from production import publish_gate
-    from readiness.api import run_publish_readiness
+except ImportError as error:  # run as a script: the package-relative imports cannot resolve
+    if __package__:
+        raise
+    raise SystemExit("Run as: python -m data_sources.modules.wordpress_publisher <file>") from error
 
 
 WORDPRESS_REQUEST_TIMEOUT = (5, 30)

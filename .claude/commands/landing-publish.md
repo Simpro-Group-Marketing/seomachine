@@ -90,7 +90,7 @@ Context Binding must pass before downstream proof, URL, quality, or handoff gate
 
 ### Step 4: WordPress API Call
 
-Uses existing `wordpress_publisher.py` module:
+Uses the existing `wordpress_publisher` module; run it from the command line only as `python -m data_sources.modules.wordpress_publisher`:
 
 ```python
 from data_sources.modules.wordpress_publisher import WordPressPublisher

@@ -93,3 +93,19 @@ def test_documented_invocation_loads(case):
         f"documented command `python {' '.join(argv)}` cannot load "
         f"({', '.join(failures)}):\n{result.stderr.strip()}"
     )
+
+
+@pytest.mark.parametrize("module", ["wordpress_publisher", "grav_publisher"])
+def test_publishers_run_as_a_script_name_the_module_form(module):
+    result = subprocess.run(
+        [sys.executable, f"data_sources/modules/{module}.py", "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    combined = f"{result.stdout}\n{result.stderr}"
+    assert result.returncode != 0
+    assert f"python -m data_sources.modules.{module}" in result.stderr
+    assert not [marker for marker in IMPORT_FAILURE_MARKERS if marker in combined]

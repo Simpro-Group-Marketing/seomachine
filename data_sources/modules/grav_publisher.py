@@ -45,22 +45,10 @@ try:
         validate_publish_plain_text,
     )
     from .production import publish_gate
-except ImportError:
-    from artifact_runtime.limits import JSON_MAX_BYTES
-    from artifact_runtime.subprocesses import run_bounded_text_process
-    from bounded_io import bounded_json_bytes
-    from publishable_markdown import (
-        PublishableMarkdown,
-        ensure_same_snapshot,
-        metadata_path_tail,
-        read_publishable_markdown,
-    )
-    from publish_content_safety import (
-        PublishContentSafetyError,
-        validate_publish_content,
-        validate_publish_plain_text,
-    )
-    from production import publish_gate
+except ImportError as error:  # run as a script: the package-relative imports cannot resolve
+    if __package__:
+        raise
+    raise SystemExit("Run as: python -m data_sources.modules.grav_publisher <file>") from error
 
 
 GH_TIMEOUT_SECONDS = 30
