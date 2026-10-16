@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Mapping
 
 from .common import (
     GateResult,
+    LANDING_AEO_NOT_APPLICABLE,
     LANDING_PAGE_SCORE_THRESHOLD,
     LandingPageScorer,
     READINESS_RESULT_SCHEMA,
@@ -73,7 +74,7 @@ def _blocked_readiness_result(
         "gates": gates,
         "score": None,
         "score_threshold": score_threshold,
-        "aeo_geo": {"score": None, "threshold": 90, "passed": False},
+        "aeo_geo": dict(LANDING_AEO_NOT_APPLICABLE),
         "priority_fixes": [
             {
                 "dimension": str(gate.get("name") or ""),
@@ -144,12 +145,7 @@ def _score_content(
             "passed": False,
             "content_quality_score": None,
             "threshold": LANDING_PAGE_SCORE_THRESHOLD,
-            "aeo_geo": {
-                "score": None,
-                "threshold": None,
-                "passed": True,
-                "not_applicable": True,
-            },
+            "aeo_geo": dict(LANDING_AEO_NOT_APPLICABLE),
             "priority_fixes": [
                 {
                     "dimension": "landing_page_metadata",
@@ -178,12 +174,7 @@ def _score_content(
         "passed": bool(result.get("publishing_ready")),
         "content_quality_score": result.get("overall_score"),
         "threshold": LANDING_PAGE_SCORE_THRESHOLD,
-        "aeo_geo": {
-            "score": None,
-            "threshold": None,
-            "passed": True,
-            "not_applicable": True,
-        },
+        "aeo_geo": dict(LANDING_AEO_NOT_APPLICABLE),
         "priority_fixes": issues,
         "gate_name": "landing_page_scorer",
         "gate_label": "Landing Page Scorer",

@@ -10,6 +10,8 @@ GateResult = dict[str, Any]
 ReadinessResult = dict[str, Any]
 READINESS_RESULT_SCHEMA = "simpro-publish-readiness-result/v1"
 LANDING_PAGE_SCORE_THRESHOLD = 75
+# Landing pages are not AEO/GEO scored; every landing result reports this block.
+LANDING_AEO_NOT_APPLICABLE = {"score": None, "threshold": None, "passed": True, "not_applicable": True}
 
 
 class ExecutedReadinessResult(dict[str, Any]):

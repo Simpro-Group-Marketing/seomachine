@@ -55,6 +55,7 @@ try:
     )
     from .inputs import ReadinessInputs
     from .contracts import (
+        LANDING_AEO_NOT_APPLICABLE,
         LANDING_PAGE_SCORE_THRESHOLD,
         READINESS_RESULT_SCHEMA,
         ExecutedReadinessResult,
@@ -111,6 +112,7 @@ except ImportError:  # pragma: no cover - supports direct script execution.
     )
     from readiness.inputs import ReadinessInputs
     from readiness.contracts import (
+        LANDING_AEO_NOT_APPLICABLE,
         LANDING_PAGE_SCORE_THRESHOLD,
         READINESS_RESULT_SCHEMA,
         ExecutedReadinessResult,

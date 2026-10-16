@@ -314,6 +314,7 @@ def test_missing_artifact_kind_fails_before_context_binding(page):
     assert [gate["name"] for gate in result["gates"]] == ["artifact_identity", "input_seal"]
     assert result["gates"][0]["findings"][0]["rule_id"] == "artifact_kind_missing"
     assert result["score_threshold"] == 75
+    assert result["aeo_geo"] == {"score": None, "threshold": None, "passed": True, "not_applicable": True}
     assert order == []
 
 
@@ -332,6 +333,7 @@ def test_missing_direct_input_fails_before_any_gate(page):
     assert result["passed"] is False
     assert [gate["name"] for gate in result["gates"]] == ["input_seal"]
     assert result["score_threshold"] == 75
+    assert result["aeo_geo"] == {"score": None, "threshold": None, "passed": True, "not_applicable": True}
     assert order == []
 
 

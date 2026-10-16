@@ -238,7 +238,4 @@ class AeoGeoRaterQualityTests(AeoGeoRaterTestCase):
         )
 
         self.assertTrue(unbound['checks']['metadata']['passed'])
-        self.assertEqual(
-            unbound['checks']['metadata']['details']['author_policy_status'],
-            '',
-        )
+        self.assertNotIn('author_policy_status', unbound['checks']['metadata']['details'])

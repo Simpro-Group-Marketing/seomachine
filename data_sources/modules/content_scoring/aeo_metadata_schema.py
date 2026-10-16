@@ -90,7 +90,6 @@ def _check_metadata_quality(
             'last_updated': raw_updated,
             'assembly_date': bound_assembly_date,
             'freshness_status': freshness_status,
-            'author_policy_status': '',
         },
     }
 
@@ -143,7 +142,6 @@ def _check_author_voice(
         'severity': 'high',
         'details': {
             'has_author': has_author,
-            'author_policy_status': '',
             'first_person_terms': first_person_terms,
         },
     }
@@ -210,7 +208,6 @@ def _check_schema(
             'unknown_entities': unknown,
             'has_supported_video_embed': has_supported_video_embed,
             'video_embed_errors': list(video_inspection.errors),
-            'author_policy_status': '',
         },
     }
     if item_list.active:

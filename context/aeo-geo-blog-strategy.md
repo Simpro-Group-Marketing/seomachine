@@ -30,7 +30,7 @@ For every Simpro blog, retrieve current voice and tone guidance through the vaul
 
 Author metadata controls public identity, Person schema, and whether first-person author voice is allowed; it provides zero Expertise and zero Experience credit without selected, source-visible evidence that satisfies the corresponding proof boundary.
 
-When `author_policy.status` is `no_author` or the legacy value `not_provided`, first-person singular author judgment outside quotes is prohibited.
+When the article has no named `author` in frontmatter, first-person singular author judgment outside quotes is prohibited.
 
 ## Named Feature Status And Commercial Treatment
 

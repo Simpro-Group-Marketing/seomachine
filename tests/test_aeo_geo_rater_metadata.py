@@ -273,10 +273,7 @@ class AeoGeoRaterMetadataTests(AeoGeoRaterTestCase):
         metadata_check = result["checks"]["metadata"]
         self.assertTrue(metadata_check["passed"])
         self.assertFalse(metadata_check["details"]["has_author"])
-        self.assertEqual(
-            metadata_check["details"]["author_policy_status"],
-            "",
-        )
+        self.assertNotIn("author_policy_status", metadata_check["details"])
 
     def test_missing_author_without_no_author_policy_still_passes_metadata(self):
         content = COMPLIANT_ARTICLE.replace("Author: Jordan Lee\n", "")

@@ -4,6 +4,7 @@ from typing import Any
 
 from .adapters import _gate_from_findings
 from .common import (
+    LANDING_AEO_NOT_APPLICABLE,
     LANDING_PAGE_SCORE_THRESHOLD,
     READINESS_RESULT_SCHEMA,
     ReadinessResult,
@@ -204,7 +205,7 @@ def _input_capture_blocked_result(
         "gates": [gate],
         "score": None,
         "score_threshold": LANDING_PAGE_SCORE_THRESHOLD,
-        "aeo_geo": {"score": None, "threshold": 90, "passed": False},
+        "aeo_geo": dict(LANDING_AEO_NOT_APPLICABLE),
         "priority_fixes": [{"dimension": gate_name, "issue": str(error)}],
     }
 
