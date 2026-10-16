@@ -14,7 +14,6 @@ from typing import Any, Mapping, Sequence
 from urllib.parse import unquote, urlsplit
 
 try:
-    from .blog_bom_validation.api import check_archived_final_bom
     from .blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
@@ -26,7 +25,6 @@ try:
     )
     from .guard_common import Finding, make_finding, should_fail
 except ImportError:  # pragma: no cover - supports direct script execution.
-    from blog_bom_validation.api import check_archived_final_bom
     from blog_assembly_contract import (
         atomic_write_json,
         canonical_artifact,
@@ -52,7 +50,7 @@ RECEIPT_FIELDS = frozenset(
     }
 )
 METADATA_FIELDS = RECEIPT_FIELDS - {"schema", "verification_scope", "performance_report", "receipt_hash"}
-RELEASE_BINDING_FIELDS = frozenset({"mode", "canonical_url", "normalized_path", "article", "final_bom"})
+RETIRED_RELEASE_ARTIFACT = "archived-BOM release_artifact receipts are retired; re-measure with live_url"
 LIVE_BINDING_FIELDS = frozenset({"mode", "canonical_url", "normalized_path", "verified_at", "verification_method", "limitations"})
 WINDOW_FIELDS = frozenset({"start_date", "end_date"})
 WINDOWS_FIELDS = frozenset({"primary", "comparison", "supplemental"})
@@ -283,14 +281,10 @@ def build_receipt(
     metadata: Mapping[str, Any],
     performance_report_path: str | Path,
     workspace_root: str | Path,
-    article_path: str | Path | None = None,
-    final_bom_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Build a hash-bound internal measurement receipt from supplied observations."""
     if not isinstance(metadata, Mapping) or set(metadata) != METADATA_FIELDS:
         raise ValueError("metadata must contain the exact post-publish receipt field set")
-    if (article_path is None) != (final_bom_path is None):
-        raise ValueError("both article_path and final_bom_path are required together")
 
     root = Path(workspace_root).resolve()
     binding = metadata.get("article_binding")
@@ -298,28 +292,11 @@ def build_receipt(
         raise ValueError("article_binding must be an object")
     mode = binding.get("mode")
     if mode == "release_artifact":
-        if set(binding) != {"mode", "canonical_url", "normalized_path"}:
-            raise ValueError("release_artifact metadata binding cannot contain computed article or BOM rows")
-        if article_path is None or final_bom_path is None:
-            raise ValueError("release_artifact requires both article_path and final_bom_path")
-        article_path = _input_artifact_path(article_path, root)
-        final_bom_path = _input_artifact_path(final_bom_path, root)
-        article = canonical_artifact(article_path, workspace_root=root)
-        bom = canonical_artifact(final_bom_path, workspace_root=root)
-        _validate_final_bom(
-            final_bom_path,
-            article,
-            root,
-            normalized_path=binding.get("normalized_path"),
-        )
-        binding = {**binding, "article": article, "final_bom": bom}
-    elif mode == "live_url":
-        if set(binding) != LIVE_BINDING_FIELDS:
-            raise ValueError("live_url metadata binding must contain the exact required field set")
-        if article_path is not None or final_bom_path is not None:
-            raise ValueError("live_url receipts cannot use article_path or final_bom_path")
-    else:
-        raise ValueError("article_binding.mode must be release_artifact or live_url")
+        raise ValueError(RETIRED_RELEASE_ARTIFACT)
+    if mode != "live_url":
+        raise ValueError("article_binding.mode must be live_url")
+    if set(binding) != LIVE_BINDING_FIELDS:
+        raise ValueError("live_url metadata binding must contain the exact required field set")
 
     raw_rows = metadata.get("raw_data_artifacts")
     if not isinstance(raw_rows, list):
@@ -360,15 +337,11 @@ def build_receipt(
 def check_receipt(
     receipt: Any,
     workspace_root: str | Path,
-    article_path: str | Path | None = None,
-    final_bom_path: str | Path | None = None,
     performance_report_path: str | Path | None = None,
 ) -> list[Finding]:
     """Return deterministic error findings for an untrusted receipt without mutation."""
     findings: list[Finding] = []
     root = Path(workspace_root).resolve()
-    if (article_path is None) != (final_bom_path is None):
-        findings.append(_finding("measurement_receipt_path_mismatch", "article_path and final_bom_path must be supplied together"))
     if not isinstance(receipt, Mapping):
         return [_finding("measurement_receipt_schema_invalid", "receipt must be a JSON object")]
     if set(receipt) != RECEIPT_FIELDS:
@@ -390,7 +363,7 @@ def check_receipt(
     _validate_hash(receipt, findings)
 
     binding = receipt.get("article_binding")
-    mode = _validate_binding(binding, root, findings, collected_at)
+    _validate_binding(binding, root, findings, collected_at)
     primary_range = _validate_windows(
         receipt.get("measurement_windows"), findings, collected_at
     )
@@ -402,69 +375,9 @@ def check_receipt(
         primary_range[1] if primary_range else None,
     )
     _validate_scope(receipt.get("measurement_scope"), findings)
-    _validate_artifacts(receipt, root, article_path, final_bom_path, performance_report_path, mode, findings)
+    _validate_artifacts(receipt, root, performance_report_path, findings)
     _validate_status_and_recommendation(receipt, lane_states, findings)
     return _sorted(findings)
-
-
-def _validate_final_bom(
-    path: str | Path,
-    article: Mapping[str, str],
-    root: Path,
-    *,
-    normalized_path: Any = None,
-) -> None:
-    try:
-        bom = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise ValueError("final_bom must be readable JSON") from error
-    if not isinstance(bom, Mapping):
-        raise ValueError(
-            "final_bom must be a strict final "
-            "simpro-blog-assembly-bom/v3 artifact or an archived final "
-            "simpro-blog-assembly-bom/v1/simpro-blog-assembly-bom/v2 artifact"
-        )
-    artifacts = bom.get("artifacts")
-    if not isinstance(artifacts, Mapping) or artifacts.get("article") != dict(article):
-        raise ValueError("final_bom.artifacts.article must exactly match the article snapshot")
-    article_path = resolve_artifact(article.get("path"), workspace_root=root)
-    findings = check_archived_final_bom(
-        bom,
-        article_path=article_path,
-        workspace_root=root,
-    )
-    if findings:
-        rules = ", ".join(
-            sorted({str(finding.get("rule_id")) for finding in findings})
-        )
-        raise ValueError(f"final_bom must be a strict final BOM: {rules}")
-    if not isinstance(normalized_path, str):
-        raise ValueError("release_artifact normalized_path must be a string")
-    editorial_plan = artifacts.get("editorial_plan")
-    try:
-        plan_path = verify_artifact(
-            editorial_plan,
-            workspace_root=root,
-            field="final_bom.artifacts.editorial_plan",
-        )
-        plan = json.loads(plan_path.read_text(encoding="utf-8"))
-        slug = plan["meta"]["url_slug"]
-    except (
-        OSError,
-        UnicodeError,
-        json.JSONDecodeError,
-        KeyError,
-        TypeError,
-        ValueError,
-    ) as error:
-        raise ValueError(
-            "final_bom editorial plan must expose its sealed URL slug"
-        ) from error
-    path_slug = normalized_path.rstrip("/").rsplit("/", 1)[-1]
-    if not isinstance(slug, str) or not slug or path_slug != slug:
-        raise ValueError(
-            "release_artifact normalized_path must end with the sealed editorial-plan URL slug"
-        )
 
 
 def _input_artifact_path(path: str | Path, root: Path) -> Path:
@@ -500,39 +413,39 @@ def _validate_binding(
     root: Path,
     findings: list[Finding],
     collected_at: datetime | None,
-) -> str | None:
+) -> None:
     if not isinstance(value, Mapping):
         findings.append(_finding("measurement_receipt_binding_invalid", "article_binding must be an object"))
-        return None
+        return
     mode = value.get("mode")
-    expected = RELEASE_BINDING_FIELDS if mode == "release_artifact" else LIVE_BINDING_FIELDS if mode == "live_url" else None
-    if expected is None or set(value) != expected:
+    if mode == "release_artifact":
+        findings.append(_finding("measurement_receipt_binding_invalid", RETIRED_RELEASE_ARTIFACT))
+        return
+    if mode != "live_url" or set(value) != LIVE_BINDING_FIELDS:
         findings.append(_finding("measurement_receipt_binding_invalid", "article_binding fields or mode are invalid"))
-        return None
+        return
     url = value.get("canonical_url")
     path = value.get("normalized_path")
     if not _canonical_url_path(url, path):
         findings.append(_finding("measurement_receipt_binding_invalid", "canonical_url and normalized_path must be the same canonical HTTPS path"))
-    if mode == "live_url":
-        verified_at = _timestamp(
-            value.get("verified_at"),
-            "article_binding.verified_at",
-            findings,
-            code="measurement_receipt_binding_invalid",
-        )
-        if collected_at is not None and verified_at is not None and verified_at > collected_at:
-            findings.append(
-                _finding(
-                    "measurement_receipt_binding_invalid",
-                    "article_binding.verified_at cannot be later than collected_at",
-                )
+    verified_at = _timestamp(
+        value.get("verified_at"),
+        "article_binding.verified_at",
+        findings,
+        code="measurement_receipt_binding_invalid",
+    )
+    if collected_at is not None and verified_at is not None and verified_at > collected_at:
+        findings.append(
+            _finding(
+                "measurement_receipt_binding_invalid",
+                "article_binding.verified_at cannot be later than collected_at",
             )
-        if value.get("verification_method") != "live_canonical_observation":
-            findings.append(_finding("measurement_receipt_binding_invalid", "live_url verification_method is invalid"))
-        limitations = value.get("limitations")
-        if not _string_list(limitations) or not any("no local release artifact was available" in item.casefold() for item in limitations):
-            findings.append(_finding("measurement_receipt_binding_invalid", "live_url limitations must state that no local release artifact was available"))
-    return str(mode)
+        )
+    if value.get("verification_method") != "live_canonical_observation":
+        findings.append(_finding("measurement_receipt_binding_invalid", "live_url verification_method is invalid"))
+    limitations = value.get("limitations")
+    if not _string_list(limitations) or not any("no local release artifact was available" in item.casefold() for item in limitations):
+        findings.append(_finding("measurement_receipt_binding_invalid", "live_url limitations must state that no local release artifact was available"))
 
 
 def _canonical_url_path(url: Any, normalized_path: Any) -> bool:
@@ -841,9 +754,7 @@ def _validate_scope(value: Any, findings: list[Finding]) -> None:
 
 
 def _validate_artifacts(
-    receipt: Mapping[str, Any], root: Path, article_path: str | Path | None,
-    final_bom_path: str | Path | None, report_path: str | Path | None,
-    mode: str | None, findings: list[Finding],
+    receipt: Mapping[str, Any], root: Path, report_path: str | Path | None, findings: list[Finding],
 ) -> None:
     report = receipt.get("performance_report")
     verified_report_path = _verify_row(
@@ -860,28 +771,6 @@ def _validate_artifacts(
         )
     if report_path is not None:
         _compare_optional_path(report, report_path, root, "performance_report", findings)
-    binding = receipt.get("article_binding")
-    if mode == "release_artifact" and isinstance(binding, Mapping):
-        article = binding.get("article")
-        bom = binding.get("final_bom")
-        _verify_row(article, root, "article_binding.article", findings)
-        _verify_row(bom, root, "article_binding.final_bom", findings)
-        if article_path is not None:
-            _compare_optional_path(article, article_path, root, "article", findings)
-            _compare_optional_path(bom, final_bom_path, root, "final_bom", findings)
-        try:
-            if isinstance(article, Mapping) and isinstance(bom, Mapping):
-                bom_path = resolve_artifact(bom.get("path"), workspace_root=root)
-                _validate_final_bom(
-                    bom_path,
-                    article,
-                    root,
-                    normalized_path=binding.get("normalized_path"),
-                )
-        except (OSError, UnicodeError, ValueError):
-            findings.append(_finding("measurement_receipt_binding_invalid", "stored final BOM is not final or does not bind the stored article snapshot"))
-    elif mode == "live_url" and (article_path is not None or final_bom_path is not None):
-        findings.append(_finding("measurement_receipt_path_mismatch", "live_url receipt cannot be checked against article or BOM paths"))
     raw_rows = receipt.get("raw_data_artifacts")
     if not isinstance(raw_rows, list):
         findings.append(_finding("measurement_receipt_artifact_invalid", "raw_data_artifacts must be a list"))
@@ -1536,14 +1425,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     build = subparsers.add_parser("build")
     build.add_argument("--metadata", required=True)
     build.add_argument("--performance-report", required=True)
-    build.add_argument("--article")
-    build.add_argument("--final-bom")
     build.add_argument("--output", required=True)
     build.add_argument("--workspace-root", default=".")
     check = subparsers.add_parser("check")
     check.add_argument("receipt")
-    check.add_argument("--article")
-    check.add_argument("--final-bom")
     check.add_argument("--performance-report")
     check.add_argument("--workspace-root", default=".")
     check.add_argument("--fail-on", choices=("error", "warning", "none"), default="error")
@@ -1555,10 +1440,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "metadata": args.metadata,
                 "performance_report": args.performance_report,
             }
-            if args.article:
-                inputs["article"] = args.article
-            if args.final_bom:
-                inputs["final_bom"] = args.final_bom
             raw_rows = metadata.get("raw_data_artifacts") if isinstance(metadata, Mapping) else None
             if isinstance(raw_rows, list):
                 root = Path(args.workspace_root).resolve()
@@ -1566,12 +1447,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     if isinstance(row, Mapping) and isinstance(row.get("path"), str):
                         inputs[f"raw_data_artifact_{index}"] = root / row["path"]
             validate_governance_output_path(args.output, inputs=inputs)
-            receipt = build_receipt(metadata, args.performance_report, args.workspace_root, args.article, args.final_bom)
+            receipt = build_receipt(metadata, args.performance_report, args.workspace_root)
             _validate_strict_json_output(receipt)
             atomic_write_json(args.output, receipt)
             return 0
         receipt = _read_json(args.receipt, "receipt")
-        findings = check_receipt(receipt, args.workspace_root, args.article, args.final_bom, args.performance_report)
+        findings = check_receipt(receipt, args.workspace_root, args.performance_report)
         print(json.dumps(findings, ensure_ascii=True, indent=2, sort_keys=True, allow_nan=False))
         return 1 if should_fail(findings, args.fail_on) else 0
     except ValueError as error:

@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-import shutil
 import subprocess
 import sys
 from datetime import date
@@ -17,11 +16,6 @@ from data_sources.modules.post_publish_measurement_receipt import (
     build_receipt,
     check_receipt,
 )
-
-# An archived final simpro-blog-assembly-bom/v3 and every file it binds, recorded once with the
-# retired assembly builder (2026-10-15) and attested with this key. Byte-exact (.gitattributes).
-ARCHIVED_BOM_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "archived_assembly_bom"
-ARCHIVED_BOM_ATTESTATION_KEY = "archived-assembly-bom-fixture-test-key-0001"
 
 
 def _write(path: Path, content: str) -> Path:
@@ -94,7 +88,7 @@ def _source(source_id: str, page_filter: dict[str, object], *, status: str = "ob
     }
 
 
-def _metadata(*, mode: str = "release_artifact", status: str = "observed") -> dict[str, object]:
+def _metadata(*, mode: str = "live_url", status: str = "observed") -> dict[str, object]:
     url = "https://www.example.com/blog/scheduling-guide/"
     binding: dict[str, object] = {
         "mode": mode,
@@ -147,25 +141,20 @@ def artifacts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Path
         "current_utc_date",
         lambda: date(2026, 8, 11),
     )
-    monkeypatch.setenv("SEOMACHINE_ARTIFACT_ATTESTATION_KEY", ARCHIVED_BOM_ATTESTATION_KEY)
-    shutil.copytree(ARCHIVED_BOM_FIXTURE, tmp_path, dirs_exist_ok=True)
-    bom = tmp_path / "research" / "final-bom.json"
-    article = tmp_path / "drafts" / "scheduling-guide-2026-08-11.md"
+    article = _write(tmp_path / "drafts" / "scheduling-guide-2026-08-11.md", "# Scheduling guide\n")
     raw_data = _write(tmp_path / "research" / "raw-gsc.json", '{"rows": []}\n')
     report = _write(
         tmp_path / "research" / "performance.md",
         _observed_report(),
     )
-    return {"article": article, "raw_data": raw_data, "report": report, "bom": bom}
+    return {"article": article, "raw_data": raw_data, "report": report}
 
 
-def _release_receipt(artifacts: dict[str, Path]) -> dict[str, object]:
+def _receipt(artifacts: dict[str, Path]) -> dict[str, object]:
     return build_receipt(
         _metadata(),
         artifacts["report"],
         artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
     )
 
 
@@ -177,76 +166,11 @@ def _assert_report_rejected(
             metadata or _metadata(),
             artifacts["report"],
             artifacts["article"].parents[1],
-            article_path=artifacts["article"],
-            final_bom_path=artifacts["bom"],
         )
 
 
 def _rule_ids(findings: list[dict[str, object]]) -> set[str]:
     return {str(finding["rule_id"]) for finding in findings}
-
-
-def test_builds_valid_release_artifact_observed_receipt(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
-    root = artifacts["article"].parents[1]
-
-    assert receipt["schema"] == "simpro-post-publish-measurement-receipt/v1"
-    assert receipt["verification_scope"] == "recorded_observation_metadata"
-    assert receipt["article_binding"]["article"] == {"path": artifacts["article"].relative_to(root).as_posix(), "sha256": _sha256(artifacts["article"])}
-    assert receipt["article_binding"]["final_bom"] == {"path": "research/final-bom.json", "sha256": _sha256(artifacts["bom"])}
-    assert receipt["performance_report"] == {"path": "research/performance.md", "sha256": _sha256(artifacts["report"])}
-    assert check_receipt(receipt, artifacts["article"].parents[1]) == []
-
-
-def test_builder_rejects_lookalike_final_bom(artifacts: dict[str, Path]):
-    root = artifacts["article"].parents[1]
-    lookalike = root / "research" / "lookalike-final-bom.json"
-    _write(
-        lookalike,
-        json.dumps(
-            {
-                "schema": "simpro-blog-assembly-bom/v1",
-                "lifecycle_state": "final",
-                "artifacts": {
-                    "article": {
-                        "path": artifacts["article"].relative_to(root).as_posix(),
-                        "sha256": _sha256(artifacts["article"]),
-                    }
-                },
-            },
-            indent=2,
-        )
-        + "\n",
-    )
-
-    with pytest.raises(ValueError, match="strict final"):
-        build_receipt(
-            _metadata(),
-            artifacts["report"],
-            root,
-            article_path=artifacts["article"],
-            final_bom_path=lookalike,
-        )
-
-
-def test_builder_non_object_bom_error_names_current_and_archived_schemas(
-    artifacts: dict[str, Path],
-):
-    root = artifacts["article"].parents[1]
-    non_object = _write(root / "research" / "non-object-final-bom.json", "[]\n")
-
-    with pytest.raises(ValueError) as raised:
-        build_receipt(
-            _metadata(),
-            artifacts["report"],
-            root,
-            article_path=artifacts["article"],
-            final_bom_path=non_object,
-        )
-
-    message = str(raised.value)
-    assert "simpro-blog-assembly-bom/v3" in message
-    assert "archived final simpro-blog-assembly-bom/v1/simpro-blog-assembly-bom/v2" in message
 
 
 def test_builds_valid_live_url_observed_receipt_without_local_artifacts(artifacts: dict[str, Path]):
@@ -259,7 +183,7 @@ def test_builds_valid_live_url_observed_receipt_without_local_artifacts(artifact
 
 def test_builds_valid_fully_blocked_receipt(artifacts: dict[str, Path]):
     artifacts["report"].write_text(_blocked_report(), encoding="utf-8")
-    receipt = build_receipt(_metadata(status="blocked"), artifacts["report"], artifacts["article"].parents[1], article_path=artifacts["article"], final_bom_path=artifacts["bom"])
+    receipt = build_receipt(_metadata(status="blocked"), artifacts["report"], artifacts["article"].parents[1],)
 
     assert receipt["optimization_recommendation"] is None
     assert check_receipt(receipt, artifacts["article"].parents[1]) == []
@@ -348,8 +272,6 @@ def test_accepts_partial_observation_when_blocked_lane_metrics_are_omitted(
         metadata,
         artifacts["report"],
         artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
     )
 
     assert receipt["status"] == "observed"
@@ -481,64 +403,26 @@ def test_rejects_report_contract_evidence_hidden_in_code_or_comments(
 
 
 def test_rejects_self_hash_tampering_even_after_semantic_rehash(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["receipt_hash"] = "0" * 64
     assert "measurement_receipt_hash_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["status"] = "blocked"
     receipt["receipt_hash"] = canonical_json_sha256({key: value for key, value in receipt.items() if key != "receipt_hash"})
     assert "measurement_receipt_status_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
 
-@pytest.mark.parametrize("artifact_name", ["article", "bom", "report", "raw_data"])
+@pytest.mark.parametrize("artifact_name", ["report", "raw_data"])
 def test_rejects_mutated_bound_artifacts(artifacts: dict[str, Path], artifact_name: str):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     artifacts[artifact_name].write_text("mutated\n", encoding="utf-8")
 
     assert "measurement_receipt_artifact_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
 
-def test_rejects_optional_path_mismatch_and_partial_release_pairs(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
-    other = _write(artifacts["article"].parents[1] / "articles" / "other.md", "# Other\n")
-
-    findings = check_receipt(receipt, artifacts["article"].parents[1], article_path=other)
-    assert "measurement_receipt_path_mismatch" in _rule_ids(findings)
-    with pytest.raises(ValueError, match="both article_path and final_bom_path"):
-        build_receipt(_metadata(), artifacts["report"], artifacts["article"].parents[1], article_path=artifacts["article"])
-    assert "measurement_receipt_path_mismatch" in _rule_ids(
-        check_receipt(receipt, artifacts["article"].parents[1], final_bom_path=artifacts["bom"])
-    )
-
-
-def test_rejects_each_optional_artifact_path_mismatch(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
-    root = artifacts["article"].parents[1]
-    other_bom = _write(root / "research" / "other-bom.json", "{}\n")
-    other_report = _write(root / "research" / "other-report.md", "# Other\n")
-
-    assert "measurement_receipt_path_mismatch" in _rule_ids(
-        check_receipt(receipt, root, article_path=artifacts["article"], final_bom_path=other_bom)
-    )
-    assert "measurement_receipt_path_mismatch" in _rule_ids(
-        check_receipt(receipt, root, performance_report_path=other_report)
-    )
-
-
-def test_live_url_builder_rejects_local_release_arguments(artifacts: dict[str, Path]):
-    with pytest.raises(ValueError, match="live_url receipts cannot"):
-        build_receipt(
-            _metadata(mode="live_url"),
-            artifacts["report"],
-            artifacts["article"].parents[1],
-            article_path=artifacts["article"],
-            final_bom_path=artifacts["bom"],
-        )
-
-
 def test_rejects_url_path_and_measurement_window_contract_breaks(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["article_binding"]["normalized_path"] = "/wrong/"
     assert "measurement_receipt_binding_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
@@ -547,32 +431,9 @@ def test_rejects_url_path_and_measurement_window_contract_breaks(artifacts: dict
         {"start_date": "2026-08-07", "end_date": "2026-08-13"},
         {"start_date": "2026-08-09", "end_date": "2026-08-14"},
     ):
-        receipt = _release_receipt(artifacts)
+        receipt = _receipt(artifacts)
         receipt["measurement_windows"]["comparison"] = comparison
         assert "measurement_receipt_windows_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
-
-
-def test_release_binding_rejects_a_different_url_even_when_its_filters_match(
-    artifacts: dict[str, Path],
-):
-    receipt = _release_receipt(artifacts)
-    receipt["article_binding"]["canonical_url"] = (
-        "https://www.example.com/blog/different-page/"
-    )
-    receipt["article_binding"]["normalized_path"] = "/blog/different-page/"
-    receipt["sources"]["gsc"][0]["filters"]["page"] = (
-        "https://www.example.com/blog/different-page/"
-    )
-    receipt["sources"]["ga4"][0]["filters"]["page_path"] = (
-        "/blog/different-page/"
-    )
-    receipt["receipt_hash"] = canonical_json_sha256(
-        {key: value for key, value in receipt.items() if key != "receipt_hash"}
-    )
-
-    assert "measurement_receipt_binding_invalid" in _rule_ids(
-        check_receipt(receipt, artifacts["article"].parents[1])
-    )
 
 
 @pytest.mark.parametrize(
@@ -599,7 +460,7 @@ def test_release_binding_rejects_a_different_url_even_when_its_filters_match(
 def test_rejects_malformed_or_encoded_noncanonical_url_identity(
     artifacts: dict[str, Path], canonical_url: str, normalized_path: str
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["article_binding"]["canonical_url"] = canonical_url
     receipt["article_binding"]["normalized_path"] = normalized_path
     receipt["receipt_hash"] = canonical_json_sha256(
@@ -612,7 +473,7 @@ def test_rejects_malformed_or_encoded_noncanonical_url_identity(
 
 
 def test_requires_observed_first_party_evidence_and_valid_source_rows(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["status"] = "blocked"
     receipt["sources"]["gsc"][0]["blockers"] = [{"code": "denied", "detail": "Denied."}]
     receipt["sources"]["ga4"][0]["status"] = "blocked"
@@ -620,7 +481,7 @@ def test_requires_observed_first_party_evidence_and_valid_source_rows(artifacts:
     receipt["sources"]["third_party_context"] = [_source("independent_context", {"target": "https://www.example.com/blog/scheduling-guide/"})]
     assert "measurement_receipt_status_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"].append(copy.deepcopy(receipt["sources"]["gsc"][0]))
     receipt["sources"]["gsc"][0].pop("property_id")
     receipt["sources"]["ga4"][0]["retrieved_at"] = "2026-08-21T12:00:00+00:00"
@@ -630,7 +491,7 @@ def test_requires_observed_first_party_evidence_and_valid_source_rows(artifacts:
 def test_rejects_mixed_statuses_within_one_source_lane(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     blocked_row = copy.deepcopy(receipt["sources"]["gsc"][0])
     blocked_row.update(
         {
@@ -647,17 +508,17 @@ def test_rejects_mixed_statuses_within_one_source_lane(
 
 
 def test_rejects_missing_filters_and_noncanonical_source_filter(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0].pop("filters")
     assert "measurement_receipt_sources_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["ga4"][0]["filters"] = {"page_path": "/wrong/"}
     assert "measurement_receipt_sources_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
 
 def test_requires_specific_blockers_and_forbids_blocked_recommendation(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["status"] = "blocked"
     for lane in ("gsc", "ga4"):
         receipt["sources"][lane][0]["status"] = "blocked"
@@ -668,7 +529,7 @@ def test_requires_specific_blockers_and_forbids_blocked_recommendation(artifacts
 
 
 def test_rejects_blocked_receipt_with_empty_first_party_blockers(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["status"] = "blocked"
     receipt["optimization_recommendation"] = None
     for lane in ("gsc", "ga4"):
@@ -688,14 +549,14 @@ def test_rejects_blocked_receipt_with_empty_first_party_blockers(artifacts: dict
     ],
 )
 def test_rejects_unknown_malformed_and_unsupported_predictive_fields(artifacts: dict[str, Path], mutation):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     mutation(receipt)
 
     assert check_receipt(receipt, artifacts["article"].parents[1])
 
 
 def test_rejects_unsupported_causal_field_independently(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["optimization_recommendation"]["causal_claim"] = "The update caused growth."
 
     assert "measurement_receipt_prohibited_field" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
@@ -747,7 +608,7 @@ def test_rejects_unsupported_causal_field_independently(artifacts: dict[str, Pat
 def test_rejects_forecast_or_causal_recommendation_prose(
     artifacts: dict[str, Path], summary: str
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["optimization_recommendation"]["summary"] = summary
     receipt["receipt_hash"] = canonical_json_sha256(
         {key: value for key, value in receipt.items() if key != "receipt_hash"}
@@ -776,8 +637,6 @@ def test_allows_legitimate_forecasting_software_topic_language(
         metadata,
         artifacts["report"],
         artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
     )
 
     assert check_receipt(receipt, artifacts["article"].parents[1]) == []
@@ -786,7 +645,7 @@ def test_allows_legitimate_forecasting_software_topic_language(
 def test_allows_nonassertive_recommendation_hypothesis(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["optimization_recommendation"]["summary"] = (
         "Review whether traffic gains are attributable to the rewrite."
     )
@@ -818,7 +677,7 @@ def test_allows_nonassertive_recommendation_hypothesis(
 def test_allows_noncausal_scope_language(
     artifacts: dict[str, Path], text: str
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["measurement_scope"]["business_objective"] = text
     receipt["receipt_hash"] = canonical_json_sha256(
         {key: value for key, value in receipt.items() if key != "receipt_hash"}
@@ -839,7 +698,7 @@ def test_allows_noncausal_scope_language(
 def test_rejects_forecast_or_causal_assertions_in_any_receipt_prose(
     artifacts: dict[str, Path], target: str, assertion: str
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     if target == "source_limitation":
         receipt["sources"]["ga4"][0]["limitations"] = [assertion]
     elif target == "blocker_detail":
@@ -881,7 +740,7 @@ def test_rejects_forecast_or_causal_assertions_in_any_receipt_prose(
 def test_rejects_action_text_disguised_as_a_source_blocker(
     artifacts: dict[str, Path], detail: str
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["status"] = "blocked"
     receipt["sources"]["gsc"][0]["blockers"] = [
         {"code": "access_denied", "detail": detail}
@@ -922,8 +781,6 @@ def test_allows_specific_action_free_source_blockers(
         metadata,
         artifacts["report"],
         artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
     )
 
     assert check_receipt(receipt, artifacts["article"].parents[1]) == []
@@ -934,7 +791,7 @@ def test_rejects_future_windows_and_post_collection_observation_timestamps(
 ):
     root = artifacts["article"].parents[1]
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["measurement_windows"]["primary"] = {
         "start_date": "2026-08-16",
         "end_date": "2026-08-22",
@@ -947,7 +804,7 @@ def test_rejects_future_windows_and_post_collection_observation_timestamps(
         check_receipt(receipt, root)
     )
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["retrieved_at"] = "2026-08-21T12:31:00Z"
     assert "measurement_receipt_sources_invalid" in _rule_ids(
         check_receipt(receipt, root)
@@ -963,13 +820,13 @@ def test_rejects_future_windows_and_post_collection_observation_timestamps(
         check_receipt(live, root)
     )
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["collected_at"] = "2099-01-01T00:00:00Z"
     assert "measurement_receipt_schema_invalid" in _rule_ids(
         check_receipt(receipt, root)
     )
 
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["retrieved_at"] = "2026-08-14T23:59:59Z"
     assert "measurement_receipt_sources_invalid" in _rule_ids(
         check_receipt(receipt, root)
@@ -986,8 +843,6 @@ def test_raw_data_artifacts_remain_optional_for_observed_receipts(
         metadata,
         artifacts["report"],
         artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
     )
 
     assert receipt["raw_data_artifacts"] == []
@@ -995,7 +850,7 @@ def test_raw_data_artifacts_remain_optional_for_observed_receipts(
 
 
 def test_allows_third_party_context_filter_bound_to_normalized_path(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["third_party_context"] = [
         _source("independent_serp_context", {"target": "/blog/scheduling-guide/"})
     ]
@@ -1005,7 +860,7 @@ def test_allows_third_party_context_filter_bound_to_normalized_path(artifacts: d
 
 
 def test_rejects_unknown_artifact_and_generic_recommendation_fields_after_rehash(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["performance_report"]["unexpected"] = True
     receipt["optimization_recommendation"]["recommendation"] = "Do more."
     receipt["receipt_hash"] = canonical_json_sha256({key: value for key, value in receipt.items() if key != "receipt_hash"})
@@ -1016,7 +871,7 @@ def test_rejects_unknown_artifact_and_generic_recommendation_fields_after_rehash
 
 
 def test_rejects_unhashable_third_party_target_without_raising(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["third_party_context"] = [
         _source("independent_serp_context", {"target": ["/blog/scheduling-guide/"]})
     ]
@@ -1024,40 +879,16 @@ def test_rejects_unhashable_third_party_target_without_raising(artifacts: dict[s
     assert "measurement_receipt_sources_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
 
-def test_builder_rejects_release_metadata_computed_rows_and_copies_metadata(artifacts: dict[str, Path]):
-    metadata = _metadata()
-    metadata["article_binding"]["article"] = {"path": "articles/measurement.md", "sha256": "0" * 64}
-    with pytest.raises(ValueError, match="cannot contain computed"):
-        build_receipt(
-            metadata,
-            artifacts["report"],
-            artifacts["article"].parents[1],
-            article_path=artifacts["article"],
-            final_bom_path=artifacts["bom"],
-        )
-
-    metadata = _metadata()
-    receipt = build_receipt(
-        metadata,
-        artifacts["report"],
-        artifacts["article"].parents[1],
-        article_path=artifacts["article"],
-        final_bom_path=artifacts["bom"],
-    )
-    metadata["sources"]["gsc"][0]["filters"]["page"] = "https://changed.example/"
-    assert receipt["sources"]["gsc"][0]["filters"]["page"] == "https://www.example.com/blog/scheduling-guide/"
-
-
 @pytest.mark.parametrize("normalized_path", ["/blog/../measurement/", "/blog\\measurement/", "/blog/measurement path/"])
 def test_rejects_noncanonical_normalized_paths(artifacts: dict[str, Path], normalized_path: str):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["article_binding"]["normalized_path"] = normalized_path
 
     assert "measurement_receipt_binding_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
 
 
 def test_rejects_unhashable_recommendation_basis_lane_without_raising(artifacts: dict[str, Path]):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["optimization_recommendation"]["basis_lanes"] = [{"lane": "gsc"}]
 
     assert "measurement_receipt_recommendation_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
@@ -1066,7 +897,7 @@ def test_rejects_unhashable_recommendation_basis_lane_without_raising(artifacts:
 def test_check_receipt_returns_findings_for_non_json_python_values(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["status"] = {"observed"}
 
     findings = check_receipt(receipt, artifacts["article"].parents[1])
@@ -1088,7 +919,7 @@ def test_check_receipt_returns_findings_for_non_json_python_values(
 def test_check_receipt_returns_findings_for_json_container_values(
     artifacts: dict[str, Path], target: str, expected_rule: str, malformed_value: object
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     if target == "receipt_status":
         receipt["status"] = malformed_value
     elif target == "source_status":
@@ -1119,7 +950,7 @@ def test_check_receipt_returns_findings_for_json_container_values(
     ],
 )
 def test_rejects_normalized_prohibited_field_names_after_rehash(artifacts: dict[str, Path], field_name: str):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["optimization_recommendation"][field_name] = "unsupported"
     receipt["receipt_hash"] = canonical_json_sha256({key: value for key, value in receipt.items() if key != "receipt_hash"})
 
@@ -1129,7 +960,7 @@ def test_rejects_normalized_prohibited_field_names_after_rehash(artifacts: dict[
 def test_rejects_projected_fields_hidden_in_flexible_source_filters(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["filters"]["projected_clicks"] = 500
     receipt["receipt_hash"] = canonical_json_sha256(
         {key: value for key, value in receipt.items() if key != "receipt_hash"}
@@ -1143,7 +974,7 @@ def test_rejects_projected_fields_hidden_in_flexible_source_filters(
 def test_check_receipt_returns_findings_for_recursive_python_mapping(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     recursive: dict[str, object] = {}
     recursive["self"] = recursive
     receipt["measurement_scope"]["owner"] = recursive
@@ -1157,7 +988,7 @@ def test_check_receipt_returns_findings_for_recursive_python_mapping(
 def test_check_receipt_returns_findings_for_deep_python_containers(
     artifacts: dict[str, Path],
 ):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     nested: object = None
     for _ in range(1500):
         nested = [nested]
@@ -1201,7 +1032,7 @@ def test_cli_rejects_deep_json_without_traceback(
 
 @pytest.mark.parametrize("filter_value", [float("nan"), float("inf"), float("-inf"), [float("nan")], [float("inf")]])
 def test_rejects_nonfinite_filter_values(artifacts: dict[str, Path], filter_value: object):
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["sources"]["gsc"][0]["filters"] = {"page": "https://www.example.com/blog/scheduling-guide/", "metric": filter_value}
 
     assert "measurement_receipt_sources_invalid" in _rule_ids(check_receipt(receipt, artifacts["article"].parents[1]))
@@ -1210,7 +1041,7 @@ def test_rejects_nonfinite_filter_values(artifacts: dict[str, Path], filter_valu
 def test_cli_check_malformed_container_emits_json_findings_without_traceback(artifacts: dict[str, Path]):
     root = artifacts["article"].parents[1]
     receipt_path = root / "research" / "malformed-receipt.json"
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt["status"] = []
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
 
@@ -1237,7 +1068,7 @@ def test_cli_check_malformed_container_emits_json_findings_without_traceback(art
 def test_cli_rejects_nonstandard_json_constants(artifacts: dict[str, Path]):
     root = artifacts["article"].parents[1]
     receipt_path = root / "research" / "nonstandard-receipt.json"
-    receipt = _release_receipt(artifacts)
+    receipt = _receipt(artifacts)
     receipt_path.write_text(
         json.dumps(receipt).replace('"status": "observed"', '"status": NaN'),
         encoding="utf-8",
@@ -1274,8 +1105,6 @@ def test_cli_build_and_check_and_tamper_failure(artifacts: dict[str, Path]):
         "build",
         "--metadata", str(metadata_path),
         "--performance-report", str(artifacts["report"]),
-        "--article", str(artifacts["article"]),
-        "--final-bom", str(artifacts["bom"]),
         "--output", str(receipt_path),
         "--workspace-root", str(root),
     ]
@@ -1288,3 +1117,38 @@ def test_cli_build_and_check_and_tamper_failure(artifacts: dict[str, Path]):
     receipt["status"] = "blocked"
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
     assert subprocess.run(check_command, cwd=repo_root, capture_output=True, text=True).returncode != 0
+
+
+def test_builder_copies_metadata_instead_of_aliasing_it(artifacts: dict[str, Path]):
+    metadata = _metadata()
+    receipt = build_receipt(metadata, artifacts["report"], artifacts["article"].parents[1])
+    metadata["sources"]["gsc"][0]["filters"]["page"] = "https://changed.example/"
+    assert receipt["sources"]["gsc"][0]["filters"]["page"] == "https://www.example.com/blog/scheduling-guide/"
+
+
+def test_rejects_a_performance_report_path_mismatch(artifacts: dict[str, Path]):
+    receipt = _receipt(artifacts)
+    root = artifacts["article"].parents[1]
+    other_report = _write(root / "research" / "other-report.md", "# Other\n")
+    assert "measurement_receipt_path_mismatch" in _rule_ids(
+        check_receipt(receipt, root, performance_report_path=other_report)
+    )
+
+
+def test_archived_bom_release_artifact_receipts_are_retired(artifacts: dict[str, Path]):
+    root = artifacts["article"].parents[1]
+    with pytest.raises(ValueError, match="release_artifact receipts are retired"):
+        build_receipt(_metadata(mode="release_artifact"), artifacts["report"], root)
+
+    receipt = _receipt(artifacts)
+    receipt["article_binding"] = {
+        "mode": "release_artifact",
+        "canonical_url": "https://www.example.com/blog/scheduling-guide/",
+        "normalized_path": "/blog/scheduling-guide/",
+        "article": {"path": "drafts/scheduling-guide-2026-08-11.md", "sha256": "0" * 64},
+        "final_bom": {"path": "research/final-bom.json", "sha256": "0" * 64},
+    }
+    receipt["receipt_hash"] = canonical_json_sha256({key: value for key, value in receipt.items() if key != "receipt_hash"})
+    findings = check_receipt(receipt, root)
+    assert "measurement_receipt_binding_invalid" in _rule_ids(findings)
+    assert any("re-measure with live_url" in str(finding["message"]) for finding in findings)

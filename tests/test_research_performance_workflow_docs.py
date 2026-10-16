@@ -82,11 +82,9 @@ def test_target_receipt_hashes_the_report_before_a_strict_build_and_check() -> N
 def test_target_binding_modes_are_explicit_about_current_release_artifacts_and_legacy_pages() -> None:
     target = section(COMMAND, "Target-Specific Mode")
 
-    assert "release_artifact" in target
-    assert "final BOM" in target
-    assert "live_url" in target
+    assert "Bind every target as `live_url`" in target
     assert "no local release artifact was available" in target
-    assert "sealed editorial-plan URL slug" in target
+    assert "`release_artifact` receipts are retired" in target
 
 
 def test_target_source_lanes_keep_first_party_observation_separate_from_context() -> None:
@@ -122,7 +120,7 @@ def test_performance_agent_keeps_blocked_targets_out_of_observed_opportunity_con
     assert "rejects metrics from a blocked first-party lane" in output_contract
     assert "Only rendered Markdown satisfies the contract" in output_contract
     assert "non-empty observed values" in output_contract
-    assert "sealed editorial-plan URL slug" in output_contract
+    assert "`release_artifact` receipts are retired" in output_contract
 
 
 def test_required_evidence_keeps_blocked_reports_free_of_diagnosis_and_handoffs() -> None:

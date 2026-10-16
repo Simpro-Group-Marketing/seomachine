@@ -73,7 +73,7 @@ def test_rules_state_what_the_release_enforces() -> None:
     assert "`canonicalize_link_identity`" in strategy and "image link never counts" in strategy
     assert "always runs its FAQ policy check" in _read(".claude/rules/faq-answer-quality.md")
     for path in (".claude/commands/research-performance.md", ".claude/agents/performance.md"):
-        assert "archived pre-production final BOM" in _read(path)
+        assert "`release_artifact` receipts are retired" in _read(path)
     faq = _read(".claude/rules/faq-answer-quality.md")
     assert "What the release enforces" in faq
     assert "not a BOM PAA question" in faq

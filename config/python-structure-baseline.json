@@ -104,12 +104,10 @@
     "data_sources/modules/post_publish_measurement_receipt.py": {
       "_blocked_report_is_data_only": 13,
       "_blocked_report_values": 14,
-      "_validate_artifacts": 13,
       "_validate_performance_report": 22,
       "_validate_receipt_prose": 16,
       "_validate_sources": 22,
-      "_validate_windows": 11,
-      "build_receipt": 14
+      "_validate_windows": 11
     },
     "data_sources/modules/proof_claim_binding_guard.py": {
       "_valid_claim_bindings": 14
@@ -233,7 +231,7 @@
     "data_sources/modules/named_feature_status_guard.py": 1187,
     "data_sources/modules/numeric_claim_source_guard.py": 687,
     "data_sources/modules/opportunity_scorer.py": 515,
-    "data_sources/modules/post_publish_measurement_receipt.py": 1583,
+    "data_sources/modules/post_publish_measurement_receipt.py": 1464,
     "data_sources/modules/proof_link_policy.py": 993,
     "data_sources/modules/public_research_link_guard.py": 615,
     "data_sources/modules/readability_scorer.py": 505,
@@ -332,7 +330,7 @@
     "tests/test_p0_structure.py": 19,
     "tests/test_paa_provenance_collection.py": 111,
     "tests/test_paa_provenance_guard.py": 1870,
-    "tests/test_post_publish_measurement_receipt.py": 1290,
+    "tests/test_post_publish_measurement_receipt.py": 1154,
     "tests/test_post_publish_measurement_release_boundary.py": 152,
     "tests/test_proof_link_policy.py": 747,
     "tests/test_proof_sidecar.py": 58,
